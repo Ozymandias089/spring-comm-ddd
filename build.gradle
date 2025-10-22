@@ -1,0 +1,54 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.6'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.y11i'
+version = '0.0.1-SNAPSHOT'
+description = 'spring-comm-ddd'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // ★ 검증 (DTO/요청 바인딩 @Valid)
+    implementation "org.springframework.boot:spring-boot-starter-validation"
+
+    // ★ DB 드라이버 (MariaDB)
+    runtimeOnly "org.mariadb.jdbc:mariadb-java-client"
+
+    // ★ 마이그레이션(Flyway) - 운영권장
+    implementation "org.flywaydb:flyway-core"
+    implementation "org.flywaydb:flyway-mysql"
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // ★ 통합테스트 시 컨테이너로 DB 올리면 편함
+    testImplementation "org.testcontainers:junit-jupiter"
+    testImplementation "org.testcontainers:mariadb"
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
