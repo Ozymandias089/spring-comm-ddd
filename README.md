@@ -80,30 +80,25 @@ runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
 ## 🚧 Upcoming Domains (추후 구현 예정 순서)
 
-1. **Community (서브레딧/게시판 개념)**
-    - `Community`, `CommunityId`, `CommunityRepository`
-    - 게시글(`Post`)에 `communityId` 추가
-    - 아카이브된 커뮤니티엔 글 작성 금지
-
-2. **Comments**
+1. **Comments**
     - `Comment`, `CommentId`, `CommentRepository`
     - `PostId`, `MemberId` 참조
     - 대댓글(parentId) 구조
     - 소프트 삭제(`status=DELETED`)
 
-3. **Votes (Upvote / Downvote)**
+2. **Votes (Upvote / Downvote)**
     - `PostVote`, `CommentVote`
     - 복합 PK(`target_id`, `voter_id`) 유니크
     - `value` = 1 / -1
     - 합산 집계 또는 denormalized counter 방식
 
-4. **Media (Images / Videos)**
+3. **Media (Images / Videos)**
     - `Media`, `MediaId`, `MediaRepository`
     - `ownerId`, `postId` 참조
     - `status`: PENDING → READY / FAILED
     - 게시글 본문 내 첨부 기능
 
-5. **Token / Session**
+4. **Token / Session**
     - RefreshToken 관리, 만료/회전 정책
     - 이메일 인증, 비밀번호 재설정 토큰 등
 
