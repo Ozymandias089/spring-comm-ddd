@@ -63,6 +63,12 @@ public class Post implements AggregateRoot {
     @Version
     private long version;
 
+    @Column(name="up_count", nullable=false)
+    private int upCount = 0;
+
+    @Column(name="down_count", nullable=false)
+    private int downCount = 0;
+
     /** JPA 전용 */
     protected Post() {}
 
@@ -114,6 +120,22 @@ public class Post implements AggregateRoot {
         if (status != PostStatus.ARCHIVED) throw new  IllegalStateException("Only ARCHIVED status can be restored");
         this.status = PostStatus.PUBLISHED;
     }
+
+    public void applyVoteDelta(int oldValue, int newValue){
+        if (oldValue == newValue) return;
+        if (oldValue == 1) upCount--;
+        if (oldValue == -1) downCount--;
+        if (newValue == 1) upCount++;
+        if (newValue == -1) downCount++;
+        if (upCount < 0) upCount = 0;
+        if (downCount < 0) downCount = 0;
+    }
+
+    public int upCount(){ return upCount; }
+
+    public int downCount(){ return downCount; }
+
+    public int score(){ return upCount - downCount; }
 
     /** Check if PostStatus is Archived */
     public void ensureNotArchived(String message) {

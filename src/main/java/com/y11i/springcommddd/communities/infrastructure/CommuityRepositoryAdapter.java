@@ -35,7 +35,6 @@ public class CommuityRepositoryAdapter implements CommunityRepository {
      * @return Returns Community matching parameter
      */
     @Override
-    @Transactional
     public Optional<Community> findById(CommunityId id) {
         return jpaCommunityRepository.findById(id);
     }
@@ -45,7 +44,6 @@ public class CommuityRepositoryAdapter implements CommunityRepository {
      * @return A community matching parameter
      */
     @Override
-    @Transactional
     public Optional<Community> findByCommunityNameKey(CommunityNameKey key) {
         return jpaCommunityRepository.findByCommunityNameKey(key);
     }
@@ -54,7 +52,6 @@ public class CommuityRepositoryAdapter implements CommunityRepository {
      * @return All the Communities as list
      */
     @Override
-    @Transactional
     public List<Community> findAll() {
         return jpaCommunityRepository.findAll();
     }

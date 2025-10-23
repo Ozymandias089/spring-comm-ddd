@@ -62,6 +62,7 @@ public class PostRepositoryAdapter implements PostRepository {
      * @param post Post to Hard delete(do not use it for normal delete post Use case)
      */
     @Override
+    @Transactional
     public void delete(Post post) {
 
     }

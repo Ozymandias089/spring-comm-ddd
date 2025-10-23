@@ -26,13 +26,11 @@ public class MemberRepositoryAdapter implements MemberRepository {
     }
 
     @Override
-    @Transactional
     public Optional<Member> findById(MemberId memberId) {
         return jpaMemberRepository.findById(memberId);
     }
 
     @Override
-    @Transactional
     public Optional<Member> findByEmail(Email email) {
         return jpaMemberRepository.findByEmail(email);
     }
