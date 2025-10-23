@@ -12,9 +12,9 @@ import java.util.Optional;
 @Repository
 @Transactional(readOnly = true)
 public class CommentVoteRepositoryAdapter implements CommentVoteRepository {
-    private final CommentVoteRepository commentVoteRepository;
-    public CommentVoteRepositoryAdapter(CommentVoteRepository commentVoteRepository) {
-        this.commentVoteRepository = commentVoteRepository;
+    private final JpaCommentVoteRepository jpaCommentVoteRepository;
+    public CommentVoteRepositoryAdapter(JpaCommentVoteRepository jpaCommentVoteRepository) {
+        this.jpaCommentVoteRepository = jpaCommentVoteRepository;
     }
 
     /**
@@ -23,7 +23,7 @@ public class CommentVoteRepositoryAdapter implements CommentVoteRepository {
      */
     @Override @Transactional
     public CommentVote save(CommentVote v) {
-        return commentVoteRepository.save(v);
+        return jpaCommentVoteRepository.save(v);
     }
 
     /**
@@ -33,7 +33,7 @@ public class CommentVoteRepositoryAdapter implements CommentVoteRepository {
      */
     @Override
     public Optional<CommentVote> findByCommentIdAndVoterId(CommentId commentId, MemberId voterId) {
-        return commentVoteRepository.findByCommentIdAndVoterId(commentId, voterId);
+        return jpaCommentVoteRepository.findByCommentIdAndVoterId(commentId, voterId);
     }
 
     /**
@@ -41,6 +41,6 @@ public class CommentVoteRepositoryAdapter implements CommentVoteRepository {
      */
     @Override @Transactional
     public void delete(CommentVote v) {
-        commentVoteRepository.delete(v);
+        jpaCommentVoteRepository.delete(v);
     }
 }

@@ -13,9 +13,9 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class PostVoteRepositoryAdapter implements PostVoteRepository {
 
-    private final PostVoteRepository postVoteRepository;
-    public PostVoteRepositoryAdapter(PostVoteRepository postVoteRepository) {
-        this.postVoteRepository = postVoteRepository;
+    private final JpaPostVoteRepository jpaPostVoteRepository;
+    public PostVoteRepositoryAdapter(JpaPostVoteRepository jpaPostVoteRepository) {
+        this.jpaPostVoteRepository = jpaPostVoteRepository;
     }
 
     /**
@@ -24,7 +24,7 @@ public class PostVoteRepositoryAdapter implements PostVoteRepository {
      */
     @Override @Transactional
     public PostVote save(PostVote v) {
-        return postVoteRepository.save(v);
+        return jpaPostVoteRepository.save(v);
     }
 
     /**
@@ -34,7 +34,7 @@ public class PostVoteRepositoryAdapter implements PostVoteRepository {
      */
     @Override
     public Optional<PostVote> findByPostIdAndVoterId(PostId postId, MemberId voterId) {
-        return postVoteRepository.findByPostIdAndVoterId(postId, voterId);
+        return jpaPostVoteRepository.findByPostIdAndVoterId(postId, voterId);
     }
 
     /**
@@ -42,6 +42,6 @@ public class PostVoteRepositoryAdapter implements PostVoteRepository {
      */
     @Override @Transactional
     public void delete(PostVote v) {
-        postVoteRepository.delete(v);
+        jpaPostVoteRepository.delete(v);
     }
 }
