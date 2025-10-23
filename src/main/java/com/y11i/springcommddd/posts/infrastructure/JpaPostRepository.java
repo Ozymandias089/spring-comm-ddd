@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.posts.infrastructure;
 
+import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.Post;
 import com.y11i.springcommddd.posts.domain.PostId;
@@ -14,4 +15,8 @@ import java.util.List;
 public interface JpaPostRepository extends JpaRepository<Post, PostId> {
     List<Post> findByAuthorId(MemberId authorId);
     Page<Post> findByAuthorId(MemberId authorId, Pageable pageable);
+
+    List<Post> findByCommunityId(CommunityId communityId);
+    Page<Post> findByCommunityId(CommunityId communityId, Pageable pageable);
+
 }

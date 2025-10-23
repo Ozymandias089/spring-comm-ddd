@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.posts.domain;
 
+import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.shared.domain.AggregateRoot;
 import jakarta.persistence.*;
@@ -20,6 +21,13 @@ public class Post implements AggregateRoot {
 
     @EmbeddedId
     private PostId postId;
+
+    @Embedded
+    @AttributeOverride(
+            name = "id",
+            column = @Column(name = "community_id", columnDefinition = "BINARY(16)", nullable = false, updatable = false)
+    )
+    private CommunityId communityId;
 
     @Embedded
     @AttributeOverride(
@@ -59,7 +67,7 @@ public class Post implements AggregateRoot {
     protected Post() {}
 
     /** 도메인에서 새 글 만들 때: postId 내부에서 생성 */
-    private Post(MemberId authorId, Title title, Content content) {
+    private Post(CommunityId communityId, MemberId authorId, Title title, Content content) {
         this.postId = PostId.newId();
         this.authorId = Objects.requireNonNull(authorId);
         rename(title);
@@ -68,8 +76,8 @@ public class Post implements AggregateRoot {
     }
 
     /** 퍼블릭 팩토리: 도메인에서 사용 */
-    public static Post create(MemberId authorId, String title, String content) {
-        return new Post(authorId, new Title(title), new Content(content));
+    public static Post create(CommunityId communityId, MemberId authorId, String title, String content) {
+        return new Post(communityId, authorId, new Title(title), new Content(content));
     }
 
     // --- 도메인 메서드 ---
@@ -114,6 +122,7 @@ public class Post implements AggregateRoot {
 
     /** Accessors (Read-only) */
     public PostId postId() { return postId; }
+    public CommunityId communityId() { return communityId; }
     public MemberId authorId() { return authorId; }
     public Title title() { return title; }
     public Content content() { return content; }

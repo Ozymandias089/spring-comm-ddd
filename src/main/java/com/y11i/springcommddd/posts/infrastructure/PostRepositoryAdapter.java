@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.posts.infrastructure;
 
+import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.Post;
 import com.y11i.springcommddd.posts.domain.PostId;
@@ -63,5 +64,24 @@ public class PostRepositoryAdapter implements PostRepository {
     @Override
     public void delete(Post post) {
 
+    }
+
+    /**
+     * @param communityId Id of a Community To find posts by
+     * @return List of all the posts with the id matching parameter
+     */
+    @Override
+    public List<Post> findByCommunityId(CommunityId communityId) {
+        return jpaPostRepository.findByCommunityId(communityId);
+    }
+
+    /**
+     * @param communityId Id of a Community as Object
+     * @param pageable Page object
+     * @return All the posts matching parameter as Page objects
+     */
+    @Override
+    public Page<Post> findByCommunityId(CommunityId communityId, Pageable pageable) {
+        return jpaPostRepository.findByCommunityId(communityId, pageable);
     }
 }
