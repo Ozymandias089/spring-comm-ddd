@@ -67,17 +67,32 @@ public class Member implements AggregateRoot {
         this.passwordResetRequired = false;
     }
 
+    /**
+     * Public Factory. Registers a new Member
+     * @param email Email to log in with
+     * @param displayName A name to display to other users
+     * @param encodedPassword A password which already encoded
+     * @return New Member object mapped with provided parameters
+     */
     public static Member register(String email, String displayName, String encodedPassword) {
         return new Member(new Email(email), new DisplayName(displayName), PasswordHash.fromEncoded(encodedPassword));
     }
 
     // ===== 도메인 동작 =====
+
+    /**
+     * Set a new display name for a Member
+     * @param newDisplayName New Display name to use
+     */
     public void rename(String newDisplayName) {
         ensureNotDeleted("deleted member cannot rename");
         this.displayName = new DisplayName(newDisplayName);
     }
 
-    /** 새 비밀번호 설정(이미 인코딩된 문자열을 주입) */
+    /**
+     * Set a new password. Need to Inject an already encoded string
+     * @param encodedPassword Encoded String of the new password
+     */
     public void setNewPassword(String encodedPassword) {
         ensureNotDeleted("deleted member cannot change password");
         this.passwordHash = PasswordHash.fromEncoded(encodedPassword);
@@ -85,31 +100,50 @@ public class Member implements AggregateRoot {
         this.passwordResetRequired = false;
     }
 
+    /**
+     * Changes the user's Email
+     * @param newEmail New email for the user to log in with
+     */
     public void changeEmail(String newEmail) {
         ensureNotDeleted("deleted member cannot change email");
         this.email = new Email(newEmail);
     }
 
+    /**
+     * Sets target member status to 'SUSPENDED' when member status is not 'DELETED'
+     */
     public void suspend() {
         if (status == MemberStatus.DELETED) throw new IllegalStateException("deleted member cannot be suspended");
         this.status = MemberStatus.SUSPENDED;
     }
 
+    /**
+     * Sets target member status to 'ACTIVE' when member status is not 'DELETED'
+     */
     public void activate() {
         if (status == MemberStatus.DELETED) throw new IllegalStateException("deleted member cannot be activated");
         this.status = MemberStatus.ACTIVE;
     }
 
+    /**
+     * Sets target member status to 'DELETED'
+     */
     public void markDeleted() {
         this.status = MemberStatus.DELETED;
     }
 
-    /** 비밀번호 리셋 요구 플래그 (침해 징후 등) */
+    /**
+     * Flags the password for reset in the events of suspected security breach
+     */
     public void requirePasswordReset() {
         ensureNotDeleted("deleted member cannot be forced to reset password");
         this.passwordResetRequired = true;
     }
 
+    /**
+     * Make sure Member status is not deleted
+     * @param msg Messages to throw when member status is 'DELETED'
+     */
     private void ensureNotDeleted(String msg) {
         if (status == MemberStatus.DELETED) throw new IllegalStateException(msg);
     }

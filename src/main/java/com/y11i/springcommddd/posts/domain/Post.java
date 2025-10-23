@@ -72,7 +72,7 @@ public class Post implements AggregateRoot {
         return new Post(authorId, new Title(title), new Content(content));
     }
 
-    /** --- 도메인 메서드 --- */
+    // --- 도메인 메서드 ---
 
     /** Rename Post - Forbidden on ARCHIVED Status */
     public void rename(String newTitle) {rename(new Title(newTitle));}
