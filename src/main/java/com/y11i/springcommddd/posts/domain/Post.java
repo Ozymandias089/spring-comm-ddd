@@ -13,6 +13,31 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.Instant;
 import java.util.Objects;
 
+/**
+ * 게시글(Post) 애그리게잇 루트.
+ *
+ * <p><b>개요</b><br>
+ * 커뮤니티({@link CommunityId})에 속한 게시글로, 작성자({@link MemberId}),
+ * 제목/본문 값 객체({@link Title}, {@link Content}), 상태({@link PostStatus}),
+ * 공개 시각, 감사 필드, 투표 집계(추천/비추천)를 관리합니다.
+ * </p>
+ *
+ * <p><b>영속성/테이블</b></p>
+ * <ul>
+ *   <li>테이블: {@code posts}</li>
+ *   <li>본문 컬럼: {@code LONGTEXT} (Hibernate {@link SqlTypes#LONGVARCHAR} 매핑)</li>
+ *   <li>감사 필드: {@link #createdAt}, {@link #updatedAt}</li>
+ *   <li>낙관적 락: {@link #version}</li>
+ * </ul>
+ *
+ * <p><b>불변식/규칙</b></p>
+ * <ul>
+ *   <li>{@link Title}, {@link Content}는 null/공백 등 자체 검증을 통과해야 함</li>
+ *   <li>보관({@link PostStatus#ARCHIVED}) 상태에서는 편집/제목변경 금지</li>
+ *   <li>게시(Publish)는 초안({@link PostStatus#DRAFT})에서만 가능</li>
+ *   <li>투표 집계는 0 미만으로 내려가지 않음</li>
+ * </ul>
+ */
 @Entity
 @Table(name = "posts")
 @EntityListeners(AuditingEntityListener.class)
@@ -72,55 +97,122 @@ public class Post implements AggregateRoot {
     /** JPA 전용 */
     protected Post() {}
 
-    /** 도메인에서 새 글 만들 때: postId 내부에서 생성 */
+    /**
+     * 내부 생성자: 새 글을 생성합니다.
+     * <p><b>부작용</b>:
+     * <ul>
+     *   <li>{@link #postId}는 신규 발급</li>
+     *   <li>{@link #status}는 {@link PostStatus#DRAFT}로 초기화</li>
+     *   <li>제목/본문은 검증 후 설정</li>
+     * </ul>
+     * </p>
+     */
     private Post(CommunityId communityId, MemberId authorId, Title title, Content content) {
         this.postId = PostId.newId();
+        this.communityId = Objects.requireNonNull(communityId);
         this.authorId = Objects.requireNonNull(authorId);
         rename(title);
         rewrite(content);
         this.status = PostStatus.DRAFT;
     }
 
-    /** 퍼블릭 팩토리: 도메인에서 사용 */
+    // -----------------------------------------------------
+    // 생성 섹션 (정적 팩토리)
+    // -----------------------------------------------------
+
+    /**
+     * 새 게시글을 생성합니다.
+     *
+     * @param communityId 커뮤니티 식별자
+     * @param authorId 작성자 식별자
+     * @param title 제목 문자열(검증됨)
+     * @param content 본문 문자열(검증됨)
+     * @return 새 {@link Post}
+     * @throws IllegalArgumentException 제목/본문 규칙 위반
+     */
     public static Post create(CommunityId communityId, MemberId authorId, String title, String content) {
         return new Post(communityId, authorId, new Title(title), new Content(content));
     }
 
-    // --- 도메인 메서드 ---
+    // -----------------------------------------------------
+    // 도메인 동작 섹션 (제목/본문/상태 전이/투표 집계)
+    // -----------------------------------------------------
 
-    /** Rename Post - Forbidden on ARCHIVED Status */
+    /**
+     * 제목을 변경합니다. (보관 상태에서 금지)
+     *
+     * @param newTitle 새 제목 문자열
+     * @throws IllegalStateException 보관 상태에서 변경 시도
+     * @throws IllegalArgumentException 제목 규칙 위반
+     */
     public void rename(String newTitle) {rename(new Title(newTitle));}
+
+    /**
+     * 제목을 변경합니다. (보관 상태에서 금지)
+     */
     public void rename(Title newTitle) {
         ensureNotArchived("Cannot rename an Archived Post");
         this.title = newTitle;
     }
 
-    /** Edit contents - Allowed on PUBLISHED status */
+    /**
+     * 본문을 수정합니다. (게시됨 상태도 허용, 단 보관 상태는 금지)
+     *
+     * @param newContent 새 본문 문자열
+     * @throws IllegalStateException 보관 상태에서 변경 시도
+     * @throws IllegalArgumentException 본문 규칙 위반
+     */
     public void rewrite(String newContent) {rewrite(new Content(newContent));}
+
+    /**
+     * 본문을 수정합니다. (보관 상태 금지)
+     */
     public void rewrite(Content newContent) {
         ensureNotArchived("Cannot edit contents of an archived post");
         this.content = newContent;
     }
 
-    /** Publish - only on DRAFT status */
+    /**
+     * 게시(Publish)합니다. (초안 상태에서만 가능)
+     *
+     * <p><b>부작용</b>: 상태가 {@link PostStatus#PUBLISHED}로 전환되고,
+     * {@link #publishedAt}가 현재 시각으로 설정됩니다.</p>
+     *
+     * @throws IllegalStateException DRAFT가 아닌 상태에서 호출한 경우
+     */
     public void publish(){
         if (status != PostStatus.DRAFT) throw new IllegalStateException("Only DRAFT status can be published");
         this.status = PostStatus.PUBLISHED;
         this.publishedAt = Instant.now();
     }
 
-    /** Archive - if already archived: no Action */
+    /**
+     * 보관(Archive)합니다. (이미 보관이면 무시)
+     */
     public void archive(){
         if (status == PostStatus.ARCHIVED) return ;
         this.status = PostStatus.ARCHIVED;
     }
 
-    /** DEBUG - Restore Archived Posts */
+    /**
+     * 보관 상태의 게시글을 복구합니다. (디버그/운영 정책에 따라 제한 가능)
+     *
+     * @throws IllegalStateException 보관 상태가 아닌 경우
+     */
     public void restore() {
         if (status != PostStatus.ARCHIVED) throw new  IllegalStateException("Only ARCHIVED status can be restored");
         this.status = PostStatus.PUBLISHED;
     }
 
+    /**
+     * 투표 변경에 따른 집계값을 갱신합니다.
+     *
+     * <p><b>의도</b>: 이전 값과 새 값을 비교해 up/down 카운트를 정확히 보정합니다.</p>
+     * <p><b>규칙</b>: 값 ∈ {-1, 0, 1}, 결과 카운트는 0 미만 불가.</p>
+     *
+     * @param oldValue 이전 투표값 (-1/0/1)
+     * @param newValue 새로운 투표값 (-1/0/1)
+     */
     public void applyVoteDelta(int oldValue, int newValue){
         if (oldValue == newValue) return;
         if (oldValue == 1) upCount--;
@@ -131,18 +223,24 @@ public class Post implements AggregateRoot {
         if (downCount < 0) downCount = 0;
     }
 
-    public int upCount(){ return upCount; }
+    // -----------------------------------------------------
+    // 내부 검증 섹션
+    // -----------------------------------------------------
 
-    public int downCount(){ return downCount; }
-
-    public int score(){ return upCount - downCount; }
-
-    /** Check if PostStatus is Archived */
+    /**
+     * 게시글이 보관 상태가 아님을 보장합니다.
+     *
+     * @param message 예외 메시지
+     * @throws IllegalStateException 보관 상태인 경우
+     */
     public void ensureNotArchived(String message) {
         if (status == PostStatus.ARCHIVED) throw new IllegalStateException(message);
     }
 
-    /** Accessors (Read-only) */
+    // -----------------------------------------------------
+    // 접근자 섹션 (읽기 전용)
+    // -----------------------------------------------------
+
     public PostId postId() { return postId; }
     public CommunityId communityId() { return communityId; }
     public MemberId authorId() { return authorId; }
@@ -153,5 +251,7 @@ public class Post implements AggregateRoot {
     public Instant createdAt() { return createdAt; }
     public Instant updatedAt() { return updatedAt; }
     public long version() { return version; }
-
+    public int upCount(){ return upCount; }
+    public int downCount(){ return downCount; }
+    public int score(){ return upCount - downCount; }
 }

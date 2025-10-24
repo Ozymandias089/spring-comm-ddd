@@ -1,3 +1,16 @@
 package com.y11i.springcommddd.communities.domain;
 
-public enum CommunityStatus { ACTIVE, ARCHIVED }
+/**
+ * 커뮤니티의 상태.
+ *
+ * <ul>
+ *   <li>{@link #ACTIVE}: 활성</li>
+ *   <li>{@link #ARCHIVED}: 보관(Soft delete 성격)</li>
+ * </ul>
+ */
+public enum CommunityStatus {
+    /** 활성 */
+    ACTIVE,
+    /** 보관 (Soft delete) */
+    ARCHIVED
+}
