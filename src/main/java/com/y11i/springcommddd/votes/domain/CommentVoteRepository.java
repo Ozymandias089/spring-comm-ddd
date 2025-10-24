@@ -3,6 +3,8 @@ package com.y11i.springcommddd.votes.domain;
 import com.y11i.springcommddd.comments.domain.CommentId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -49,4 +51,13 @@ public interface CommentVoteRepository {
      * @param v 삭제할 {@link CommentVote} 객체
      */
     void delete(CommentVote v);
+
+    /**
+     * 여러 댓글에 대한 “나의 투표값”을 한 번에 조회합니다.
+     *
+     * @param voterId 현재 사용자
+     * @param commentIds 화면에 표시할 댓글 ID 목록
+     * @return 존재하는 항목만 반환(미투표 대상은 없음). 각 항목은 -1 또는 +1을 가짐.
+     */
+    List<MyCommentVote> findMyVotesByCommentIds(MemberId voterId, Collection<CommentId> commentIds);
 }

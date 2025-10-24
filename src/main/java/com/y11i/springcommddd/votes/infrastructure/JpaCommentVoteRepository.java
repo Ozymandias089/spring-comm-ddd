@@ -5,9 +5,14 @@ import com.y11i.springcommddd.comments.domain.CommentId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.votes.domain.CommentVote;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Spring Data JPA 기반의 댓글 투표 리포지토리.
@@ -35,4 +40,22 @@ public interface JpaCommentVoteRepository extends JpaRepository<CommentVote, Com
      * @return 일치하는 {@link CommentVote}가 존재하면 반환, 없으면 빈 {@link Optional}
      */
     Optional<CommentVote>  findByCommentIdAndVoterId(CommentId commentId, MemberId voterId);
+
+    /**
+     * 현재 사용자(voterId)의 여러 댓글(commentIds)에 대한 투표값을 배치로 조회.
+     * - 임베디드의 내부 UUID로 비교합니다.
+     */
+    @Query("""
+        select v.commentId.id as id, v.value as value
+        from CommentVote v
+        where v.voterId.id = :voterId
+          and v.commentId.id in :commentIds
+    """)
+    List<CommentVoteEntry> findValuesByVoterAndCommentIds(@Param("voterId") UUID voterId,
+                                                          @Param("commentIds") Collection<UUID> commentIds);
+
+    interface CommentVoteEntry {
+        UUID getId();   // comment_id
+        int getValue(); // -1 or +1
+    }
 }

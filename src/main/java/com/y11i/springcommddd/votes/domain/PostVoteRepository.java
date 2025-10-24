@@ -3,6 +3,8 @@ package com.y11i.springcommddd.votes.domain;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.PostId;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -50,4 +52,14 @@ public interface PostVoteRepository {
      * @param v 삭제할 {@link PostVote} 객체
      */
     void delete(PostVote v);
+
+    /**
+     * 여러 게시글에 대한 “나의 투표값”을 한 번에 조회합니다.
+     *
+     * @param voterId 현재 사용자
+     * @param postIds 화면에 표시할 게시글 ID 목록
+     * @return 존재하는 항목만 반환(미투표 대상은 없음). 각 항목은 -1 또는 +1을 가짐.
+     */
+    List<MyPostVote> findMyVotesByPostIds(MemberId voterId, Collection<PostId> postIds);
+
 }

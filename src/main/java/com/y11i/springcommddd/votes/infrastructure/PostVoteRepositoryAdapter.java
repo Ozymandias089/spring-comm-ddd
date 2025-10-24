@@ -2,12 +2,16 @@ package com.y11i.springcommddd.votes.infrastructure;
 
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.PostId;
+import com.y11i.springcommddd.votes.domain.MyPostVote;
 import com.y11i.springcommddd.votes.domain.PostVote;
 import com.y11i.springcommddd.votes.domain.PostVoteRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * {@link PostVoteRepository}의 인프라스트럭처 계층 구현체.
@@ -61,5 +65,18 @@ public class PostVoteRepositoryAdapter implements PostVoteRepository {
     @Override @Transactional
     public void delete(PostVote v) {
         jpaPostVoteRepository.delete(v);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public List<MyPostVote> findMyVotesByPostIds(MemberId voterId, Collection<PostId> postIds) {
+        if (postIds == null || postIds.isEmpty()) return List.of();
+
+        var postUuids = postIds.stream().map(PostId::id).collect(Collectors.toSet());
+        var rows = jpaPostVoteRepository.findValuesByVoterAndPostIds(voterId.id(), postUuids);
+
+        return rows.stream()
+                .map(r -> new MyPostVote(new PostId(r.getId()), r.getValue()))
+                .toList();
     }
 }

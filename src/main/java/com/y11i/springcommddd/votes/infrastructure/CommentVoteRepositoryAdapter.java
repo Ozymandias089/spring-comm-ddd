@@ -4,10 +4,14 @@ import com.y11i.springcommddd.comments.domain.CommentId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.votes.domain.CommentVote;
 import com.y11i.springcommddd.votes.domain.CommentVoteRepository;
+import com.y11i.springcommddd.votes.domain.MyCommentVote;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * {@link CommentVoteRepository}의 인프라스트럭처 계층 구현체.
@@ -55,5 +59,18 @@ public class CommentVoteRepositoryAdapter implements CommentVoteRepository {
     @Override @Transactional
     public void delete(CommentVote v) {
         jpaCommentVoteRepository.delete(v);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public List<MyCommentVote> findMyVotesByCommentIds(MemberId voterId, Collection<CommentId> commentIds) {
+        if (commentIds == null || commentIds.isEmpty()) return List.of();
+
+        var uuids = commentIds.stream().map(CommentId::id).collect(Collectors.toSet());
+        var rows = jpaCommentVoteRepository.findValuesByVoterAndCommentIds(voterId.id(), uuids);
+
+        return rows.stream()
+                .map(r -> new MyCommentVote(new CommentId(r.getId()), r.getValue()))
+                .toList();
     }
 }

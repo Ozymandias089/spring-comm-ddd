@@ -5,9 +5,14 @@ import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.votes.domain.PostVote;
 import com.y11i.springcommddd.votes.domain.PostVoteId;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Spring Data JPA 기반의 게시글 투표 리포지토리.
@@ -39,4 +44,22 @@ public interface JpaPostVoteRepository extends JpaRepository<PostVote, PostVoteI
      * @return 일치하는 {@link PostVote}가 존재하면 반환, 없으면 비어 있음
      */
     Optional<PostVote> findByPostIdAndVoterId(PostId postId, MemberId voterId);
+
+    /**
+     * 현재 사용자(voterId)의 여러 게시글(postIds)에 대한 투표값을 배치로 조회.
+     * - 성능/호환성을 위해 임베디드의 내부 UUID로 비교합니다.
+     */
+    @Query("""
+        select v.postId.id as id, v.value as value
+        from PostVote v
+        where v.voterId.id = :voterId
+          and v.postId.id in :postIds
+    """)
+    List<PostVoteEntry> findValuesByVoterAndPostIds(@Param("voterId") UUID voterId,
+                                                    @Param("postIds") Collection<UUID> postIds);
+
+    interface PostVoteEntry {
+        UUID getId();   // post_id
+        int getValue(); // -1 or +1
+    }
 }
