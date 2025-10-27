@@ -1,6 +1,7 @@
 package com.y11i.springcommddd.communities.domain;
 
 import com.y11i.springcommddd.shared.domain.AggregateRoot;
+import com.y11i.springcommddd.shared.domain.ImageUrl;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -45,6 +46,14 @@ public class Community implements AggregateRoot {
 
     @EmbeddedId
     private CommunityId communityId;
+
+    @Embedded
+    @AttributeOverride(name="url", column=@Column(name="profile_image_url", length=1024))
+    private ImageUrl profileImage;
+
+    @Embedded
+    @AttributeOverride(name="url", column=@Column(name="banner_image_url", length=1024))
+    private ImageUrl bannerImage;
 
     @Embedded
     private CommunityName communityName;
@@ -134,6 +143,36 @@ public class Community implements AggregateRoot {
         this.status = CommunityStatus.ACTIVE;
     }
 
+    /**
+     * 프로필 사진을 변경합니다.
+     *
+     * <p><b>전제조건</b>: 삭제 상태가 아니어야 합니다.</p>
+     * <p><b>부작용</b>: {@link #profileImage}가 갱신됩니다.</p>
+     *
+     * @param url 새 프로필 사진 URL
+     * @throws IllegalStateException 삭제된 {@link #Community}에 대한 변경시도
+     * @throws IllegalStateException URL 형식 위반
+     */
+    public void changeProfileImage(String url) {
+        ensureNotArchived();
+        this.profileImage = (url == null ? null : new ImageUrl(url));
+    }
+
+    /**
+     * 배너 사진을 변경합니다.
+     *
+     * <p><b>전제조건</b>: 삭제 상태가 아니어야 합니다.</p>
+     * <p><b>부작용</b>: {@link #bannerImage}가 갱신됩니다.</p>
+     *
+     * @param url 새 배너 사진 URL
+     * @throws IllegalStateException 삭제된 {@link #Community}에 대한 변경시도
+     * @throws IllegalStateException URL 형식 위반
+     */
+    public void changeBannerImage(String url) {
+        ensureNotArchived();
+        this.bannerImage = (url == null ? null : new ImageUrl(url));
+    }
+
     // -----------------------------------------------------
     // 내부 검증 섹션
     // -----------------------------------------------------
@@ -153,6 +192,10 @@ public class Community implements AggregateRoot {
 
     /** 커뮤니티 식별자 */
     public CommunityId communityId(){ return communityId; }
+    /** 커뮤니티 프로필 사진 URL */
+    public ImageUrl profileImage(){ return profileImage; }
+    /** 커뮤니티 배너 사진 URL */
+    public ImageUrl bannerImage(){ return bannerImage; }
     /** 표시명 */
     public CommunityName communityName(){ return communityName; }
     /** 이름 키(정규화, 고유) */

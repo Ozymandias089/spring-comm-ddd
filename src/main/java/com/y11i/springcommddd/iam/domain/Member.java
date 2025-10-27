@@ -1,6 +1,7 @@
 package com.y11i.springcommddd.iam.domain;
 
 import com.y11i.springcommddd.shared.domain.AggregateRoot;
+import com.y11i.springcommddd.shared.domain.ImageUrl;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -59,6 +60,14 @@ public class Member implements AggregateRoot {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private MemberStatus status;
+
+    @Embedded
+    @AttributeOverride(name="url", column=@Column(name="profile_image_url", length=1024))
+    private ImageUrl profileImage;
+
+    @Embedded
+    @AttributeOverride(name="url", column=@Column(name="banner_image_url", length=1024))
+    private ImageUrl bannerImage;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -170,6 +179,36 @@ public class Member implements AggregateRoot {
     }
 
     /**
+     * 프로필 사진을 변경합니다.
+     *
+     * <p><b>전제조건</b>: 삭제 상태가 아니어야 합니다.</p>
+     * <p><b>부작용</b>: {@link #profileImage}가 갱신됩니다.</p>
+     *
+     * @param url 새 프로필 사진 URL
+     * @throws IllegalStateException 삭제된 회원에 대한 변경시도
+     * @throws IllegalStateException URL 형식 위반
+     */
+    private void changeProfileImage(String url) {
+        ensureNotDeleted("deleted member cannot change profile image");
+        this.profileImage = (url == null ? null : new ImageUrl(url));
+    }
+
+    /**
+     * 배너 사진을 변경합니다.
+     *
+     * <p><b>전제조건</b>: 삭제 상태가 아니어야 합니다.</p>
+     * <p><b>부작용</b>: {@link #bannerImage}가 갱신됩니다.</p>
+     *
+     * @param url 새 배너 사진 URL
+     * @throws IllegalStateException 삭제된 회원에 대한 변경시도
+     * @throws IllegalStateException URL 형식 위반
+     */
+    private void changeBannerImage(String url) {
+        ensureNotDeleted("deleted member cannot change banner image");
+        this.bannerImage = (url == null ? null : new ImageUrl(url));
+    }
+
+    /**
      * 회원을 일시 정지 상태로 전환합니다.
      *
      * @throws IllegalStateException 삭제된 회원은 정지할 수 없음
@@ -232,4 +271,6 @@ public class Member implements AggregateRoot {
     public PasswordHash passwordHash() { return passwordHash; }
     public Instant passwordUpdatedAt() { return passwordUpdatedAt; }
     public boolean passwordResetRequired() { return passwordResetRequired; }
+    public ImageUrl profileImage() { return profileImage; }
+    public ImageUrl bannerImage() { return bannerImage; }
 }
