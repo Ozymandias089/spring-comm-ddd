@@ -7,7 +7,6 @@ import com.y11i.springcommddd.votes.domain.CommentVote;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,7 +28,6 @@ import java.util.UUID;
  *     <li>{@link CommentVoteRepositoryAdapter}에서 주입받아 사용됨</li>
  * </ul>
  */
-@Repository
 public interface JpaCommentVoteRepository extends JpaRepository<CommentVote, CommentId> {
 
     /**

@@ -4,7 +4,6 @@ import com.y11i.springcommddd.communities.domain.Community;
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.communities.domain.CommunityNameKey;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
@@ -25,7 +24,6 @@ import java.util.Optional;
  * @see JpaRepository
  * @see CommuityRepositoryAdapter
  */
-@Repository
 public interface JpaCommunityRepository extends JpaRepository<Community, CommunityId> {
     /**
      * 커뮤니티 이름 키({@link CommunityNameKey})를 통해 커뮤니티를 조회합니다.
