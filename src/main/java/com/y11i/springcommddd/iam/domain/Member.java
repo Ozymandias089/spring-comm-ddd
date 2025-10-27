@@ -8,7 +8,9 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 회원(Member) 애그리게잇 루트.
@@ -56,6 +58,15 @@ public class Member implements AggregateRoot {
 
     @Embedded
     private DisplayName displayName;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "member_roles",
+            joinColumns = @JoinColumn(name = "member_id", referencedColumnName = "member_id")
+    )
+    @Column(name = "role", length = 50, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Set<MemberRole> roles = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
@@ -107,6 +118,7 @@ public class Member implements AggregateRoot {
         this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash");
         this.passwordUpdatedAt = Instant.now();     // 비번 최초 설정 시각 기록
         this.passwordResetRequired = false;
+        this.roles.add(MemberRole.USER);
     }
 
     // -----------------------------------------------------
@@ -243,6 +255,30 @@ public class Member implements AggregateRoot {
         this.passwordResetRequired = true;
     }
 
+    /**
+     * 멤버에게 전역 역할을 부여합니다.
+     *
+     * @param role 새롭게 부여할 역할
+     * @throws IllegalStateException 삭제된 회원에 대한 변경 시도
+     */
+    public void grantRole(MemberRole role) {
+        ensureNotDeleted("deleted member cannot change role");
+        this.roles.add(Objects.requireNonNull(role));
+    }
+
+    /**
+     * 회원에게 부여된 젼역 역할을 회수합니다.
+     *
+     * @param role 회수할 역할
+     * @throws IllegalStateException 삭제된 회원에 대한 변경 시도
+     * &#064;returns  회수할 역할이 USER인 경우 기본값으로 유지합니다.
+     */
+    public void revokeRole(MemberRole role) {
+        ensureNotDeleted("deleted member cannot change role");
+        if (role == MemberRole.USER) return;
+        this.roles.remove(role);
+    }
+
     // -----------------------------------------------------
     // 내부 검증 섹션
     // -----------------------------------------------------
@@ -257,6 +293,15 @@ public class Member implements AggregateRoot {
         if (status == MemberStatus.DELETED) throw new IllegalStateException(msg);
     }
 
+    /**
+     * 회원에게 전역 역할이 부여되어있는지 검증합니다.
+     * @param role 검증할 역할
+     * @return 결과를 boolean으로 반환합니다.
+     */
+    public boolean hasRole(MemberRole role) {
+        return roles.contains(role);
+    }
+
     // -----------------------------------------------------
     // 접근자 섹션 (읽기 전용)
     // -----------------------------------------------------
@@ -264,6 +309,7 @@ public class Member implements AggregateRoot {
     public MemberId memberId() { return memberId; }
     public Email email() { return email; }
     public DisplayName displayName() { return displayName; }
+    public Set<MemberRole> roles() { return roles; }
     public MemberStatus status() { return status; }
     public Instant createdAt() { return createdAt; }
     public Instant updatedAt() { return updatedAt; }
