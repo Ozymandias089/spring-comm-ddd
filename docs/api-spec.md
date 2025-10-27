@@ -6,7 +6,7 @@ SpringComm는 Reddit과 유사한 커뮤니티형 소셜 서비스로, 헥사고
 * **버전**: v0.1 (Draft)
 * **기반 아키텍처**: Hexagonal (Ports & Adapters), DDD
 * **전송 포맷**: JSON (UTF-8)
-* **인증**: OAuth2/OIDC 기반 토큰 (Bearer) – `iam` 서브도메인에서 발급/검증
+* **인증**: 서버 유지 세션 (Secure HttpOnly 쿠키 기반) – `iam` 서브도메인에서 발급/검증
 * **에러 처리**: RFC 7807 Problem Details 형태의 표준 에러 응답
 
 ## 2. 공통 규칙
@@ -33,7 +33,7 @@ SpringComm는 Reddit과 유사한 커뮤니티형 소셜 서비스로, 헥사고
 ```
 
 ## 3. 인증 & IAM 도메인
-`iam` 도메인은 사용자, 인증 자격, 권한을 다룹니다. 사용자 식별은 `userId` (UUID) 기반이며, Bearer 토큰 내 클레임으로 전달됩니다.
+`iam` 도메인은 사용자, 인증 자격, 권한을 다룹니다. 사용자 식별은 `userId` (UUID) 기반이며, 서버가 발급한 세션 쿠키에 매핑된 서버측 세션 컨텍스트로 확인됩니다. 모든 인증 필요한 요청은 `Cookie: SESSION=<session-id>`와 CSRF 보호를 위한 `X-CSRF-TOKEN` 헤더(상태 변경 시)를 포함해야 합니다.
 
 ### 3.1 회원 가입
 | 항목 | 값 |
@@ -59,10 +59,11 @@ SpringComm는 Reddit과 유사한 커뮤니티형 소셜 서비스로, 헥사고
 ```
 | Errors | `409 Conflict` (username/email 중복), `422 Unprocessable Entity` (검증 실패) |
 
-### 3.2 로그인 / 토큰 발급
-| Method | Path |
+### 3.2 로그인 / 세션 발급
+| 항목 | 값 |
 | --- | --- |
-| `POST` | `/api/v1/iam/tokens` |
+| Method | `POST` |
+| Path | `/api/v1/iam/sessions` |
 | Body |
 ```json
 {
@@ -71,30 +72,46 @@ SpringComm는 Reddit과 유사한 커뮤니티형 소셜 서비스로, 헥사고
 }
 ```
 | Response |
-```json
-{
-  "accessToken": "jwt",
-  "refreshToken": "jwt",
-  "expiresIn": 3600
-}
 ```
+Status: 204 No Content
+Set-Cookie: SESSION=<session-id>; HttpOnly; Secure; SameSite=Lax; Path=/
+Set-Cookie: CSRF-TOKEN=<token>; Secure; SameSite=Lax; Path=/
+```
+| Notes | 로그인 성공 시 본문 없이 세션/CSRF 쿠키가 내려가며, 실패 시 `401 Unauthorized` |
 
-### 3.3 토큰 갱신
+### 3.3 세션 갱신 (슬라이딩 만료)
+| 항목 | 값 |
+| --- | --- |
 | Method | `POST` |
-| Path | `/api/v1/iam/tokens/refresh` |
-| Body |
-```json
-{
-  "refreshToken": "jwt"
-}
+| Path | `/api/v1/iam/sessions/refresh` |
+| Headers |
+```
+Cookie: SESSION=<session-id>
+X-CSRF-TOKEN: <token>
 ```
 | Response |
-```json
-{
-  "accessToken": "jwt",
-  "expiresIn": 3600
-}
 ```
+Status: 204 No Content
+Set-Cookie: SESSION=<new-session-id>; HttpOnly; Secure; SameSite=Lax; Path=/
+```
+| Notes | 유효한 세션을 연장하며, 만료 임박 시 클라이언트가 호출 |
+
+### 3.4 로그아웃
+| 항목 | 값 |
+| --- | --- |
+| Method | `DELETE` |
+| Path | `/api/v1/iam/sessions/me` |
+| Headers |
+```
+Cookie: SESSION=<session-id>
+X-CSRF-TOKEN: <token>
+```
+| Response |
+```
+Status: 204 No Content
+Set-Cookie: SESSION=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax
+```
+| Notes | 서버 세션을 무효화하고 쿠키를 삭제 |
 
 ## 4. 커뮤니티 도메인 (`communities`)
 커뮤니티는 Reddit의 Subreddit에 해당합니다. `Community` 애그리게잇은 식별자, 메타데이터, 규칙을 캡슐화합니다.
