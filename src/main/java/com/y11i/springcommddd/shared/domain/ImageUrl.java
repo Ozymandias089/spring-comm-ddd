@@ -25,4 +25,16 @@ public class ImageUrl implements ValueObject {
     }
 
     public String value() { return url; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ImageUrl other)) return false;
+        return url.equals(other.url);
+    }
+
+    @Override
+    public int hashCode() {
+        return url.hashCode();
+    }
 }
