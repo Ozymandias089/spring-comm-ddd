@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.iam.domain;
 
+import com.y11i.springcommddd.iam.domain.exception.InvalidPasswordHash;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -21,7 +22,7 @@ public class PasswordHash implements ValueObject {
 
     private PasswordHash(String encoded) {
         if (encoded == null || encoded.isBlank())
-            throw new IllegalArgumentException("encoded password cannot be empty");
+            throw new InvalidPasswordHash("encoded password cannot be empty");
         this.encoded = encoded;
     }
 

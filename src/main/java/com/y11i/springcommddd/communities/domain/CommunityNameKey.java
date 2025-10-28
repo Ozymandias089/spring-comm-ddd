@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.communities.domain;
 
+import com.y11i.springcommddd.communities.domain.exception.InvalidCommunityNameKey;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -32,12 +33,12 @@ public class CommunityNameKey implements ValueObject {
      * 원문 문자열을 정규화하여 이름 키를 생성합니다.
      *
      * @param raw 원문 문자열
-     * @throws IllegalArgumentException null 이거나, 정규화 결과가 패턴/길이를 만족하지 않는 경우
+     * @throws InvalidCommunityNameKey null 이거나, 정규화 결과가 패턴/길이를 만족하지 않는 경우
      */
     public CommunityNameKey(String raw) {
         String k = normalize(raw);
         if (!k.matches("[a-z0-9_]{3,32}")) {
-            throw new IllegalArgumentException("invalid community name (allowed: a-z, 0-9, _; 3..32)");
+            throw new InvalidCommunityNameKey("invalid community name (allowed: a-z, 0-9, _; 3..32)");
         }
         this.value = k;
     }
@@ -47,10 +48,10 @@ public class CommunityNameKey implements ValueObject {
      *
      * @param raw 원문
      * @return 정규화된 문자열(소문자, 공백→'_', 허용 외 문자 제거)
-     * @throws IllegalArgumentException raw가 null인 경우
+     * @throws InvalidCommunityNameKey raw가 null인 경우
      */
     public static String normalize(String raw) {
-        if (raw == null) throw new IllegalArgumentException("raw name required");
+        if (raw == null) throw new InvalidCommunityNameKey("raw name required");
         String s = raw.trim().toLowerCase();
         // 예: 공백은 '_'로, 허용하지 않는 문자는 제거
         s = s.replaceAll("\\s+", "_");

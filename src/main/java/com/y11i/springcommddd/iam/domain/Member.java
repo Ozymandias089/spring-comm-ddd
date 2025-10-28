@@ -1,5 +1,7 @@
 package com.y11i.springcommddd.iam.domain;
 
+import com.y11i.springcommddd.iam.domain.exception.MemberDeletedModificationNotAllowed;
+import com.y11i.springcommddd.iam.domain.exception.MemberStatusTransitionNotAllowed;
 import com.y11i.springcommddd.shared.domain.AggregateRoot;
 import com.y11i.springcommddd.shared.domain.ImageUrl;
 import jakarta.persistence.*;
@@ -223,20 +225,20 @@ public class Member implements AggregateRoot {
     /**
      * 회원을 일시 정지 상태로 전환합니다.
      *
-     * @throws IllegalStateException 삭제된 회원은 정지할 수 없음
+     * @throws MemberStatusTransitionNotAllowed 삭제된 회원은 정지할 수 없음
      */
     public void suspend() {
-        if (status == MemberStatus.DELETED) throw new IllegalStateException("deleted member cannot be suspended");
+        if (status == MemberStatus.DELETED) throw new MemberStatusTransitionNotAllowed("deleted member cannot be suspended");
         this.status = MemberStatus.SUSPENDED;
     }
 
     /**
      * 회원을 활성 상태로 전환합니다.
      *
-     * @throws IllegalStateException 삭제된 회원은 활성화할 수 없음
+     * @throws MemberStatusTransitionNotAllowed 삭제된 회원은 활성화할 수 없음
      */
     public void activate() {
-        if (status == MemberStatus.DELETED) throw new IllegalStateException("deleted member cannot be activated");
+        if (status == MemberStatus.DELETED) throw new MemberStatusTransitionNotAllowed("deleted member cannot be activated");
         this.status = MemberStatus.ACTIVE;
     }
 
@@ -287,10 +289,10 @@ public class Member implements AggregateRoot {
      * 삭제 상태가 아님을 보장합니다.
      *
      * @param msg 예외 메시지
-     * @throws IllegalStateException 삭제 상태인 경우
+     * @throws MemberDeletedModificationNotAllowed 삭제 상태인 경우
      */
     private void ensureNotDeleted(String msg) {
-        if (status == MemberStatus.DELETED) throw new IllegalStateException(msg);
+        if (status == MemberStatus.DELETED) throw new MemberDeletedModificationNotAllowed(msg);
     }
 
     /**

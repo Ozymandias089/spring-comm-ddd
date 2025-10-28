@@ -1,5 +1,7 @@
 package com.y11i.springcommddd.comments.domain;
 
+import com.y11i.springcommddd.comments.domain.exception.CommentDeletedModificationNotAllowed;
+import com.y11i.springcommddd.comments.domain.exception.InvalidCommentDepth;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.PostId;
 import jakarta.persistence.*;
@@ -100,7 +102,7 @@ public class Comment {
         this.postId = Objects.requireNonNull(postId);
         this.authorId = Objects.requireNonNull(authorId);
         this.parentId = parentId; // nullable
-        if (depth < 0) throw new IllegalArgumentException("depth must be >= 0");
+        if (depth < 0) throw new InvalidCommentDepth(depth);
         this.depth = depth;
         this.body = Objects.requireNonNull(body);
         this.status = CommentStatus.VISIBLE;
@@ -117,7 +119,7 @@ public class Comment {
      * @param authorId 작성자 식별자
      * @param body     본문(문자열). 공백/빈값 금지
      * @return 생성된 루트 댓글
-     * @throws IllegalArgumentException 본문이 비어 있거나 null인 경우
+     * @throws CommentDeletedModificationNotAllowed 본문이 비어 있거나 null인 경우
      */
     public static Comment createRoot(PostId postId, MemberId authorId, String body) {
         return new Comment(postId, authorId, null, 0, new CommentBody(body));
@@ -132,7 +134,7 @@ public class Comment {
      * @param parentDepth  부모 댓글의 깊이
      * @param body         본문(문자열). 공백/빈값 금지
      * @return 생성된 대댓글
-     * @throws IllegalArgumentException 본문이 비어 있거나 null인 경우
+     * @throws CommentDeletedModificationNotAllowed 본문이 비어 있거나 null인 경우
      */
     public static Comment replyTo(PostId postId, MemberId authorId, CommentId parentId, int parentDepth, String body) {
         return new Comment(postId, authorId, parentId, parentDepth+1,  new CommentBody(body));
@@ -149,7 +151,7 @@ public class Comment {
      * <p><b>부작용</b>: {@link #body}가 새로운 값으로 대체됩니다.</p>
      *
      * @param newBody 새 본문(문자열). 공백/빈값 금지
-     * @throws IllegalStateException 삭제된 댓글을 수정하려고 한 경우
+     * @throws CommentDeletedModificationNotAllowed 삭제된 댓글을 수정하려고 한 경우
      * @throws IllegalArgumentException 본문이 비어 있거나 null인 경우
      */
     public void edit(String newBody) {
@@ -202,10 +204,10 @@ public class Comment {
     /**
      * 삭제 상태가 아님을 보장합니다.
      *
-     * @throws IllegalStateException 삭제 상태인 경우
+     * @throws CommentDeletedModificationNotAllowed 삭제 상태인 경우
      */
     private void ensureNotDeleted(String msg) {
-        if (status == CommentStatus.DELETED) throw new IllegalStateException(msg);
+        if (status == CommentStatus.DELETED) throw new CommentDeletedModificationNotAllowed(msg);
     }
 
     // -----------------------------------------------------

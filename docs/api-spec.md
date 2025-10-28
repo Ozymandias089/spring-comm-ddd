@@ -57,6 +57,7 @@ SpringComm는 Reddit과 유사한 커뮤니티형 소셜 서비스로, 헥사고
   "createdAt": "datetime"
 }
 ```
+
 | Errors | `409 Conflict` (username/email 중복), `422 Unprocessable Entity` (검증 실패) |
 
 ### 3.2 로그인 / 세션 발급

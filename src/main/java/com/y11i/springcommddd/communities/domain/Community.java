@@ -1,5 +1,7 @@
 package com.y11i.springcommddd.communities.domain;
 
+import com.y11i.springcommddd.communities.domain.exception.CommunityArchivedModificationNotAllowed;
+import com.y11i.springcommddd.communities.domain.exception.CommunityStatusTransitionNotAllowed;
 import com.y11i.springcommddd.shared.domain.AggregateRoot;
 import com.y11i.springcommddd.shared.domain.ImageUrl;
 import jakarta.persistence.*;
@@ -136,10 +138,10 @@ public class Community implements AggregateRoot {
      * <p><b>전제조건</b>: 현재 상태가 {@link CommunityStatus#ARCHIVED}이어야 합니다.</p>
      * <p><b>부작용</b>: 상태가 {@link CommunityStatus#ACTIVE}로 변경됩니다.</p>
      *
-     * @throws IllegalStateException 보관 상태가 아닌 경우
+     * @throws CommunityStatusTransitionNotAllowed 보관 상태가 아닌 경우
      */
     public void restore() {
-        if (status != CommunityStatus.ARCHIVED) throw new IllegalStateException("Only ARCHIVED can be restored");
+        if (status != CommunityStatus.ARCHIVED) throw new CommunityStatusTransitionNotAllowed("Only ARCHIVED can be restored");
         this.status = CommunityStatus.ACTIVE;
     }
 
@@ -183,7 +185,7 @@ public class Community implements AggregateRoot {
      * @throws IllegalStateException 보관 상태인 경우
      */
     private void ensureNotArchived(){
-        if (status == CommunityStatus.ARCHIVED) throw new IllegalStateException("Archived community cannot be renamed");
+        if (status == CommunityStatus.ARCHIVED) throw new CommunityArchivedModificationNotAllowed("Archived community cannot be renamed");
     }
 
     // -----------------------------------------------------

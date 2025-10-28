@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.comments.domain;
 
+import com.y11i.springcommddd.comments.domain.exception.InvalidCommentBody;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Lob;
@@ -31,10 +32,10 @@ public class CommentBody implements ValueObject {
      * 본문 값을 받아 값 객체를 생성합니다.
      *
      * @param value 본문 문자열
-     * @throws IllegalArgumentException null 또는 공백인 경우
+     * @throws InvalidCommentBody null 또는 공백인 경우
      */
     public CommentBody(String value) {
-        if (value == null || value.isBlank()) throw new IllegalArgumentException("Comment body cannot be null or blank");
+        if (value == null || value.isBlank()) throw new InvalidCommentBody("Comment body cannot be null or blank");
         this.value = value;
     }
 

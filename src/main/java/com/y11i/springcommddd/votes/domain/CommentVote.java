@@ -3,6 +3,7 @@ package com.y11i.springcommddd.votes.domain;
 import com.y11i.springcommddd.comments.domain.CommentId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.shared.domain.AggregateRoot;
+import com.y11i.springcommddd.votes.domain.exception.InvalidVoteValue;
 import jakarta.persistence.*;
 
 import java.util.Objects;
@@ -90,10 +91,10 @@ public class CommentVote implements AggregateRoot {
      * 투표값을 설정합니다.
      *
      * @param v +1(추천) 또는 -1(비추천)
-     * @throws IllegalArgumentException 허용되지 않은 값
+     * @throws InvalidVoteValue 허용되지 않은 값
      */
     public void setValue(int v){
-        if (v != 1 && v != -1) throw new IllegalArgumentException("vote must be 1 or -1");
+        if (v != 1 && v != -1) throw new InvalidVoteValue("vote must be 1 or -1");
         this.value = v;
     }
 

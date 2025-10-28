@@ -1,6 +1,8 @@
 package com.y11i.springcommddd.posts.media.domain;
 
 import com.y11i.springcommddd.posts.domain.PostId;
+import com.y11i.springcommddd.posts.media.domain.exception.InvalidDisplayOrder;
+import com.y11i.springcommddd.posts.media.domain.exception.InvalidMediaMetadata;
 import com.y11i.springcommddd.shared.domain.AggregateRoot;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -205,7 +207,7 @@ public class PostAsset implements AggregateRoot {
                 width,
                 height,
                 durationSec,
-                null,
+                altText,
                 caption
         );
     }
@@ -216,7 +218,7 @@ public class PostAsset implements AggregateRoot {
 
     /** 표시 순서를 변경합니다(동일 게시글 내에서만 의미). */
     public void changeDisplayOrder(int newOrder) {
-        if (newOrder < 0) throw new IllegalArgumentException("displayOrder must be >= 0");
+        if (newOrder < 0) throw new InvalidDisplayOrder(newOrder);
         this.displayOrder = newOrder;
     }
 
@@ -234,10 +236,28 @@ public class PostAsset implements AggregateRoot {
 
     /** 미디어 메타데이터를 갱신합니다. (VIDEO의 길이, 공통 width/height 등) */
     public void changeMeta(Integer width, Integer height, Integer durationSec, String mimeType) {
+        validateMeta(this.mediaType, width, height, durationSec);
         this.width = width;
         this.height = height;
         this.durationSec = durationSec;
         this.mimeType = mimeType;
+    }
+
+    // --- 내부 검증
+
+    private void validateMeta(MediaType type, Integer width, Integer height, Integer durationSec) {
+        if (width != null && width < 0)  throw new InvalidMediaMetadata("width must be >= 0");
+        if (height != null && height < 0) throw new InvalidMediaMetadata("height must be >= 0");
+
+        if (type == MediaType.VIDEO) {
+            if (durationSec == null || durationSec < 0) {
+                throw new InvalidMediaMetadata("durationSec must be provided and >= 0 for VIDEO");
+            }
+        } else { // IMAGE 등
+            if (durationSec != null) {
+                throw new InvalidMediaMetadata("durationSec must be null for non-VIDEO media");
+            }
+        }
     }
 
     // -----------------------------------------------------

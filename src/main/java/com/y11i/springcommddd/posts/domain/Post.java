@@ -2,6 +2,8 @@ package com.y11i.springcommddd.posts.domain;
 
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
+import com.y11i.springcommddd.posts.domain.exception.ArchivedPostModificationNotAllowed;
+import com.y11i.springcommddd.posts.domain.exception.PostStatusTransitionNotAllowed;
 import com.y11i.springcommddd.shared.domain.AggregateRoot;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -178,10 +180,10 @@ public class Post implements AggregateRoot {
      * <p><b>부작용</b>: 상태가 {@link PostStatus#PUBLISHED}로 전환되고,
      * {@link #publishedAt}가 현재 시각으로 설정됩니다.</p>
      *
-     * @throws IllegalStateException DRAFT가 아닌 상태에서 호출한 경우
+     * @throws PostStatusTransitionNotAllowed DRAFT가 아닌 상태에서 호출한 경우
      */
     public void publish(){
-        if (status != PostStatus.DRAFT) throw new IllegalStateException("Only DRAFT status can be published");
+        if (status != PostStatus.DRAFT) throw new PostStatusTransitionNotAllowed("Only DRAFT status can be published");
         this.status = PostStatus.PUBLISHED;
         this.publishedAt = Instant.now();
     }
@@ -197,10 +199,10 @@ public class Post implements AggregateRoot {
     /**
      * 보관 상태의 게시글을 복구합니다. (디버그/운영 정책에 따라 제한 가능)
      *
-     * @throws IllegalStateException 보관 상태가 아닌 경우
+     * @throws PostStatusTransitionNotAllowed 보관 상태가 아닌 경우
      */
     public void restore() {
-        if (status != PostStatus.ARCHIVED) throw new  IllegalStateException("Only ARCHIVED status can be restored");
+        if (status != PostStatus.ARCHIVED) throw new PostStatusTransitionNotAllowed("Only ARCHIVED status can be restored");
         this.status = PostStatus.PUBLISHED;
     }
 
@@ -231,10 +233,10 @@ public class Post implements AggregateRoot {
      * 게시글이 보관 상태가 아님을 보장합니다.
      *
      * @param message 예외 메시지
-     * @throws IllegalStateException 보관 상태인 경우
+     * @throws ArchivedPostModificationNotAllowed 보관 상태인 경우
      */
     public void ensureNotArchived(String message) {
-        if (status == PostStatus.ARCHIVED) throw new IllegalStateException(message);
+        if (status == PostStatus.ARCHIVED) throw new ArchivedPostModificationNotAllowed(message);
     }
 
     // -----------------------------------------------------

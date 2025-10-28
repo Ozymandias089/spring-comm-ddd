@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.posts.domain;
 
+import com.y11i.springcommddd.posts.domain.exception.InvalidTitle;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -25,11 +26,11 @@ public class Title implements ValueObject {
      * 제목으로 값 객체를 생성합니다.
      *
      * @param value 제목 문자열
-     * @throws IllegalArgumentException null/공백 또는 길이 초과(200)인 경우
+     * @throws InvalidTitle null/공백 또는 길이 초과(200)인 경우
      */
     public Title(String value) {
-        if (value == null || value.isBlank()) throw new IllegalArgumentException("title cannot be null or blank");
-        if (value.length() > 200) throw new IllegalArgumentException("Title cannot be longer than 200 characters");
+        if (value == null || value.isBlank()) throw new InvalidTitle("title cannot be null or blank");
+        if (value.length() > 200) throw new InvalidTitle("Title cannot be longer than 200 characters");
         this.value = value.trim();
     }
 

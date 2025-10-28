@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.communities.domain;
 
+import com.y11i.springcommddd.communities.domain.exception.InvalidCommunityName;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -28,13 +29,13 @@ public class CommunityName implements ValueObject {
      * 표시명을 받아 값 객체를 생성합니다.
      *
      * @param value 표시명
-     * @throws IllegalArgumentException null/공백/과다 길이(100 초과)인 경우
+     * @throws InvalidCommunityName null/공백/과다 길이(100 초과)인 경우
      */
     public CommunityName(String value) {
-        if (value == null) throw new IllegalArgumentException("name required");
+        if (value == null) throw new InvalidCommunityName("name required");
         String v = value.trim();
-        if (v.isBlank()) throw new IllegalArgumentException("name cannot be blank");
-        if (v.length() > 100) throw new IllegalArgumentException("name too long");
+        if (v.isBlank()) throw new InvalidCommunityName("name cannot be blank");
+        if (v.length() > 100) throw new InvalidCommunityName("name too long");
         this.value = v;
     }
 

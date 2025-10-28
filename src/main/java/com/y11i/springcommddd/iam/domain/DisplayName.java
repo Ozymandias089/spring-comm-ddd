@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.iam.domain;
 
+import com.y11i.springcommddd.iam.domain.exception.InvalidDisplayName;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -25,13 +26,13 @@ public class DisplayName implements ValueObject {
      * 표시명으로 값 객체를 생성합니다.
      *
      * @param value 표시명 문자열
-     * @throws IllegalArgumentException null/공백 또는 길이 규칙 위반
+     * @throws InvalidDisplayName null/공백 또는 길이 규칙 위반
      */
     public DisplayName(String value) {
-        if (value == null) throw new IllegalArgumentException("DisplayName value cannot be null");
+        if (value == null) throw new InvalidDisplayName("DisplayName value cannot be null");
         String trimmedValue = value.trim();
-        if (trimmedValue.isBlank()) throw new IllegalArgumentException("DisplayName value cannot be blank");
-        if (trimmedValue.length() < 2) throw new IllegalArgumentException("DisplayName value must be between 2..50");
+        if (trimmedValue.isBlank()) throw new InvalidDisplayName("DisplayName value cannot be blank");
+        if (trimmedValue.length() < 2) throw new InvalidDisplayName("DisplayName value must be between 2..50");
         this.value = trimmedValue;
     }
 

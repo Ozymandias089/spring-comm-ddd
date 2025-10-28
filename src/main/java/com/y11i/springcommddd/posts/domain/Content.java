@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.posts.domain;
 
+import com.y11i.springcommddd.posts.domain.exception.InvalidContent;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Lob;
@@ -29,10 +30,10 @@ public class Content implements ValueObject {
      * 본문으로 값 객체를 생성합니다.
      *
      * @param value 본문 문자열
-     * @throws IllegalArgumentException null/공백인 경우
+     * @throws InvalidContent null/공백인 경우
      */
     public Content(String value) {
-        if(value == null || value.isBlank()) throw new IllegalArgumentException("Content value cannot be null or blank");
+        if(value == null || value.isBlank()) throw new InvalidContent("Content value cannot be null or blank");
         this.value = value;
     }
 

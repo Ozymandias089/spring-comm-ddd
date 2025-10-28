@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.iam.domain;
 
+import com.y11i.springcommddd.iam.domain.exception.InvalidEmail;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -27,14 +28,14 @@ public class Email implements ValueObject {
      * 이메일 문자열로 값 객체를 생성합니다.
      *
      * @param value 이메일 문자열
-     * @throws IllegalArgumentException null/공백 또는 형식 위반
+     * @throws InvalidEmail null/공백 또는 형식 위반
      */
     public Email(String value) {
-        if(value == null || value.isBlank()) throw new IllegalArgumentException("Email value cannot be null or blank");
+        if(value == null || value.isBlank()) throw new InvalidEmail("Email value cannot be null or blank");
         String trimmedValue = value.trim().toLowerCase();
         // 아주 간단한 형식 검사 (필요시 강화)
         if (!trimmedValue.contains("@") || trimmedValue.startsWith("@") || trimmedValue.endsWith("@"))
-            throw new IllegalArgumentException("email format invalid");
+            throw new InvalidEmail("email format invalid");
         this.value = trimmedValue;
     }
 

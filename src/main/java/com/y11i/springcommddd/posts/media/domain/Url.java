@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.posts.media.domain;
 
+import com.y11i.springcommddd.posts.media.domain.exception.InvalidUrl;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -12,7 +13,7 @@ public class Url implements ValueObject {
     protected Url() {}
 
     public Url(String url) {
-        if (url == null || url.isBlank()) throw new IllegalArgumentException("Url cannot be null or blank");
+        if (url == null || url.isBlank()) throw new InvalidUrl("Url cannot be null or blank");
         this.url = url.trim();
     }
 
