@@ -308,8 +308,13 @@ docker run -d --name redis -p 6379:6379 redis:7
 ```
 
 ### 4) 테스트
-- 통합테스트는 Testcontainers(MariaDB)로 실행 가능
 
+```bash
+# 단위 테스트 시
+./gradlew test
+# 통합 테스트 시
+./gradlew test -DincludeTags=integration -DexcludeTags=
+```
 ---
 
 ## 🔧 운영 팁
