@@ -2,7 +2,9 @@ package com.y11i.springcommddd.iam.api;
 
 import com.y11i.springcommddd.iam.domain.Member;
 import com.y11i.springcommddd.iam.dto.MemberDTO;
+import com.y11i.springcommddd.iam.dto.response.LoginResponseDTO;
 import com.y11i.springcommddd.iam.dto.response.RegisterResponseDTO;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.time.format.DateTimeFormatter;
@@ -10,7 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberMapper {
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_INSTANT;
 
@@ -27,6 +29,20 @@ public class MemberMapper {
                 .passwordResetRequired(dto.isPasswordResetRequired())
                 .createdAt(created)
                 .updatedAt(updated)
+                .version(dto.getVersion())
+                .build();
+    }
+
+    public static LoginResponseDTO toLoginResponseDTO(MemberDTO dto) {
+        return LoginResponseDTO.builder()
+                .memberId(dto.getMemberId().toString())
+                .email(dto.getEmail())
+                .displayName(dto.getDisplayName())
+                .roles(dto.getRoles())
+                .status(dto.getStatus())
+                .passwordResetRequired(dto.isPasswordResetRequired())
+                .createdAt(dto.getCreatedAt() == null ? null : ISO.format(dto.getCreatedAt()))
+                .updatedAt(dto.getUpdatedAt() == null ? null : ISO.format(dto.getUpdatedAt()))
                 .version(dto.getVersion())
                 .build();
     }

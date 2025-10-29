@@ -73,7 +73,8 @@ public class WebSecurityConfig {
                         // 인증/세션 관련
                         .requestMatchers("/api/auth/**").permitAll()
                         // 회원 가입은 익명 허용
-                        .requestMatchers(HttpMethod.POST,  "/api/members").permitAll()
+                        .requestMatchers(HttpMethod.POST,  "/api/register").permitAll()
+                        .requestMatchers("/api/login", "/api/logout").permitAll()
                         // (옵션) 헬스체크 등
                         // .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().authenticated()
