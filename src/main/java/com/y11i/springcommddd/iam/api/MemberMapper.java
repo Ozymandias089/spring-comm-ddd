@@ -1,0 +1,54 @@
+package com.y11i.springcommddd.iam.api;
+
+import com.y11i.springcommddd.iam.domain.Member;
+import com.y11i.springcommddd.iam.dto.MemberDTO;
+import com.y11i.springcommddd.iam.dto.response.RegisterResponseDTO;
+import lombok.NoArgsConstructor;
+
+import java.time.format.DateTimeFormatter;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@NoArgsConstructor
+public class MemberMapper {
+    private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_INSTANT;
+
+    public static RegisterResponseDTO toRegisterResponseDTO(MemberDTO dto) {
+        String created = dto.getCreatedAt() == null ? null : ISO.format(dto.getCreatedAt());
+        String updated = dto.getUpdatedAt() == null ? null : ISO.format(dto.getUpdatedAt());
+
+        return RegisterResponseDTO.builder()
+                .memberId(dto.getMemberId().toString())
+                .email(dto.getEmail())
+                .displayName(dto.getDisplayName())
+                .roles(dto.getRoles())
+                .status(dto.getStatus())
+                .passwordResetRequired(dto.isPasswordResetRequired())
+                .createdAt(created)
+                .updatedAt(updated)
+                .version(dto.getVersion())
+                .build();
+    }
+
+    public static MemberDTO toMemberDTO(Member member) {
+        UUID memberId = member.memberId().id();
+        String email = member.email().value();
+        String displayName = member.displayName().value();
+        Set<String> roles = member.roles().stream().map(Enum::name).collect(Collectors.toSet());
+        String status = member.status().name();
+        boolean passwordResetRequired = member.passwordResetRequired();
+
+        return MemberDTO.builder()
+                .memberId(memberId)
+                .email(email)
+                .displayName(displayName)
+                .roles(roles)
+                .status(status)
+                .passwordResetRequired(passwordResetRequired)
+                .createdAt(member.createdAt())
+                .updatedAt(member.updatedAt())
+                .version(member.version())
+                .build();
+    }
+}
