@@ -80,6 +80,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/email-verify/signup/request/me", "/api/email-verify/change/request").authenticated()
                         .requestMatchers("/api/sessions/**").authenticated()
                         .requestMatchers("/api/password-reset/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // (옵션) 헬스체크 등
                         // .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().authenticated()
