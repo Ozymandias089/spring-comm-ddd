@@ -1,11 +1,14 @@
 package com.y11i.springcommddd.iam.api;
 
+import com.y11i.springcommddd.iam.api.support.AuthenticatedMember;
 import com.y11i.springcommddd.iam.application.port.in.FindMemberUseCase;
+import com.y11i.springcommddd.iam.application.port.in.ManageProfileUseCase;
 import com.y11i.springcommddd.iam.application.port.in.RegisterMemberUseCase;
+import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.dto.MemberDTO;
-import com.y11i.springcommddd.iam.dto.request.LoginRequestDTO;
-import com.y11i.springcommddd.iam.dto.request.RegisterRequestDTO;
+import com.y11i.springcommddd.iam.dto.request.*;
 import com.y11i.springcommddd.iam.dto.response.LoginResponseDTO;
+import com.y11i.springcommddd.iam.dto.response.MeResponseDTO;
 import com.y11i.springcommddd.iam.dto.response.RegisterResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -28,6 +31,7 @@ public class MemberController {
     private final RegisterMemberUseCase registerMemberUseCase;
     private final AuthenticationManager authenticationManager;
     private final FindMemberUseCase findMemberUseCase;
+    private final ManageProfileUseCase manageProfileUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDTO> register(@Valid @RequestBody RegisterRequestDTO requestDto) {
@@ -64,6 +68,36 @@ public class MemberController {
             request.getSession(false).invalidate();
         }
         SecurityContextHolder.clearContext();
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public MeResponseDTO me(@AuthenticatedMember MemberId memberId) {
+        MemberDTO memberDTO = findMemberUseCase.findById(memberId.id()).orElseThrow();
+        return MemberMapper.toMeResponseDTO(memberDTO);
+    }
+
+    @PatchMapping("/me/display-name")
+    public MeResponseDTO rename(@AuthenticatedMember MemberId memberId, @Valid @RequestBody RenameRequestDTO requestDto) {
+        MemberDTO memberDTO = manageProfileUseCase.rename(
+                new ManageProfileUseCase.RenameCommand(memberId.id(), requestDto.getDisplayName())
+        );
+        return MemberMapper.toMeResponseDTO(memberDTO);
+    }
+
+    @PatchMapping("/me/email")
+    public MeResponseDTO changeEmail(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangeEmailRequestDTO requestDto) {
+        MemberDTO memberDTO = manageProfileUseCase.changeEmail(
+                new ManageProfileUseCase.ChangeEmailCommand(memberId.id(), requestDto.getEmail())
+        );
+        return MemberMapper.toMeResponseDTO(memberDTO);
+    }
+
+    @PatchMapping("/me/password")
+    public ResponseEntity<Void> changePassword(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangePasswordRequestDTO requestDto) {
+        manageProfileUseCase.changePassword(
+                new ManageProfileUseCase.ChangePasswordCommand(memberId.id(), requestDto.getNewPassword(), requestDto.getCurrentPassword())
+        );
         return ResponseEntity.noContent().build();
     }
 }

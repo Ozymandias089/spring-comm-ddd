@@ -11,5 +11,5 @@ public interface ManageProfileUseCase {
 
     record RenameCommand(UUID memberId, String displayName) {}
     record ChangeEmailCommand(UUID memberId, String email) {}
-    record ChangePasswordCommand(UUID memberId, String rawPassword) {}
+    record ChangePasswordCommand(UUID memberId, String rawPassword, String currentPassword) {}
 }

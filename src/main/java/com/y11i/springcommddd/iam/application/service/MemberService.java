@@ -11,6 +11,7 @@ import com.y11i.springcommddd.iam.dto.MemberDTO;
 import com.y11i.springcommddd.iam.domain.Member;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +60,9 @@ public class MemberService implements RegisterMemberUseCase, ManageProfileUseCas
     public MemberDTO changePassword(ManageProfileUseCase.ChangePasswordCommand command) {
         Member member = loadMemberPort.loadById(new MemberId(command.memberId()))
                 .orElseThrow();
+        if (!passwordEncoder.matches(command.currentPassword(), member.passwordHash().encoded())) {
+            throw new BadCredentialsException("current password does not match");
+        }
         member.setNewPassword(passwordEncoder.encode(command.rawPassword()));
         Member saved = saveMemberPort.save(member);
         return MemberMapper.toMemberDTO(saved);
