@@ -76,6 +76,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.POST,  "/api/register").permitAll()
                         .requestMatchers("/api/login", "/api/logout").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/me/**").authenticated()
+                        .requestMatchers("/api/password-reset/**").permitAll()
                         // (옵션) 헬스체크 등
                         // .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().authenticated()
