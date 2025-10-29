@@ -202,7 +202,7 @@ public class Member implements AggregateRoot {
      * @throws IllegalStateException 삭제된 회원에 대한 변경시도
      * @throws IllegalStateException URL 형식 위반
      */
-    private void changeProfileImage(String url) {
+    public void changeProfileImage(String url) {
         ensureNotDeleted("deleted member cannot change profile image");
         this.profileImage = (url == null ? null : new ImageUrl(url));
     }
@@ -217,7 +217,7 @@ public class Member implements AggregateRoot {
      * @throws IllegalStateException 삭제된 회원에 대한 변경시도
      * @throws IllegalStateException URL 형식 위반
      */
-    private void changeBannerImage(String url) {
+    public void changeBannerImage(String url) {
         ensureNotDeleted("deleted member cannot change banner image");
         this.bannerImage = (url == null ? null : new ImageUrl(url));
     }

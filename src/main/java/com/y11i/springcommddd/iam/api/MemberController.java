@@ -100,4 +100,20 @@ public class MemberController {
         );
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/me/profile-image")
+    public MeResponseDTO changeProfileImage(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangeProfileImageRequestDTO requestDto) {
+        MemberDTO memberDTO = manageProfileUseCase.changeProfileImage(
+                new ManageProfileUseCase.ChangeProfileImageCommand(memberId.id(), requestDto.getProfileImageUrl())
+        );
+        return MemberMapper.toMeResponseDTO(memberDTO);
+    }
+
+    @PatchMapping("/me/banner-image")
+    public MeResponseDTO changeBannerImage(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangeBannerImageRequestDTO requestDto) {
+        MemberDTO memberDTO = manageProfileUseCase.changeBannerImage(
+                new ManageProfileUseCase.ChangeBannerImageCommand(memberId.id(), requestDto.getBannerImageUrl())
+        );
+        return MemberMapper.toMeResponseDTO(memberDTO);
+    }
 }

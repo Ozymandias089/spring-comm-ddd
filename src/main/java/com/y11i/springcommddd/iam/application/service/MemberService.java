@@ -69,6 +69,24 @@ public class MemberService implements RegisterMemberUseCase, ManageProfileUseCas
     }
 
     @Override
+    @Transactional
+    public MemberDTO changeProfileImage(ChangeProfileImageCommand command) {
+        Member member = loadMemberPort.loadById(new MemberId(command.memberId()))
+                .orElseThrow();
+        member.changeProfileImage(command.profileImageUrl());
+        Member saved = saveMemberPort.save(member);
+        return MemberMapper.toMemberDTO(saved);
+    }
+
+    @Override
+    public MemberDTO changeBannerImage(ChangeBannerImageCommand command) {
+        Member member = loadMemberPort.loadById(new MemberId(command.memberId())).orElseThrow();
+        member.changeBannerImage(command.bannerImageUrl());
+        Member saved = saveMemberPort.save(member);
+        return MemberMapper.toMemberDTO(saved);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Optional<MemberDTO> findByEmail(String email) {
         return loadMemberPort.loadByEmail(new Email(email)).map(MemberMapper::toMemberDTO);

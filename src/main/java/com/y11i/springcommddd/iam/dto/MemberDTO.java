@@ -26,6 +26,10 @@ public class MemberDTO {
     private Instant updatedAt;
     @Getter
     private long version;
+    @Getter
+    private String profileImageUrl;
+    @Getter
+    private String bannerImageUrl;
 
     @Builder
     public MemberDTO(
@@ -37,7 +41,10 @@ public class MemberDTO {
             boolean passwordResetRequired,
             Instant createdAt,
             Instant updatedAt,
-            long version
+            long version,
+            String profileImageUrl,
+            String bannerImageUrl
+
     ) {
         this.memberId = memberId;
         this.email = email;
@@ -48,5 +55,7 @@ public class MemberDTO {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.version = version;
+        this.profileImageUrl = profileImageUrl;
+        this.bannerImageUrl = bannerImageUrl;
     }
 }

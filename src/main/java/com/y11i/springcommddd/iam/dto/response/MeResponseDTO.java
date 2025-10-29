@@ -15,11 +15,14 @@ public class MeResponseDTO {
     @Getter private String createdAt;
     @Getter private String updatedAt;
     @Getter private long version;
+    @Getter private String profileImageUrl;
+    @Getter private String bannerImageUrl;
 
     @Builder
     public MeResponseDTO(String memberId, String email, String displayName,
                          Set<String> roles, String status, boolean passwordResetRequired,
-                         String createdAt, String updatedAt, long version) {
+                         String createdAt, String updatedAt, long version,
+                         String profileImageUrl, String bannerImageUrl) {
         this.memberId = memberId;
         this.email = email;
         this.displayName = displayName;
@@ -29,5 +32,7 @@ public class MeResponseDTO {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.version = version;
+        this.profileImageUrl = profileImageUrl;
+        this.bannerImageUrl = bannerImageUrl;
     }
 }

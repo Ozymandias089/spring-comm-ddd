@@ -66,6 +66,8 @@ public class MemberMapper {
                 .createdAt(member.createdAt())
                 .updatedAt(member.updatedAt())
                 .version(member.version())
+                .profileImageUrl(member.profileImage() == null ? null : member.profileImage().value())
+                .bannerImageUrl(member.bannerImage() == null ? null : member.bannerImage().value())
                 .build();
     }
 
@@ -82,6 +84,8 @@ public class MemberMapper {
                 .createdAt(created)
                 .updatedAt(updated)
                 .version(dto.getVersion())
+                .profileImageUrl(dto.getProfileImageUrl())
+                .bannerImageUrl(dto.getBannerImageUrl())
                 .build();
     }
 }
