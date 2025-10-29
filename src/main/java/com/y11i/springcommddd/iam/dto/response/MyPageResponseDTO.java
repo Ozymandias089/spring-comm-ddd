@@ -5,7 +5,7 @@ import lombok.Getter;
 
 import java.util.Set;
 
-public class MeResponseDTO {
+public class MyPageResponseDTO {
     @Getter private String memberId;
     @Getter private String email;
     @Getter private String displayName;
@@ -19,10 +19,10 @@ public class MeResponseDTO {
     @Getter private String bannerImageUrl;
 
     @Builder
-    public MeResponseDTO(String memberId, String email, String displayName,
-                         Set<String> roles, String status, boolean passwordResetRequired,
-                         String createdAt, String updatedAt, long version,
-                         String profileImageUrl, String bannerImageUrl) {
+    public MyPageResponseDTO(String memberId, String email, String displayName,
+                             Set<String> roles, String status, boolean passwordResetRequired,
+                             String createdAt, String updatedAt, long version,
+                             String profileImageUrl, String bannerImageUrl) {
         this.memberId = memberId;
         this.email = email;
         this.displayName = displayName;

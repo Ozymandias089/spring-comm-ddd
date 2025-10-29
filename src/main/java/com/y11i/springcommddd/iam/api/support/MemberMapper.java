@@ -1,9 +1,9 @@
-package com.y11i.springcommddd.iam.api;
+package com.y11i.springcommddd.iam.api.support;
 
 import com.y11i.springcommddd.iam.domain.Member;
 import com.y11i.springcommddd.iam.dto.MemberDTO;
 import com.y11i.springcommddd.iam.dto.response.LoginResponseDTO;
-import com.y11i.springcommddd.iam.dto.response.MeResponseDTO;
+import com.y11i.springcommddd.iam.dto.response.MyPageResponseDTO;
 import com.y11i.springcommddd.iam.dto.response.RegisterResponseDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -71,10 +71,10 @@ public class MemberMapper {
                 .build();
     }
 
-    public static MeResponseDTO toMeResponseDTO(MemberDTO dto) {
+    public static MyPageResponseDTO toMyPageResponseDTO(MemberDTO dto) {
         String created = dto.getCreatedAt() == null ? null : ISO.format(dto.getCreatedAt());
         String updated = dto.getUpdatedAt() == null ? null : ISO.format(dto.getUpdatedAt());
-        return MeResponseDTO.builder()
+        return MyPageResponseDTO.builder()
                 .memberId(dto.getMemberId().toString())
                 .email(dto.getEmail())
                 .displayName(dto.getDisplayName())
