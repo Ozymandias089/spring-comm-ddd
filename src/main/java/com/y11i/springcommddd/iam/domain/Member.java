@@ -74,6 +74,9 @@ public class Member implements AggregateRoot {
     @Column(name = "status", nullable = false, length = 20)
     private MemberStatus status;
 
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
     @Embedded
     @AttributeOverride(name="url", column=@Column(name="profile_image_url", length=1024))
     private ImageUrl profileImage;
@@ -281,6 +284,14 @@ public class Member implements AggregateRoot {
         this.roles.remove(role);
     }
 
+    /**
+     * 이메일 인증여부 칼럼을 <code>true</code>로 변경합니다.
+     */
+    public void markEmailVerified() {
+        ensureNotDeleted("deleted member cannot verify email");
+        this.emailVerified = true;
+    }
+
     // -----------------------------------------------------
     // 내부 검증 섹션
     // -----------------------------------------------------
@@ -321,4 +332,5 @@ public class Member implements AggregateRoot {
     public boolean passwordResetRequired() { return passwordResetRequired; }
     public ImageUrl profileImage() { return profileImage; }
     public ImageUrl bannerImage() { return bannerImage; }
+    public boolean emailVerified() { return emailVerified; }
 }

@@ -17,12 +17,13 @@ public class MyPageResponseDTO {
     @Getter private long version;
     @Getter private String profileImageUrl;
     @Getter private String bannerImageUrl;
+    @Getter private boolean emailVerified;
 
     @Builder
     public MyPageResponseDTO(String memberId, String email, String displayName,
                              Set<String> roles, String status, boolean passwordResetRequired,
                              String createdAt, String updatedAt, long version,
-                             String profileImageUrl, String bannerImageUrl) {
+                             String profileImageUrl, String bannerImageUrl,boolean emailVerified) {
         this.memberId = memberId;
         this.email = email;
         this.displayName = displayName;
@@ -34,5 +35,6 @@ public class MyPageResponseDTO {
         this.version = version;
         this.profileImageUrl = profileImageUrl;
         this.bannerImageUrl = bannerImageUrl;
+        this.emailVerified = emailVerified;
     }
 }

@@ -74,13 +74,19 @@ public class MemberAuthProvider implements AuthenticationProvider {
         );
 
         if (member.status() == MemberStatus.DELETED) throw new DisabledException("member is deleted");
-        if (member.status() == MemberStatus.SUSPENDED) throw new LockedException("member is Suspended");
+        // Allow logins on SUSPENDED status
+        // if (member.status() == MemberStatus.SUSPENDED) throw new LockedException("member is Suspended");
         if (!passwordEncoder.matches(rawPassword, member.passwordHash().encoded())) throw new  BadCredentialsException("bad credentials");
 
         var authorities = new ArrayList<SimpleGrantedAuthority>();
         for(var r : member.roles()) {
             authorities.add(new SimpleGrantedAuthority("ROLE_" + r.name()));
         }
+
+        // 파생 권한: 글/댓글 작성 가능여부
+        boolean canPublish = (member.status() == MemberStatus.ACTIVE) && member.emailVerified();
+        if (!canPublish) { authorities.add(new SimpleGrantedAuthority("CAN_PUBLISH")); }
+        else { authorities.add(new SimpleGrantedAuthority("CANNOT_PUBLISH")); }
 
         communityModeratorRepository.findByMemberId(member.memberId()).forEach(moderator -> {
             authorities.add(new SimpleGrantedAuthority("COMMUNITY_MOD:" + moderator.communityId().id()));

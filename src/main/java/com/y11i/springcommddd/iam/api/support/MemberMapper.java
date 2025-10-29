@@ -68,6 +68,7 @@ public class MemberMapper {
                 .version(member.version())
                 .profileImageUrl(member.profileImage() == null ? null : member.profileImage().value())
                 .bannerImageUrl(member.bannerImage() == null ? null : member.bannerImage().value())
+                .emailVerified(member.emailVerified())
                 .build();
     }
 
@@ -86,6 +87,7 @@ public class MemberMapper {
                 .version(dto.getVersion())
                 .profileImageUrl(dto.getProfileImageUrl())
                 .bannerImageUrl(dto.getBannerImageUrl())
+                .emailVerified(dto.isEmailVerified())
                 .build();
     }
 }

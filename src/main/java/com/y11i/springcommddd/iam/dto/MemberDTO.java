@@ -30,6 +30,8 @@ public class MemberDTO {
     private String profileImageUrl;
     @Getter
     private String bannerImageUrl;
+    @Getter
+    private boolean emailVerified;
 
     @Builder
     public MemberDTO(
@@ -43,8 +45,8 @@ public class MemberDTO {
             Instant updatedAt,
             long version,
             String profileImageUrl,
-            String bannerImageUrl
-
+            String bannerImageUrl,
+            boolean emailVerified
     ) {
         this.memberId = memberId;
         this.email = email;
@@ -57,5 +59,6 @@ public class MemberDTO {
         this.version = version;
         this.profileImageUrl = profileImageUrl;
         this.bannerImageUrl = bannerImageUrl;
+        this.emailVerified = emailVerified;
     }
 }
