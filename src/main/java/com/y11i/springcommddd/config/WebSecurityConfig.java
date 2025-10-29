@@ -75,7 +75,9 @@ public class WebSecurityConfig {
                         // 회원 가입은 익명 허용
                         .requestMatchers(HttpMethod.POST,  "/api/register").permitAll()
                         .requestMatchers("/api/login", "/api/logout").permitAll()
+                        .requestMatchers("/api/email-verify/signup/confirm", "/api/email-verify/change/confirm").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/my-page/**").authenticated()
+                        .requestMatchers("/api/email-verify/signup/request/me", "/api/email-verify/change/request").authenticated()
                         .requestMatchers("/api/sessions/**").authenticated()
                         .requestMatchers("/api/password-reset/**").permitAll()
                         // (옵션) 헬스체크 등
