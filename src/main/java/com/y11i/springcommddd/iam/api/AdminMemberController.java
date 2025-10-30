@@ -7,8 +7,6 @@ import com.y11i.springcommddd.iam.dto.request.admin.RevokeAdminRequestDTO;
 import com.y11i.springcommddd.iam.dto.request.admin.SetStatusRequestDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -67,7 +65,6 @@ import java.net.URI;
  * 접근 차단이 걸려 있어야 하며, 컨트롤러 자체는 그 전제 하에 동작한다.
  * </p>
  */
-@Order(Ordered.HIGHEST_PRECEDENCE)
 @RestController
 @RequestMapping("/api/admin/members")
 @RequiredArgsConstructor

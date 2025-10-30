@@ -12,8 +12,6 @@ import com.y11i.springcommddd.iam.dto.response.RegisterResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -50,7 +48,6 @@ import java.net.URI;
  * </p>
  */
 @RestController
-@Order(Ordered.HIGHEST_PRECEDENCE)
 @RequestMapping("/api")
 @RequiredArgsConstructor
 @Validated
