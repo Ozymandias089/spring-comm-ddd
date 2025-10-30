@@ -1,15 +1,15 @@
 package com.y11i.springcommddd.iam.dto;
 
+import com.y11i.springcommddd.iam.domain.MemberId;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.Instant;
 import java.util.Set;
-import java.util.UUID;
 
 public class MemberDTO {
     @Getter
-    private UUID memberId;
+    private MemberId memberId;
     @Getter
     private String email;
     @Getter
@@ -35,7 +35,7 @@ public class MemberDTO {
 
     @Builder
     public MemberDTO(
-            UUID memberId,
+            MemberId memberId,
             String email,
             String displayName,
             Set<String> roles,

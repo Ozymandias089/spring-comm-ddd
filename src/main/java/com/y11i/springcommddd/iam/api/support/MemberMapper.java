@@ -22,7 +22,7 @@ public class MemberMapper {
         String updated = dto.getUpdatedAt() == null ? null : ISO.format(dto.getUpdatedAt());
 
         return RegisterResponseDTO.builder()
-                .memberId(dto.getMemberId().toString())
+                .memberId(dto.getMemberId().id().toString())
                 .email(dto.getEmail())
                 .displayName(dto.getDisplayName())
                 .roles(dto.getRoles())
@@ -36,7 +36,7 @@ public class MemberMapper {
 
     public static LoginResponseDTO toLoginResponseDTO(MemberDTO dto) {
         return LoginResponseDTO.builder()
-                .memberId(dto.getMemberId().toString())
+                .memberId(dto.getMemberId().id().toString())
                 .email(dto.getEmail())
                 .displayName(dto.getDisplayName())
                 .roles(dto.getRoles())
@@ -49,7 +49,6 @@ public class MemberMapper {
     }
 
     public static MemberDTO toMemberDTO(Member member) {
-        UUID memberId = member.memberId().id();
         String email = member.email().value();
         String displayName = member.displayName().value();
         Set<String> roles = member.roles().stream().map(Enum::name).collect(Collectors.toSet());
@@ -57,7 +56,7 @@ public class MemberMapper {
         boolean passwordResetRequired = member.passwordResetRequired();
 
         return MemberDTO.builder()
-                .memberId(memberId)
+                .memberId(member.memberId())
                 .email(email)
                 .displayName(displayName)
                 .roles(roles)
@@ -76,7 +75,7 @@ public class MemberMapper {
         String created = dto.getCreatedAt() == null ? null : ISO.format(dto.getCreatedAt());
         String updated = dto.getUpdatedAt() == null ? null : ISO.format(dto.getUpdatedAt());
         return MyPageResponseDTO.builder()
-                .memberId(dto.getMemberId().toString())
+                .memberId(dto.getMemberId().id().toString())
                 .email(dto.getEmail())
                 .displayName(dto.getDisplayName())
                 .roles(dto.getRoles())

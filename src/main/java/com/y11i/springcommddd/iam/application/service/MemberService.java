@@ -33,6 +33,8 @@ public class MemberService implements RegisterMemberUseCase, FindMemberUseCase {
         return MemberMapper.toMemberDTO(saved);
     }
 
+    /** @deprecated {@inheritDoc} */
+    @Deprecated
     @Override
     @Transactional(readOnly = true)
     public Optional<MemberDTO> findByEmail(String email) {

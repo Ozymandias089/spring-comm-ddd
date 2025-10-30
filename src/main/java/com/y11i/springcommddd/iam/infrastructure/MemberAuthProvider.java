@@ -1,6 +1,7 @@
 package com.y11i.springcommddd.iam.infrastructure;
 
 import com.y11i.springcommddd.communities.moderators.domain.CommunityModeratorRepository;
+import com.y11i.springcommddd.iam.api.support.AuthenticatedMemberPrincipal;
 import com.y11i.springcommddd.iam.domain.Email;
 import com.y11i.springcommddd.iam.domain.MemberRepository;
 import com.y11i.springcommddd.iam.domain.MemberStatus;
@@ -12,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * Spring Security {@link AuthenticationProvider} 구현체.
@@ -69,6 +71,7 @@ public class MemberAuthProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String email = authentication.getPrincipal().toString();
         String rawPassword = authentication.getCredentials().toString();
+
         var member = memberRepository.findByEmail(new Email(email)).orElseThrow(
                 () -> new BadCredentialsException("bad credentials")
         );
@@ -92,7 +95,14 @@ public class MemberAuthProvider implements AuthenticationProvider {
             authorities.add(new SimpleGrantedAuthority("COMMUNITY_MOD:" + moderator.communityId().id()));
         });
 
-        return new UsernamePasswordAuthenticationToken(email, null, authorities);
+        var principal = new AuthenticatedMemberPrincipal(
+                member.memberId(),
+                member.email().value(),
+                Set.copyOf(authorities),
+                member.passwordHash().encoded()
+        );
+
+        return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
     }
 
     /**

@@ -1,8 +1,6 @@
 package com.y11i.springcommddd.iam.api.support;
 
-import com.y11i.springcommddd.iam.application.port.in.FindMemberUseCase;
 import com.y11i.springcommddd.iam.domain.MemberId;
-import com.y11i.springcommddd.iam.dto.MemberDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
@@ -19,7 +17,6 @@ import org.springframework.web.server.ResponseStatusException;
 @Component
 @RequiredArgsConstructor
 public class CurrentMemberIdArgumentResolver implements HandlerMethodArgumentResolver {
-    private final FindMemberUseCase findMemberUseCase;
     /**
      * Whether the given {@linkplain MethodParameter method parameter} is
      * supported by this resolver.
@@ -51,13 +48,20 @@ public class CurrentMemberIdArgumentResolver implements HandlerMethodArgumentRes
      * @throws Exception in case of errors with the preparation of argument values
      */
     @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+    public Object resolveArgument(
+            MethodParameter parameter,
+            ModelAndViewContainer mavContainer,
+            NativeWebRequest webRequest,
+            WebDataBinderFactory binderFactory
+    ) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated())
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not Authenticated");
-        String email = authentication.getName();
-        return findMemberUseCase.findByEmail(email)
-                .map(dto -> new MemberId(dto.getMemberId()))
-                .orElseThrow(() -> new InsufficientAuthenticationException("member id not found"));
+
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof AuthenticatedMemberPrincipal p))
+            throw new InsufficientAuthenticationException("Invalid principal");
+
+        return p.getMemberId();
     }
 }
