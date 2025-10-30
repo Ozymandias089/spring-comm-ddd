@@ -5,6 +5,8 @@ import com.y11i.springcommddd.iam.dto.request.PasswordResetConfirmRequestDTO;
 import com.y11i.springcommddd.iam.dto.request.PasswordResetRequestDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
  * </p>
  */
 @RestController
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RequiredArgsConstructor
 @RequestMapping("/api/password-reset")
 public class PasswordResetController {

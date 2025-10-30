@@ -10,6 +10,8 @@ import com.y11i.springcommddd.iam.dto.request.*;
 import com.y11i.springcommddd.iam.dto.response.MyPageResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +45,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  */
 @RestController
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RequestMapping("/api/my-page")
 @RequiredArgsConstructor
 @Validated

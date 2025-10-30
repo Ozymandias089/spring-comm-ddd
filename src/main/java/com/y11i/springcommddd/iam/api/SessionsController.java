@@ -6,6 +6,8 @@ import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.dto.SessionDTO;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -42,6 +44,7 @@ import java.util.List;
  * 세션 강제 종료는 "다른 기기에서 로그인된 나 자신"을 끊을 때 쓸 수 있다.
  * </p>
  */
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/sessions")

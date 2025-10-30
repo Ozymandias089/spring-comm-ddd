@@ -8,6 +8,8 @@ import com.y11i.springcommddd.iam.dto.request.EmailVerificationConfirmRequestDTO
 import com.y11i.springcommddd.iam.dto.request.EmailVerificationSignupRequestDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,6 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Validated
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RequestMapping("/api/email-verify")
 public class EmailVerificationController {
     private final EmailVerificationUseCase emailVerificationUseCase;
