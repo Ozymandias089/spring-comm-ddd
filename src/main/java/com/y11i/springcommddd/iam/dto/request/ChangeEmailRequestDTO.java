@@ -9,4 +9,8 @@ public class ChangeEmailRequestDTO {
     @NotBlank
     @Email
     private String email;
+
+    public ChangeEmailRequestDTO( String email ) {
+        this.email = email;
+    }
 }

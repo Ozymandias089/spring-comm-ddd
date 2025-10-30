@@ -13,4 +13,10 @@ public class RegisterRequestDTO {
     @Getter
     @NotBlank
     private String password;
+
+    public RegisterRequestDTO(String email, String displayName, String password) {
+        this.email = email;
+        this.displayName = displayName;
+        this.password = password;
+    }
 }

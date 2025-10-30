@@ -9,4 +9,8 @@ public class RenameRequestDTO {
     @NotBlank
     @Size(min = 2, max = 50)
     private String displayName;
+
+    public RenameRequestDTO(String displayName) {
+        this.displayName = displayName;
+    }
 }

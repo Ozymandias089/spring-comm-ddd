@@ -11,4 +11,9 @@ public class LoginRequestDTO {
 
     @Getter @NotBlank @Size(min = 8, max = 128)
     private String password;
+
+    public LoginRequestDTO( String email, String password ) {
+        this.email = email;
+        this.password = password;
+    }
 }

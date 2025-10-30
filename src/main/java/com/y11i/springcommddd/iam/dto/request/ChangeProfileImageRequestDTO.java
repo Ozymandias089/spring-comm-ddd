@@ -5,4 +5,8 @@ import lombok.Getter;
 public class ChangeProfileImageRequestDTO {
     @Getter
     private String profileImageUrl;
+
+    public ChangeProfileImageRequestDTO(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
 }
