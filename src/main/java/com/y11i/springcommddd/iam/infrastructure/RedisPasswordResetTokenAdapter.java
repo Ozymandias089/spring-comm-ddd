@@ -18,6 +18,7 @@ public class RedisPasswordResetTokenAdapter implements PasswordResetTokenPort {
         return "pwdReset:" + token;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String issueToken(UUID memberId, Duration ttl) {
         String token = UUID.randomUUID().toString();
@@ -26,6 +27,7 @@ public class RedisPasswordResetTokenAdapter implements PasswordResetTokenPort {
         return token;
     }
 
+    /** {@inheritDoc} */
     @Override
     public UUID consume(String token) {
         String k = key(token);

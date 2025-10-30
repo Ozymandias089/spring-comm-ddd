@@ -16,6 +16,32 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+/**
+ * <h2>관리자 계정 및 회원 상태 관리 서비스</h2>
+ *
+ * <p>
+ * {@link com.y11i.springcommddd.iam.application.port.in.AdminMemberUseCase}를 구현하는
+ * 애플리케이션 서비스 계층 클래스입니다.
+ * </p>
+ *
+ * <h3>주요 역할</h3>
+ * <ul>
+ *     <li>회원에게 관리자 권한(ROLE_ADMIN 등)을 부여하거나 회수</li>
+ *     <li>회원의 계정 상태(ACTIVE, SUSPENDED, DELETED 등)를 변경</li>
+ *     <li>신규 관리자 계정을 직접 생성 (운영자 전용 플로우)</li>
+ * </ul>
+ *
+ * <p>
+ * 비즈니스 규칙에 따라 관리자만 접근할 수 있도록 상위 계층(API)에서 접근 제어를 수행하며,
+ * 이 서비스는 도메인 모델을 조작하고 영속화하는 역할만 담당합니다.
+ * </p>
+ *
+ * <h3>사용 포트</h3>
+ * <ul>
+ *     <li>{@link com.y11i.springcommddd.iam.application.port.out.LoadMemberPort}</li>
+ *     <li>{@link com.y11i.springcommddd.iam.application.port.out.SaveMemberPort}</li>
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 public class AdminMemberService implements AdminMemberUseCase {
@@ -32,6 +58,7 @@ public class AdminMemberService implements AdminMemberUseCase {
         // 여기서는 컨트롤러에서 target==me 비교를 하거나, 하단에서 memberId로 한번 더 확인하도록 확장 가능.
     }
 
+    /** {@inheritDoc} */
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
@@ -42,6 +69,7 @@ public class AdminMemberService implements AdminMemberUseCase {
         saveMemberPort.save(member);
     }
 
+    /** {@inheritDoc} */
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
@@ -57,6 +85,7 @@ public class AdminMemberService implements AdminMemberUseCase {
         saveMemberPort.save(member);
     }
 
+    /** {@inheritDoc} */
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
@@ -82,6 +111,7 @@ public class AdminMemberService implements AdminMemberUseCase {
         saveMemberPort.save(member);
     }
 
+    /** {@inheritDoc} */
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")

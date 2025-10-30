@@ -18,6 +18,35 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * <h2>이메일 인증 관리 서비스</h2>
+ *
+ * <p>
+ * {@link com.y11i.springcommddd.iam.application.port.in.EmailVerificationUseCase}를 구현하며,
+ * 회원가입 및 이메일 변경 시의 인증 흐름을 담당합니다.
+ * </p>
+ *
+ * <h3>주요 기능</h3>
+ * <ul>
+ *     <li>회원가입 시 이메일 인증 토큰 발급 및 이메일 전송</li>
+ *     <li>회원가입 인증 토큰 검증 및 회원 상태 업데이트</li>
+ *     <li>이메일 변경 요청 시 새 이메일로 인증 토큰 발급</li>
+ *     <li>이메일 변경 토큰 검증 및 실제 이메일 주소 변경</li>
+ * </ul>
+ *
+ * <p>
+ * 토큰은 TTL(기본 24시간) 동안 유효하며, Redis 등 단기 저장소를 통해 발급/검증됩니다.
+ * 실제 이메일 발송은 {@link com.y11i.springcommddd.iam.application.port.out.MailPort}를 통해 수행됩니다.
+ * </p>
+ *
+ * <h3>사용 포트</h3>
+ * <ul>
+ *     <li>{@link com.y11i.springcommddd.iam.application.port.out.LoadMemberPort}</li>
+ *     <li>{@link com.y11i.springcommddd.iam.application.port.out.SaveMemberPort}</li>
+ *     <li>{@link com.y11i.springcommddd.iam.application.port.out.EmailVerificationTokenPort}</li>
+ *     <li>{@link com.y11i.springcommddd.iam.application.port.out.MailPort}</li>
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 public class EmailVerificationService implements EmailVerificationUseCase {
@@ -30,6 +59,7 @@ public class EmailVerificationService implements EmailVerificationUseCase {
     private final EmailVerificationTokenPort emailVerificationTokenPort;
     private final MailPort mailPort;
 
+    /** {@inheritDoc} */
     @Override
     @Transactional(readOnly = true)
     public void requestForSignup(UUID memberId, String email) {
@@ -48,6 +78,7 @@ public class EmailVerificationService implements EmailVerificationUseCase {
         mailPort.send(email, subject, body);
     }
 
+    /** {@inheritDoc} */
     @Override
     @Transactional
     public void confirmSignup(String token) {
@@ -67,6 +98,7 @@ public class EmailVerificationService implements EmailVerificationUseCase {
         // 이미 인증된 경우도 멱등 처리: 204/200 모두 가능. 예외 없이 성공 종료.
     }
 
+    /** {@inheritDoc} */
     @Override
     @Transactional(readOnly = true)
     public void requestForChange(UUID memberId, String newEmail) {
@@ -84,6 +116,7 @@ public class EmailVerificationService implements EmailVerificationUseCase {
         mailPort.send(newEmail, subject, body);
     }
 
+    /** {@inheritDoc} */
     @Override
     @Transactional
     public void confirmChange(String token) {

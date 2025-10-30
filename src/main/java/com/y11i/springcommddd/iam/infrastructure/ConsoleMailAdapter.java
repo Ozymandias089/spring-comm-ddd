@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 @Repository
 public class ConsoleMailAdapter implements MailPort {
+    /** {@inheritDoc} */
     @Override
     public void send(String to, String subject, String body) {
         log.info("[MAIL] to = {} subject = {} body = {}", to, subject, body);

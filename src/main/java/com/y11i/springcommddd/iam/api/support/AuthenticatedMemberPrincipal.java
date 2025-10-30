@@ -27,7 +27,7 @@ public class AuthenticatedMemberPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return memberId.id().toString();
     }
 
     @Override

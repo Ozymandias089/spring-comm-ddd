@@ -64,11 +64,13 @@ public class MemberRepositoryAdapter implements MemberRepository, LoadMemberPort
         return jpaMemberRepository.findByEmail(email);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Optional<Member> loadById(MemberId id) {
         return findById(id);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Optional<Member> loadByEmail(Email email) {
         return findByEmail(email);

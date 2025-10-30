@@ -16,6 +16,7 @@ public class RedisEmailVerificationTokenAdapter implements EmailVerificationToke
     private static String signupKey(String token) { return "emailverify:signup:" + token; }
     private static String changeKey(String token) { return "emailverify:change:" + token; }
 
+    /** {@inheritDoc} */
     @Override
     public String issueForSignup(UUID memberId, Duration ttl) {
         String token = UUID.randomUUID().toString();
@@ -24,6 +25,7 @@ public class RedisEmailVerificationTokenAdapter implements EmailVerificationToke
         return token;
     }
 
+    /** {@inheritDoc} */
     @Override
     public UUID consumeForSignup(String token) {
         String key = signupKey(token);
@@ -33,6 +35,7 @@ public class RedisEmailVerificationTokenAdapter implements EmailVerificationToke
         return UUID.fromString(value);
     }
 
+    /** {@inheritDoc} */
     @Override
     public String issueForChange(UUID memberId, String newEmail, Duration ttl) {
         String token = UUID.randomUUID().toString();
@@ -42,6 +45,7 @@ public class RedisEmailVerificationTokenAdapter implements EmailVerificationToke
         return token;
     }
 
+    /** {@inheritDoc} */
     @Override
     public EmailChangePayload consumeForChange(String token) {
         String key = changeKey(token);
