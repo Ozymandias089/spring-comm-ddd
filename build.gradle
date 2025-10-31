@@ -25,32 +25,45 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation "org.springframework.session:spring-session-data-redis"
+    // === main runtime ===
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-security"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
     implementation "org.springframework.boot:spring-boot-starter-data-redis"
-
-    // ★ 검증 (DTO/요청 바인딩 @Valid)
+    implementation "org.springframework.session:spring-session-data-redis"
     implementation "org.springframework.boot:spring-boot-starter-validation"
 
-    // ★ DB 드라이버 (MariaDB)
-    runtimeOnly "org.mariadb.jdbc:mariadb-java-client"
-
-    // ★ 마이그레이션(Flyway) - 운영권장
     implementation "org.flywaydb:flyway-core"
     implementation "org.flywaydb:flyway-mysql"
 
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    // ★ 통합테스트 시 컨테이너로 DB 올리면 편함
-    testImplementation "org.testcontainers:junit-jupiter"
-    testImplementation "org.testcontainers:mariadb"
+    runtimeOnly "org.mariadb.jdbc:mariadb-java-client"
+
+    // lombok (prod + test에서 컴파일 타임 애너테이션)
+    compileOnly "org.projectlombok:lombok"
+    annotationProcessor "org.projectlombok:lombok"
+    testCompileOnly "org.projectlombok:lombok"
+    testAnnotationProcessor "org.projectlombok:lombok"
+
+    // === test-only ===
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.springframework.security:spring-security-test"
+
+    // H2 for @DataJpaTest / repository adapter integration tests
     testImplementation "com.h2database:h2"
+
+    // JUnit Platform launcher (some IDEs / Gradle runners still expect this at runtime)
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
+    // --- future dockerized integration tests (kept for later) ---
+    // BOM to align all org.testcontainers:* versions
+    testImplementation platform("org.testcontainers:testcontainers-bom:2.0.1")
+    // JUnit 5 extension for automatic lifecycle mgmt of containers
+    testImplementation "org.testcontainers:junit-jupiter"
+    // MariaDB container (we'll swap H2 -> real MariaDB in future @Tag('integration') tests)
+    testImplementation "org.testcontainers:mariadb"
+    // (no generic `org.testcontainers:testcontainers` here; we can add redis/etc later when we actually use them)
 }
+
 
 tasks.named('test') {
     useJUnitPlatform{
