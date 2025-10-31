@@ -3,6 +3,8 @@ package com.y11i.springcommddd.common.api;
 import com.y11i.springcommddd.common.exception.BaseException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,6 +18,7 @@ import java.net.URI;
 import java.time.Instant;
 
 
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -41,13 +44,62 @@ public class GlobalExceptionHandler {
     // 호환: ResponseStatusException (reason 보존)
     @ExceptionHandler(ResponseStatusException.class)
     public ProblemDetail handleResponseStatus(ResponseStatusException ex, HttpServletRequest req) {
+
+        // ex.getStatusCode()는 HttpStatusCode 인터페이스지만 보통 HttpStatus로 변환 가능
         HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
-        var code = (status != null && status.is4xxClientError()) ? ErrorCode.BAD_REQUEST : ErrorCode.INTERNAL_ERROR;
-        var pd = ProblemFactory.of(code, "Request Error",
-                ex.getReason() != null ? ex.getReason() : "Request error",
-                req.getRequestURI());
+        if (status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        // 1) 어떤 ErrorCode를 쓸지 결정
+        ErrorCode code;
+        String title;
+
+        if (status.is4xxClientError()) {
+            // 여기서 401/403은 권한 문제 → PERMISSION_DENIED
+            // 그 외(400 등)는 BAD_REQUEST로 본다.
+            if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
+                code = ErrorCode.PERMISSION_DENIED;
+                title = "Access Denied";
+                if (status == HttpStatus.UNAUTHORIZED) {
+                    title = "Unauthorized";
+                }
+            } else {
+                code = ErrorCode.BAD_REQUEST;
+                title = "Bad Request";
+            }
+        } else if (status.is5xxServerError()) {
+            code = ErrorCode.INTERNAL_ERROR;
+            title = "Internal Server Error";
+        } else {
+            // 2xx, 3xx 같은 비정상 케이스로 ResponseStatusException이 오면? 방어적으로 처리
+            code = ErrorCode.BAD_REQUEST;
+            title = status.toString();
+        }
+
+        // 2) Detail (사람이 알아볼 메시지)
+        String detail = (ex.getReason() != null)
+                ? ex.getReason()
+                : "Request error";
+
+        // 3) 표준 ProblemDetail 생성
+        ProblemDetail pd = ProblemFactory.of(
+                code,
+                title,
+                detail,
+                req.getRequestURI()
+        );
+
+        // 4) ProblemDetail.status 도 실제 status로 맞춰주기
+        pd.setStatus(status.value());
+
+        // 5) timestamp 등은 ProblemFactory.of(...) 이미 넣고 있으면 패스.
+        //    혹시 of()에서 넣지 않으면 여기서도:
+        //    pd.setProperty("timestamp", Instant.now().toString());
+
         return pd;
     }
+
 
     // Bean Validation (DTO @Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
