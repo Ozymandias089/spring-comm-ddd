@@ -13,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,13 +25,13 @@ import static org.mockito.Mockito.*;
 
 /**
  * MemberService 단위 테스트.
- *
+ * <p>
  * 검증 범위:
  * - register():
  *    - PasswordEncoder.encode()가 호출되는가?
  *    - Member.register(...)로 생성된 Member가 saveMemberPort.save(...)로 넘겨지는가?
  *    - save()의 반환값이 MemberMapper.toMemberDTO()를 통해 최종 MemberDTO로 반환되는가?
- *
+ * <p>
  * - findByEmail(), findById():
  *    - loadMemberPort에서 Optional<Member>를 가져오고,
  *      그걸 MemberMapper.toMemberDTO()로 매핑해 Optional<MemberDTO>로 돌려주는지.
