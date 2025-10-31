@@ -41,4 +41,16 @@ public class Email implements ValueObject {
 
     /** 이메일 문자열 값 */
     public String value() { return value; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Email other)) return false;
+        return value.equals(other.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
 }
