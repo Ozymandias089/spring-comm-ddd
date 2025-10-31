@@ -49,6 +49,7 @@ dependencies {
     // ★ 통합테스트 시 컨테이너로 DB 올리면 편함
     testImplementation "org.testcontainers:junit-jupiter"
     testImplementation "org.testcontainers:mariadb"
+    testImplementation "com.h2database:h2"
 }
 
 tasks.named('test') {
