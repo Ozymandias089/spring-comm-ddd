@@ -116,6 +116,7 @@ public class MemberController {
                 );
 
         Authentication authentication = authenticationManager.authenticate(token);
+        System.out.println("DEBUG principal class = " + authentication.getPrincipal().getClass());
 
         // 2. SecurityContext에 인증 결과 저장
         SecurityContextHolder.getContext().setAuthentication(authentication);

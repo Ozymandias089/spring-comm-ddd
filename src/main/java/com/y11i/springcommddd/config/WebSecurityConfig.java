@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -62,7 +63,7 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         // (선택) 로그인/로그아웃만 CSRF 예외로 두고 싶으면 ↓ 주석 해제
-                        // .ignoringRequestMatchers("/api/auth/login", "/api/auth/logout")
+                        .ignoringRequestMatchers("/api/register", "/api/login", "/api/logout")
                 )
 
                 // 3) 세션: 상태 유지(세션 생성 허용)
@@ -98,8 +99,8 @@ public class WebSecurityConfig {
 
     // 컨트롤러에서 AuthenticationManager를 주입받아 사용
     @Bean
-    public AuthenticationManager authenticationManager(MemberAuthProvider provider) {
-        return new ProviderManager(provider);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     // 필요하면 CORS 열어주기(프론트엔드 도메인으로 제한 권장)
