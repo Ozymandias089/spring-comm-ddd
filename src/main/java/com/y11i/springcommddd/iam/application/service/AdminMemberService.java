@@ -120,8 +120,7 @@ public class AdminMemberService implements AdminMemberUseCase {
         Member member = Member.register(cmd.email(), cmd.displayName(), encoded);
         member.grantRole(MemberRole.ADMIN);
         // 정책: 새 관리자도 이메일 인증이 필요하면 emailVerified=false 유지,
-        // 운영 일괄 등록이라면 바로 markEmailVerified() 호출 가능
-        saveMemberPort.save(member);
-        return member.memberId().id();
+        Member persistedMember = saveMemberPort.save(member);
+        return persistedMember.memberId().id();
     }
 }
