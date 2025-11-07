@@ -161,4 +161,20 @@ public class MemberController {
         SecurityContextHolder.clearContext();
         return ResponseEntity.noContent().build();
     }
+
+    // dev 환경용 간단 피드
+    @GetMapping("/csrf")
+    public java.util.Map<String, String> csrf(HttpServletRequest req) {
+        var token = (org.springframework.security.web.csrf.CsrfToken) req.getAttribute("_csrf");
+        // 토큰 강제 생성/접근
+        var value = token.getToken();
+        // CookieCsrfTokenRepository가 XSRF-TOKEN 쿠키를 내려주고,
+        // 디버깅용으로 바디에도 토큰을 보여줍니다.
+        return java.util.Map.of(
+                "headerName", token.getHeaderName(),
+                "parameterName", token.getParameterName(),
+                "token", value
+        );
+    }
+
 }

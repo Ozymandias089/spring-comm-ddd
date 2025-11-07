@@ -4,6 +4,8 @@ import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -21,7 +23,9 @@ import java.util.UUID;
 public record MemberId(
         @Column(name = "member_id", columnDefinition = "BINARY(36)", nullable = false, updatable = false)
         UUID id
-) implements ValueObject {
+) implements ValueObject, Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     /**
      * 생성자 유효성 검증: {@code id}는 null일 수 없습니다.

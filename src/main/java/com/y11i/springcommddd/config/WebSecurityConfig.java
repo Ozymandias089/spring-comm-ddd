@@ -58,6 +58,7 @@ public class WebSecurityConfig {
         http
                 // 1) 커스텀 AuthenticationProvider를 정의합니다.
                 .authenticationProvider(memberAuthProvider)
+                .securityContext(sc -> sc.requireExplicitSave(false))
 
                 // 2) CSRF: 쿠키 기반 토큰(프론트엔드가 X-XSRF-TOKEN 헤더로 돌려보내야 함)
                 .csrf(csrf -> csrf
@@ -76,6 +77,7 @@ public class WebSecurityConfig {
                         // 회원 가입은 익명 허용
                         .requestMatchers(HttpMethod.POST,  "/api/register").permitAll()
                         .requestMatchers("/api/login", "/api/logout").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/csrf").permitAll()
                         .requestMatchers("/api/email-verify/signup/confirm", "/api/email-verify/change/confirm").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/my-page/**").authenticated()
                         .requestMatchers("/api/email-verify/signup/request/me", "/api/email-verify/change/request").authenticated()

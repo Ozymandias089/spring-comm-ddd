@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.NoSuchElementException;
+
 /**
  * <h2>사용자 프로필 관리 서비스</h2>
  *
@@ -52,7 +54,10 @@ public class MyPageService implements ManageProfileUseCase {
     @Transactional
     public MemberDTO rename(RenameCommand cmd) {
         Member m = loadMemberPort.loadById(new MemberId(cmd.memberId()))
-                .orElseThrow(); // 도메인 예외/공통 NotFound로 매핑
+                .orElseThrow(() -> {
+                    System.err.println("[rename] member not found: " + cmd.memberId());
+                    return new NoSuchElementException("member not found");
+                }); //도메인 예외/공통 NotFound로 매핑
         m.rename(cmd.displayName());
         Member saved = saveMemberPort.save(m);
         return MemberMapper.toMemberDTO(saved);

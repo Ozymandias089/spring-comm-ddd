@@ -14,6 +14,8 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class CurrentMemberIdArgumentResolver implements HandlerMethodArgumentResolver {
@@ -28,7 +30,7 @@ public class CurrentMemberIdArgumentResolver implements HandlerMethodArgumentRes
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(AuthenticatedMember.class)
-                && parameter.getParameterType().equals(MemberId.class);
+                && MemberId.class.isAssignableFrom(parameter.getParameterType());
     }
 
     /**
@@ -56,12 +58,25 @@ public class CurrentMemberIdArgumentResolver implements HandlerMethodArgumentRes
     ) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated())
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not Authenticated");
+            throw new InsufficientAuthenticationException("No Authentication");
 
         Object principal = authentication.getPrincipal();
-        if (!(principal instanceof AuthenticatedMemberPrincipal p))
-            throw new InsufficientAuthenticationException("Invalid principal");
+        if (principal == null || "anonymousUser".equals(principal)) {
+            throw new org.springframework.security.authentication.InsufficientAuthenticationException("Anonymous principal");
+        }
 
-        return p.getMemberId();
+        if (principal instanceof AuthenticatedMemberPrincipal p)
+            return p.getMemberId();
+
+        // 4) fallback: Authentication#getName()에 memberId 문자열이 들어있을 수도 있음
+        //    (지금 getUsername()을 memberId 문자열로 오버라이드 했으니 안전하게 시도)
+        try {
+            java.util.UUID uuid = UUID.fromString(authentication.getName());
+            return new com.y11i.springcommddd.iam.domain.MemberId(uuid);
+        } catch (Exception e) {
+            // 보안 관점: 500 대신 401/403로 떨어지게 Security 예외를 던진다
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Unexpected principal type: " + principal.getClass().getName());
+        }
     }
 }
