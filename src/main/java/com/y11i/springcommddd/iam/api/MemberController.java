@@ -72,7 +72,7 @@ public class MemberController {
      * Body는 현재 회원 상태(예: memberId 등)를 담은 {@link RegisterResponseDTO}다.
      * </p>
      */
-    @PostMapping("/register")
+    @PostMapping(name="/register", consumes="application/json", produces="application/json")
     public ResponseEntity<RegisterResponseDTO> register(@Valid @RequestBody RegisterRequestDTO requestDto) {
         RegisterMemberUseCase.Command command =
                 new RegisterMemberUseCase.Command(requestDto.getEmail(), requestDto.getDisplayName(), requestDto.getPassword());
@@ -106,8 +106,9 @@ public class MemberController {
      * (원한다면 204 No Content를 선택할 수도 있지만, 현재는 200 + JSON 바디를 리턴한다.)
      * </p>
      */
-    @PostMapping("/login")
+    @PostMapping(name="/login", consumes="application/json", produces="application/json")
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO requestDto, HttpServletRequest request) {
+        System.out.println(">>> ENTER /api/login");
         // 1. 사용자 자격 증명으로 Authentication 시도
         UsernamePasswordAuthenticationToken token =
                 new UsernamePasswordAuthenticationToken(

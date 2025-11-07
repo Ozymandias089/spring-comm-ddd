@@ -100,7 +100,8 @@ public class WebSecurityConfig {
     // 컨트롤러에서 AuthenticationManager를 주입받아 사용
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+//        return config.getAuthenticationManager();
+        return new ProviderManager(memberAuthProvider);
     }
 
     // 필요하면 CORS 열어주기(프론트엔드 도메인으로 제한 권장)
