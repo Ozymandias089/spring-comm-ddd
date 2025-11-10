@@ -100,7 +100,7 @@ public class MyPageController {
      * 성공 시 갱신된 프로필 정보를 반환한다.
      * </p>
      */
-    @PatchMapping("/email")
+    @PatchMapping(path="/email", consumes="application/json", produces="application/json")
     public MyPageResponseDTO changeEmail(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangeEmailRequestDTO requestDto) {
         MemberDTO memberDTO = manageProfileUseCase.changeEmail(
                 new ManageProfileUseCase.ChangeEmailCommand(memberId.id(), requestDto.getEmail())
@@ -121,7 +121,7 @@ public class MyPageController {
      * 사용자 프로필 JSON은 굳이 돌려주지 않는다.
      * </p>
      */
-    @PatchMapping("/password")
+    @PatchMapping(path="/password", consumes="application/json", produces="application/json")
     public ResponseEntity<Void> changePassword(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangePasswordRequestDTO requestDto) {
         manageProfileUseCase.changePassword(
                 new ManageProfileUseCase.ChangePasswordCommand(memberId.id(), requestDto.getNewPassword(), requestDto.getCurrentPassword())
@@ -141,7 +141,7 @@ public class MyPageController {
      * 성공 시 200 OK로 갱신된 프로필 정보를 반환한다.
      * </p>
      */
-    @PatchMapping("/profile-image")
+    @PatchMapping(path="/profile-image", consumes="application/json", produces="application/json")
     public MyPageResponseDTO changeProfileImage(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangeProfileImageRequestDTO requestDto) {
         MemberDTO memberDTO = manageProfileUseCase.changeProfileImage(
                 new ManageProfileUseCase.ChangeProfileImageCommand(memberId.id(), requestDto.getProfileImageUrl())
@@ -156,7 +156,7 @@ public class MyPageController {
      * 성공 시 갱신된 프로필 정보를 반환한다.
      * </p>
      */
-    @PatchMapping("/banner-image")
+    @PatchMapping(path="/banner-image", consumes="application/json", produces="application/json")
     public MyPageResponseDTO changeBannerImage(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangeBannerImageRequestDTO requestDto) {
         MemberDTO memberDTO = manageProfileUseCase.changeBannerImage(
                 new ManageProfileUseCase.ChangeBannerImageCommand(memberId.id(), requestDto.getBannerImageUrl())
