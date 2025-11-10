@@ -39,7 +39,7 @@ out/
 
 ### Other ###
 LLM.txt
+artifacts/
+*.cookies
+*.log
 cookies.txt
-csrf_response.txt
-login_response.txt
-patch_response.txt
