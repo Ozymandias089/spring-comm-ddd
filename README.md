@@ -17,18 +17,6 @@
 
 ---
 
-### 🇮🇲 테스팅 스크립트 메뉴얼
-
-[메뉴얼 확인하기](./docs/test-scripts-manual.md)
-
----
-
-### _ÅṔĮ_ API specifications
-
-[API Documentation 확인하기](./docs/api-spec.md)
-
----
-
 ## 🧱 아키텍처
 
 프로젝트는 **헥사고날 아키텍처**를 따릅니다.
@@ -55,6 +43,118 @@ src/main/java/com/y11i/springcommddd/
 | **API** | `*.api` | REST Controller, DTO 어댑터 |
 
 > JPA는 `@Access(AccessType.FIELD)`를 사용하고, Lombok 대신 **명시적 접근자**(`memberId()`, `title()` 등)를 사용합니다.
+
+---
+
+## 📁 현재 프로젝트 구조
+
+```
+🍏 ~/GitHub/spring-comm-ddd/ [main] tree src/main/java/com/y11i/springcommddd/
+src/main/java/com/y11i/springcommddd/
+├── comments
+│   ├── api
+│   ├── application
+│   ├── domain
+│   │   ├── Comment.java
+│   │   ├── CommentBody.java
+│   │   ├── CommentId.java
+│   │   ├── CommentRepository.java
+│   │   └── CommentStatus.java
+│   └── infrastructure
+│       ├── CommentRepositoryAdapter.java
+│       └── JpaCommentRepository.java
+├── communities
+│   ├── api
+│   ├── application
+│   ├── domain
+│   │   ├── Community.java
+│   │   ├── CommunityId.java
+│   │   ├── CommunityName.java
+│   │   ├── CommunityNameKey.java
+│   │   ├── CommunityRepository.java
+│   │   └── CommunityStatus.java
+│   ├── infrastructure
+│   │   ├── CommuityRepositoryAdapter.java
+│   │   └── JpaCommunityRepository.java
+│   └── moderators
+│       ├── domain
+│       │   ├── CommunityModerator.java
+│       │   ├── CommunityModeratorId.java
+│       │   └── CommunityModeratorRepository.java
+│       └── infrastructure
+│           ├── CommunityModeratorRepositoryAdapter.java
+│           └── JpaCommunityModeratorRepository.java
+├── config
+│   ├── JpaAuditingConfig.java
+│   ├── SecurityConfig.java
+│   └── WebSecurityConfig.java
+├── iam
+│   ├── api
+│   ├── application
+│   ├── domain
+│   │   ├── DisplayName.java
+│   │   ├── Email.java
+│   │   ├── Member.java
+│   │   ├── MemberId.java
+│   │   ├── MemberRepository.java
+│   │   ├── MemberRole.java
+│   │   ├── MemberStatus.java
+│   │   └── PasswordHash.java
+│   └── infrastructure
+│       ├── JpaMemberRepository.java
+│       ├── MemberAuthProvider.java
+│       └── MemberRepositoryAdapter.java
+├── posts
+│   ├── api
+│   ├── application
+│   ├── domain
+│   │   ├── Content.java
+│   │   ├── Post.java
+│   │   ├── PostId.java
+│   │   ├── PostRepository.java
+│   │   ├── PostStatus.java
+│   │   └── Title.java
+│   ├── infrastructure
+│   │   ├── JpaPostRepository.java
+│   │   └── PostRepositoryAdapter.java
+│   └── media
+│       ├── api
+│       ├── application
+│       ├── domain
+│       │   ├── MediaType.java
+│       │   ├── PostAsset.java
+│       │   ├── PostAssetId.java
+│       │   ├── PostAssetRepository.java
+│       │   └── Url.java
+│       └── infrastructure
+│           ├── JpaPostAssetRepository.java
+│           └── PostAssetRepositoryAdapter.java
+├── shared
+│   └── domain
+│       ├── AggregateRoot.java
+│       ├── DomainEntity.java
+│       ├── ImageUrl.java
+│       └── ValueObject.java
+├── SpringCommDddApplication.java
+└── votes
+    ├── api
+    ├── application
+    ├── domain
+    │   ├── CommentVote.java
+    │   ├── CommentVoteId.java
+    │   ├── CommentVoteRepository.java
+    │   ├── MyCommentVote.java
+    │   ├── MyPostVote.java
+    │   ├── MyVoteValue.java
+    │   ├── PostVote.java
+    │   ├── PostVoteId.java
+    │   └── PostVoteRepository.java
+    └── infrastructure
+        ├── CommentVoteRepositoryAdapter.java
+        ├── JpaCommentVoteRepository.java
+        ├── JpaPostVoteRepository.java
+        └── PostVoteRepositoryAdapter.java
+```
 
 ---
 

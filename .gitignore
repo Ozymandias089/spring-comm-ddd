@@ -39,7 +39,3 @@ out/
 
 ### Other ###
 LLM.txt
-artifacts/
-*.cookies
-*.log
-cookies.txt
