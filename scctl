@@ -2,7 +2,18 @@
 set -euo pipefail
 
 # --- 기본 설정 ---
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -d "${SCRIPT_DIR}/scripts" ]; then
+  # scctl가 루트에 있는 경우
+  ROOT_DIR="${SCRIPT_DIR}"
+elif [ -d "${SCRIPT_DIR}/../scripts" ]; then
+  # scctl가 scripts 디렉토리 안에 있는 경우
+  ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+else
+  echo "❌ scripts/ 디렉토리를 찾을 수 없습니다." >&2
+  exit 1
+fi
+
 SCRIPTS_DIR="${ROOT_DIR}/scripts"
 CASES_DIR="${SCRIPTS_DIR}/cases"
 ENV_DIR="${SCRIPTS_DIR}/env"
@@ -65,6 +76,10 @@ done
 ENV_FILE="${ENV_DIR}/${ENV_NAME}.env"
 [[ -f "${ENV_FILE}" ]] || die "환경 파일 없음: ${ENV_FILE}"
 source "${ENV_FILE}"
+
+# 기존에는 BASE_URL 등만 export 했다면 ↓ 추가
+export BASE_URL EMAIL PASSWORD ENV_NAME
+export COOKIES_PATH ARTIFACTS_DIR VERBOSE
 
 mkdir -p "${ARTIFACTS_DIR}"
 

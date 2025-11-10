@@ -28,22 +28,53 @@ sc_login() {
 
 # CSRF 마스킹 토큰 발급
 sc_csrf() {
-  require curl jq
   log "CSRF 토큰 발급..."
+
+  local url="${BASE_URL}/api/csrf"
   local out="${ARTIFACTS_DIR}/csrf_$(date +%s).txt"
 
-  local token
-  token=$(curl -s -i -b "${COOKIES_PATH}" -c "${COOKIES_PATH}" \
-            "${BASE_URL}/api/csrf" | tee "${out}" | tail -n1 | jq -r '.token')
+  curl -S --fail --show-error \
+       --connect-timeout 2 --max-time 10 \
+       -s -i \
+       -b "${COOKIES_PATH}" -c "${COOKIES_PATH}" \
+       -H "Accept: application/json" \
+       "${url}" | tee "${out}" >/dev/null || {
+    echo "❌ CSRF 요청 실패: ${url}"
+    echo "⤷ 원문: ${out}"
+    exit 1
+  }
 
-  [[ -n "${token}" && "${token}" != "null" ]] || { cat "${out}"; die "CSRF 토큰 추출 실패"; }
-  export XSRF_TOKEN_MASKED="${token}"
+  local http_code
+  http_code="$(head -n1 "${out}" | awk '{print $2}')"
+  if [[ "${http_code}" != "200" ]]; then
+    echo "❌ CSRF 응답 코드 비정상: ${http_code}"
+    tail -n +1 "${out}"
+    exit 1
+  fi
 
-  local raw_cookie
-  raw_cookie=$(grep -m1 'XSRF-TOKEN' "${COOKIES_PATH}" | awk '{print $7}')
-  vlog "masked=${XSRF_TOKEN_MASKED}"
-  vlog "cookie=${raw_cookie}"
-  echo "✅ CSRF OK"
+  local body; body="$(tail -n1 "${out}")"
+
+  local masked
+  masked="$(echo "${body}" | jq -r '.token' 2>/dev/null || true)"
+  if [[ -z "${masked}" || "${masked}" == "null" ]]; then
+    echo "❌ CSRF 마스킹 토큰(JSON .token) 추출 실패"
+    echo "⤷ 바디: ${body}"
+    exit 1
+  fi
+
+  local cookie_raw
+  cookie_raw="$(grep -i '^Set-Cookie: XSRF-TOKEN=' "${out}" | head -n1 | sed -E 's/^Set-Cookie: XSRF-TOKEN=([^;]+).*/\1/i')"
+  if [[ -z "${cookie_raw}" ]]; then
+    cookie_raw="$(awk '$6=="/" && $7=="XSRF-TOKEN" {print $8}' "${COOKIES_PATH}" 2>/dev/null | tail -n1)"
+  fi
+
+  export XSRF_TOKEN_MASKED="${masked}"
+  export XSRF_TOKEN_COOKIE="${cookie_raw}"
+
+  [[ "${VERBOSE:-false}" == true ]] && {
+    echo "✅ 마스킹 토큰(header용): ${XSRF_TOKEN_MASKED}"
+    echo "✅ 쿠키 토큰(cookie용):   ${XSRF_TOKEN_COOKIE:-<none>}"
+  }
 }
 
 # 로그아웃
