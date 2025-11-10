@@ -36,11 +36,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-### Other ###
-LLM.txt
-cookies.txt
-csrf_response.txt
-login_response.txt
-patch_response.txt
-get_mypage.txt
