@@ -82,7 +82,6 @@ public class MyPageController {
      */
     @PatchMapping(path="/display-name", consumes="application/json", produces="application/json")
     public MyPageResponseDTO rename(@AuthenticatedMember MemberId memberId, @Valid @RequestBody RenameRequestDTO requestDto) {
-        System.out.println(">>> ENTER PATCH /api/my-page/display-name : " + requestDto);
         MemberDTO memberDTO = manageProfileUseCase.rename(
                 new ManageProfileUseCase.RenameCommand(memberId.id(), requestDto.displayName())
         );
