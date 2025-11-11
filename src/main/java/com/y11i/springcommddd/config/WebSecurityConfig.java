@@ -64,7 +64,7 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         // (선택) 로그인/로그아웃만 CSRF 예외로 두고 싶으면 ↓ 주석 해제
-                        .ignoringRequestMatchers("/api/register", "/api/login", "/api/logout")
+                        .ignoringRequestMatchers("/api/register", "/api/login", "/api/logout", "/api/password-reset", "/api/password-reset/confirm")
                 )
 
                 // 3) 세션: 상태 유지(세션 생성 허용)
