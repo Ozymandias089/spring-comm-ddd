@@ -3,13 +3,17 @@ package com.y11i.springcommddd.iam.api;
 import com.y11i.springcommddd.iam.api.support.AuthenticatedMember;
 import com.y11i.springcommddd.iam.application.port.in.EmailVerificationUseCase;
 import com.y11i.springcommddd.iam.domain.MemberId;
-import com.y11i.springcommddd.iam.dto.request.EmailVerificationConfirmRequestDTO;
 import com.y11i.springcommddd.iam.dto.request.EmailVerificationSignupRequestDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+
 
 /**
  * 이메일 인증/변경 관련 HTTP 엔드포인트.
@@ -88,6 +92,7 @@ public class EmailVerificationController {
      */
     @GetMapping("/signup/confirm")
     public ResponseEntity<Void> confirmSignUp(@RequestParam("token") String token) {
+        if (!StringUtils.hasText(token)) throw new ResponseStatusException(BAD_REQUEST, "token must not be blank");
         emailVerificationUseCase.confirmSignup(token);
         return ResponseEntity.noContent().build();
     }
