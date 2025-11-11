@@ -3,17 +3,13 @@ package com.y11i.springcommddd.iam.api;
 import com.y11i.springcommddd.iam.api.support.AuthenticatedMember;
 import com.y11i.springcommddd.iam.application.port.in.EmailVerificationUseCase;
 import com.y11i.springcommddd.iam.domain.MemberId;
-import com.y11i.springcommddd.iam.dto.request.EmailChangeRequestDTO;
 import com.y11i.springcommddd.iam.dto.request.EmailVerificationConfirmRequestDTO;
 import com.y11i.springcommddd.iam.dto.request.EmailVerificationSignupRequestDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 이메일 인증/변경 관련 HTTP 엔드포인트.
@@ -58,28 +54,6 @@ public class EmailVerificationController {
     private final EmailVerificationUseCase emailVerificationUseCase;
 
     /**
-     * (미구현 placeholder)
-     * 가입 이메일 인증 토큰을 재발송 요청하는 엔드포인트.
-     *
-     * <p>
-     * 현재는 501(Not Implemented)로 응답하며,
-     * "로그인 없이 이메일만 주고 다시 보내달라" 식의 플로우를 지원하려면
-     * 이메일 → 회원 식별자 검색 로직을 별도로 노출해야 한다.
-     * </p>
-     *
-     * <p>
-     * 보안적으로는, 임의 이메일을 넣었을 때 존재 여부를 유추할 수 없게 해야 한다.
-     * 즉 실제 구현을 할 경우에도 정보 누출(계정 존재 여부 확인)을 피해야 한다.
-     * </p>
-     */
-    @PostMapping("/signup/request/me")
-    public ResponseEntity<Void> requestForSignup(@Valid @RequestBody EmailVerificationSignupRequestDTO requestDTO) {
-        // 이메일만으로 재전송을 허용하려면, 이메일→멤버 조회 유스케이스를 써서 memberId를 찾아 호출하면 됨.
-        // 하지만 여기선 간단하게 회원이 로그인 상태에서 내 주소로 재발송하는 API를 권장.
-        return ResponseEntity.status(501).build();
-    }
-
-    /**
      * (로그인 필요) 현재 로그인한 사용자의 이메일 주소로
      * 가입 인증(이메일 검증) 토큰을 발급/전송한다.
      *
@@ -112,48 +86,9 @@ public class EmailVerificationController {
      * 성공 시 204 No Content를 반환한다.
      * </p>
      */
-    @PostMapping("/signup/confirm")
-    public ResponseEntity<Void> confirmSignUp(@Valid @RequestBody EmailVerificationConfirmRequestDTO requestDTO) {
-        emailVerificationUseCase.confirmSignup(requestDTO.getToken());
-        return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * (로그인 필요) 사용자가 자신의 이메일 주소를 새 값으로 바꾸려 할 때,
-     * 새 이메일 주소로 변경 확인 토큰을 발송하도록 요청한다.
-     *
-     * <p>
-     * 즉시 이메일이 바뀌지는 않고, /change/confirm에서 토큰을 제출해야
-     * 실제 이메일 변경이 확정된다.
-     * </p>
-     *
-     * <p>
-     * 성공 시 202 Accepted.
-     * </p>
-     */
-    @PostMapping("/change/request")
-    public ResponseEntity<Void> requestForChange(@AuthenticatedMember MemberId memberId,
-                                                 @Valid @RequestBody EmailChangeRequestDTO requestDTO) {
-        emailVerificationUseCase.requestForChange(memberId.id(), requestDTO.getEmail());
-        return ResponseEntity.accepted().build();
-    }
-
-    /**
-     * 이메일 변경 토큰을 검증/소비하여,
-     * 사용자의 이메일 주소를 실제로 새 값으로 갱신한다.
-     *
-     * <p>
-     * 사용자는 새 이메일로 받은 토큰을 제출한다.
-     * 인증 상태가 아닐 수도 있음을 고려할 수 있다.
-     * </p>
-     *
-     * <p>
-     * 성공 시 204 No Content.
-     * </p>
-     */
-    @PostMapping("/change/confirm")
-    public ResponseEntity<Void> confirmChange(@Valid @RequestBody EmailVerificationConfirmRequestDTO requestDTO) {
-        emailVerificationUseCase.confirmChange(requestDTO.getToken());
+    @GetMapping("/signup/confirm")
+    public ResponseEntity<Void> confirmSignUp(@RequestParam("token") String token) {
+        emailVerificationUseCase.confirmSignup(token);
         return ResponseEntity.noContent().build();
     }
 }

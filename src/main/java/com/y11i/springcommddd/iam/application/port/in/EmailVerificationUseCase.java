@@ -12,11 +12,6 @@ import java.util.UUID;
  *         - 회원 가입 직후, 사용자의 이메일 주소로 인증 토큰을 발급/전달
  *         - 사용자는 토큰을 제출하여 이메일을 검증
  *     </li>
- *     <li><b>이메일 변경 인증</b>:
- *         - 로그인된 사용자가 신규 이메일로 변경을 요청할 때
- *         - 새 이메일 주소로 토큰을 전송
- *         - 토큰 검증 시 실제 이메일 변경 반영
- *     </li>
  * </ol>
  * </p>
  *
@@ -41,23 +36,4 @@ public interface EmailVerificationUseCase {
      * @param token 이메일 인증 토큰
      */
     void confirmSignup(String token);
-
-    /**
-     * (이메일 변경 플로우) 로그인된 사용자가 새 이메일로 바꾸려 할 때,
-     * 그 새 이메일 주소에 인증 토큰을 전송한다.
-     *
-     * <p>이 호출은 "아직 변경 반영 전" 단계이다. 실제 변경은 {@link #confirmChange(String)}에서 일어난다.</p>
-     *
-     * @param memberId 변경을 요청한 회원의 고유 식별자(UUID)
-     * @param newEmail 새로 설정하고자 하는 이메일
-     */
-    void requestForChange(UUID memberId, String newEmail);
-
-    /**
-     * (이메일 변경 플로우) 사용자가 이메일로 받은 토큰을 제출하여,
-     * 해당 회원의 이메일 주소를 실제로 변경/확정한다.
-     *
-     * @param token 이메일 변경 확인 토큰
-     */
-    void confirmChange(String token);
 }

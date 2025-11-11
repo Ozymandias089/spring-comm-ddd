@@ -64,40 +64,4 @@ public interface EmailVerificationTokenPort {
      * @throws RuntimeException (구현체 선택) 토큰이 없거나 만료되었거나 이미 사용된 경우
      */
     UUID consumeForSignup(String token);
-
-    /**
-     * 이메일 변경(기존 계정 → 새 이메일) 확인용 토큰을 발급한다.
-     *
-     * @param memberId 변경을 요청한 회원의 식별자(UUID)
-     * @param newEmail 새로 설정하고자 하는 이메일 주소
-     * @param ttl      토큰 유효 시간
-     * @return 발급된 토큰 문자열. 이 값은 새 이메일 주소로 전송된다.
-     */
-    String issueForChange(UUID memberId, String newEmail, Duration ttl);
-
-    /**
-     * 이메일 변경 확인 토큰을 소비(검증)한다.
-     *
-     * <p>
-     * 이 메서드는 다음을 수행해야 한다:
-     * </p>
-     * <ul>
-     *     <li>토큰이 유효/미만료인지 확인</li>
-     *     <li>해당 토큰이 (어느 회원 UUID, 어떤 새 이메일)과 연결되는지 복원</li>
-     *     <li>토큰을 무효화하여 재사용 방지</li>
-     * </ul>
-     *
-     * @param token 사용자가 제출한 토큰 문자열
-     * @return 해당 토큰에 대응하는 회원 ID와 새 이메일 주소
-     * @throws RuntimeException (구현체 선택) 토큰이 없거나 만료되었거나 이미 사용된 경우
-     */
-    EmailChangePayload consumeForChange(String token);
-
-    /**
-     * 이메일 변경 토큰이 가리키는 정보 (memberId + newEmail).
-     *
-     * @param memberId  이메일을 변경하려는 기존 계정의 회원 식별자(UUID)
-     * @param newEmail  최종적으로 반영할 새로운 이메일 주소
-     */
-    record EmailChangePayload(UUID memberId, String newEmail){}
 }

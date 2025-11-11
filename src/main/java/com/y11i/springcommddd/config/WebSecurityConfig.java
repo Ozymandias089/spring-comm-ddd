@@ -63,8 +63,14 @@ public class WebSecurityConfig {
                 // 2) CSRF: 쿠키 기반 토큰(프론트엔드가 X-XSRF-TOKEN 헤더로 돌려보내야 함)
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        // (선택) 로그인/로그아웃만 CSRF 예외로 두고 싶으면 ↓ 주석 해제
-                        .ignoringRequestMatchers("/api/register", "/api/login", "/api/logout", "/api/password-reset", "/api/password-reset/confirm")
+                        // CSRF 예외 API 목록: 회원가입, 로그인, 로그아웃, 패스워드 변경요청
+                        .ignoringRequestMatchers(
+                                "/api/register",
+                                "/api/login",
+                                "/api/logout",
+                                "/api/password-reset",
+                                "/api/password-reset/confirm"
+                        )
                 )
 
                 // 3) 세션: 상태 유지(세션 생성 허용)
@@ -78,10 +84,9 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.POST,  "/api/register").permitAll()
                         .requestMatchers("/api/login", "/api/logout").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/csrf").permitAll()
-                        .requestMatchers("/api/email-verify/signup/confirm", "/api/email-verify/change/confirm").permitAll()
+                        .requestMatchers("/api/email-verify/signup/confirm").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/my-page").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/my-page/display-name").authenticated()
-                        .requestMatchers("/api/email-verify/signup/request/me", "/api/email-verify/change/request").authenticated()
                         .requestMatchers("/api/sessions/**").authenticated()
                         .requestMatchers("/api/password-reset/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

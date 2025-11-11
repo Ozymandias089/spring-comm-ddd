@@ -9,7 +9,6 @@ import com.y11i.springcommddd.iam.domain.MemberId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -35,13 +34,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * EmailVerificationController의 Web 계층 슬라이스 테스트.
- *
+ * <p>
  * 다루는 엔드포인트:
  *  - POST /api/email-verify/signup/request      (로그인 필요)
  *  - POST /api/email-verify/signup/confirm      (비로그인 허용)
- *  - POST /api/email-verify/change/request      (로그인 필요)
- *  - POST /api/email-verify/change/confirm      (비로그인 허용)
- *
+ * <p>
  * 검증 포인트:
  *  - 정상 입력 시 HTTP 상태코드 (202 / 204)
  *  - @Valid 위반 시 400 + ProblemDetail
@@ -203,115 +200,6 @@ class EmailVerificationControllerWebTest {
         """;
 
         mockMvc.perform(post("/api/email-verify/signup/confirm")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bodyJson)
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.title").exists())
-                .andExpect(jsonPath("$.code").exists())
-                .andExpect(jsonPath("$.detail").exists());
-    }
-
-    // -----------------------------------------------------------------------
-    // 3) POST /api/email-verify/change/request  (로그인 필요)
-    // -----------------------------------------------------------------------
-
-    @Test
-    @DisplayName("POST /api/email-verify/change/request - 로그인 상태에서 새 이메일을 주면 202 Accepted를 반환하고 requestForChange(memberId.id, email)이 호출된다")
-    void requestForChange_authenticated_validEmail_returns202_andInvokesUseCase() throws Exception {
-        var bodyJson = """
-            {
-              "email": "changed@example.com"
-            }
-        """;
-
-        mockMvc.perform(post("/api/email-verify/change/request")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bodyJson)
-                )
-                .andExpect(status().isAccepted());
-
-        verify(emailVerificationUseCase).requestForChange(
-                eq(memberId.id()),
-                eq("changed@example.com")
-        );
-    }
-
-    @Test
-    @DisplayName("POST /api/email-verify/change/request - 잘못된 이메일 형식이면 400 Bad Request와 ProblemDetail을 반환한다")
-    void requestForChange_invalidEmail_returns400_withProblemDetail() throws Exception {
-        var bodyJson = """
-            {
-              "email": "bad"
-            }
-        """;
-
-        mockMvc.perform(post("/api/email-verify/change/request")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bodyJson)
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.title").exists())
-                .andExpect(jsonPath("$.code").exists())
-                .andExpect(jsonPath("$.detail").exists());
-    }
-
-    @Test
-    @DisplayName("POST /api/email-verify/change/request - 인증 정보가 없으면 401 Unauthorized와 ProblemDetail을 반환한다")
-    void requestForChange_unauthenticated_returns401_withProblemDetail() throws Exception {
-        SecurityContextHolder.clearContext(); // 인증 제거
-
-        var bodyJson = """
-            {
-              "email": "changed@example.com"
-            }
-        """;
-
-        mockMvc.perform(post("/api/email-verify/change/request")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bodyJson)
-                )
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.title").value("Unauthorized"))
-                .andExpect(jsonPath("$.code").value("app.permission_denied"))
-                .andExpect(jsonPath("$.detail").value("Not Authenticated"));
-    }
-
-    // -----------------------------------------------------------------------
-    // 4) POST /api/email-verify/change/confirm  (로그인 불필요)
-    // -----------------------------------------------------------------------
-
-    @Test
-    @DisplayName("POST /api/email-verify/change/confirm - 유효한 token이면 204 No Content를 반환하고 confirmChange(token)이 호출된다")
-    void confirmChange_validToken_returns204_andInvokesUseCase() throws Exception {
-        var bodyJson = """
-            {
-              "token": "CHANGE_TOKEN_123"
-            }
-        """;
-
-        mockMvc.perform(post("/api/email-verify/change/confirm")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bodyJson)
-                )
-                .andExpect(status().isNoContent());
-
-        verify(emailVerificationUseCase).confirmChange("CHANGE_TOKEN_123");
-    }
-
-    @Test
-    @DisplayName("POST /api/email-verify/change/confirm - token이 공백이면 400 Bad Request와 ProblemDetail을 반환한다")
-    void confirmChange_blankToken_returns400_withProblemDetail() throws Exception {
-        var bodyJson = """
-            {
-              "token": ""
-            }
-        """;
-
-        mockMvc.perform(post("/api/email-verify/change/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyJson)
                 )

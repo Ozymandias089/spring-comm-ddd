@@ -34,7 +34,6 @@ public class RedisEmailVerificationTokenAdapter implements EmailVerificationToke
     }
 
     private static String signupKey(String token) { return "emailverify:signup:" + token; }
-    private static String changeKey(String token) { return "emailverify:change:" + token; }
 
     /** {@inheritDoc} */
     @Override
@@ -53,30 +52,5 @@ public class RedisEmailVerificationTokenAdapter implements EmailVerificationToke
         if (value == null) throw new IllegalArgumentException("invalid or expired");
         redis.delete(key); // 1회용
         return UUID.fromString(value);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public String issueForChange(UUID memberId, String newEmail, Duration ttl) {
-        String token = tokenSupplier.get();
-        String key = changeKey(token);
-        String payload = memberId.toString() + "|" + newEmail;
-        redis.opsForValue().set(key, payload, ttl);
-        return token;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public EmailChangePayload consumeForChange(String token) {
-        String key = changeKey(token);
-        String value = redis.opsForValue().get(key);
-        if (value == null) throw new IllegalArgumentException("invalid or expired");
-        redis.delete(key);
-
-        int sep = value.indexOf('|');
-        if (sep <= 0 || sep >= value.length() - 1) throw new IllegalArgumentException("invalid payload");
-        UUID memberId = UUID.fromString(value.substring(0, sep));
-        String newEmail = value.substring(sep + 1);
-        return new EmailChangePayload(memberId, newEmail);
     }
 }
