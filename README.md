@@ -5,6 +5,46 @@
 
 ---
 
+# POST API LIST
+1. 작성(초안 생성)
+- POST /api/posts
+- 권한: 인증 + emailVerified=true
+- Body: { "communityId": "<uuid>", "title": "...", "content": "..." }
+- 응답: 201 Created + Location: /api/posts/{postId} + 본문(선택)
+- 검증: 제목 길이, 본문 길이, 커뮤니티 존재/작성 권한
+2. 단건 조회
+- GET /api/posts/{postId}
+- 권한: 공개(커뮤니티 규칙에 따름)
+- 응답: 200 OK (초안은 작성자/모더레이터만, 보관은 정책대로 404/200)
+3. 목록 조회 (페이징)
+- GET /api/posts?communityId=<uuid>&status=PUBLISHED&page=0&size=20&sort=createdAt,desc
+- 권한: 공개(커뮤니티 규칙), 초안은 본인만
+- 응답: 200 OK (페이지네이션 메타 포함)
+4. 수정(제목/본문)
+- PATCH /api/posts/{postId}
+- 권한: 작성자(또는 모더레이터/관리자 정책) + !ARCHIVED
+- Body 예: { "title": "...", "content": "..." } (부분 필드만 허용)
+- 응답: 200 OK (갱신된 리소스) 또는 204 No Content
+- 도메인: rename, rewrite 호출 (보관 상태면 409/403)
+5. 게시(Publish)
+- POST /api/posts/{postId}/publish
+- 권한: 작성자(또는 모더레이터 승인 모델이면 모더레이터) + 현재 DRAFT
+- 응답: 204 No Content
+- 도메인: publish()
+6. 보관(Archive) = 소프트 삭제
+- POST /api/posts/{postId}/archive
+- 권한: 작성자/모더레이터
+- 응답: 204 No Content
+- 도메인: archive() (소프트 삭제를 별도 status로 두지 않고 ARCHIVED로 일원화 추천)
+7. 복구(Restore)
+- POST /api/posts/{postId}/restore
+- 권한: 작성자/모더레이터
+- 응답: 204 No Content
+- 도메인: restore() (현재 설계상 PUBLISHED로 복귀)
+- 하드 삭제가 꼭 필요하면 관리자 전용: DELETE /api/admin/posts/{postId} (감사 로그 필수)
+
+---
+
 ## 🧭 주요 특징
 
 - **DDD + Hexagonal**: 도메인 순수성 유지, Port/Adapter 분리
@@ -46,118 +86,6 @@ src/main/java/com/y11i/springcommddd/
 
 ---
 
-## 📁 현재 프로젝트 구조
-
-```
-🍏 ~/GitHub/spring-comm-ddd/ [main] tree src/main/java/com/y11i/springcommddd/
-src/main/java/com/y11i/springcommddd/
-├── comments
-│   ├── api
-│   ├── application
-│   ├── domain
-│   │   ├── Comment.java
-│   │   ├── CommentBody.java
-│   │   ├── CommentId.java
-│   │   ├── CommentRepository.java
-│   │   └── CommentStatus.java
-│   └── infrastructure
-│       ├── CommentRepositoryAdapter.java
-│       └── JpaCommentRepository.java
-├── communities
-│   ├── api
-│   ├── application
-│   ├── domain
-│   │   ├── Community.java
-│   │   ├── CommunityId.java
-│   │   ├── CommunityName.java
-│   │   ├── CommunityNameKey.java
-│   │   ├── CommunityRepository.java
-│   │   └── CommunityStatus.java
-│   ├── infrastructure
-│   │   ├── CommuityRepositoryAdapter.java
-│   │   └── JpaCommunityRepository.java
-│   └── moderators
-│       ├── domain
-│       │   ├── CommunityModerator.java
-│       │   ├── CommunityModeratorId.java
-│       │   └── CommunityModeratorRepository.java
-│       └── infrastructure
-│           ├── CommunityModeratorRepositoryAdapter.java
-│           └── JpaCommunityModeratorRepository.java
-├── config
-│   ├── JpaAuditingConfig.java
-│   ├── SecurityConfig.java
-│   └── WebSecurityConfig.java
-├── iam
-│   ├── api
-│   ├── application
-│   ├── domain
-│   │   ├── DisplayName.java
-│   │   ├── Email.java
-│   │   ├── Member.java
-│   │   ├── MemberId.java
-│   │   ├── MemberRepository.java
-│   │   ├── MemberRole.java
-│   │   ├── MemberStatus.java
-│   │   └── PasswordHash.java
-│   └── infrastructure
-│       ├── JpaMemberRepository.java
-│       ├── MemberAuthProvider.java
-│       └── MemberRepositoryAdapter.java
-├── posts
-│   ├── api
-│   ├── application
-│   ├── domain
-│   │   ├── Content.java
-│   │   ├── Post.java
-│   │   ├── PostId.java
-│   │   ├── PostRepository.java
-│   │   ├── PostStatus.java
-│   │   └── Title.java
-│   ├── infrastructure
-│   │   ├── JpaPostRepository.java
-│   │   └── PostRepositoryAdapter.java
-│   └── media
-│       ├── api
-│       ├── application
-│       ├── domain
-│       │   ├── MediaType.java
-│       │   ├── PostAsset.java
-│       │   ├── PostAssetId.java
-│       │   ├── PostAssetRepository.java
-│       │   └── Url.java
-│       └── infrastructure
-│           ├── JpaPostAssetRepository.java
-│           └── PostAssetRepositoryAdapter.java
-├── shared
-│   └── domain
-│       ├── AggregateRoot.java
-│       ├── DomainEntity.java
-│       ├── ImageUrl.java
-│       └── ValueObject.java
-├── SpringCommDddApplication.java
-└── votes
-    ├── api
-    ├── application
-    ├── domain
-    │   ├── CommentVote.java
-    │   ├── CommentVoteId.java
-    │   ├── CommentVoteRepository.java
-    │   ├── MyCommentVote.java
-    │   ├── MyPostVote.java
-    │   ├── MyVoteValue.java
-    │   ├── PostVote.java
-    │   ├── PostVoteId.java
-    │   └── PostVoteRepository.java
-    └── infrastructure
-        ├── CommentVoteRepositoryAdapter.java
-        ├── JpaCommentVoteRepository.java
-        ├── JpaPostVoteRepository.java
-        └── PostVoteRepositoryAdapter.java
-```
-
----
-
 ## ⚙️ 기술 스택 & 의존성
 
 - **Java** 25
@@ -170,41 +98,6 @@ src/main/java/com/y11i/springcommddd/
 
 `build.gradle` 주요 설정:
 
-```gradle
-plugins {
-    id 'java'
-    id 'org.springframework.boot' version '3.5.6'
-    id 'io.spring.dependency-management' version '1.1.7'
-}
-
-java {
-    toolchain { languageVersion = JavaLanguageVersion.of(25) }
-}
-
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation "org.springframework.session:spring-session-data-redis"
-    implementation "org.springframework.boot:spring-boot-starter-data-redis"
-    implementation "org.springframework.boot:spring-boot-starter-validation"
-
-    runtimeOnly "org.mariadb.jdbc:mariadb-java-client"
-
-    implementation "org.flywaydb:flyway-core"
-    implementation "org.flywaydb:flyway-mysql"
-
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation "org.testcontainers:junit-jupiter"
-    testImplementation "org.testcontainers:mariadb"
-}
-```
-
 ---
 
 ## 🔐 인증/인가 (세션 + Redis)
@@ -212,30 +105,6 @@ dependencies {
 - **쿠키 기반 세션**: 로그인 성공 시 `JSESSIONID` 쿠키 발급 → Spring Session이 **Redis**에 세션 저장
 - **보안 플래그**: `Secure`, `HttpOnly`, `SameSite=Lax/Strict` 권장
 - **CSRF**: 쿠키 인증이면 활성 권장(프런트에서 `X-CSRF-TOKEN` 헤더 전송)
-
-`application.properties` 예시:
-```properties
-# MariaDB
-spring.datasource.url=jdbc:mariadb://localhost:3306/spring_comm
-spring.datasource.username=root
-spring.datasource.password=pass
-spring.jpa.hibernate.ddl-auto=validate
-
-# Redis (Spring Session)
-spring.data.redis.host=localhost
-spring.data.redis.port=6379
-spring.session.store-type=redis
-spring.session.redis.namespace=spring:session
-server.servlet.session.timeout=30m
-
-# Hibernate
-spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.format_sql=true
-```
-
-### Security 구성 메모
-- `MemberAuthProvider`: 이메일/패스워드 인증 + 전역 역할(ROLE_USER/ROLE_ADMIN) + 커뮤니티별 권한(`COMMUNITY_MOD:<communityId>`)
-- 메서드 보안: `@EnableMethodSecurity` + `@PreAuthorize(...)`
 
 ---
 
