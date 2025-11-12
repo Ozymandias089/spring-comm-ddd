@@ -1,8 +1,11 @@
 package com.y11i.springcommddd.posts.media.domain;
 
 import com.y11i.springcommddd.posts.domain.PostId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -23,4 +26,27 @@ public interface PostAssetRepository {
     Optional<PostAsset> findFirstByPostId(PostId postId);
 
     void delete(PostAsset a);
+
+    // === 보강 ===
+    long countByPostId(PostId postId);
+    Optional<Integer> findMaxDisplayOrder(PostId postId);
+    boolean existsByPostIdAndDisplayOrder(PostId postId, int displayOrder);
+
+    // 재정렬 (삽입/삭제 시 자리 밀고 당기기)
+    int shiftRightFromOrder(PostId postId, int fromOrder);
+    int shiftLeftAfterOrder(PostId postId, int removedOrder);
+
+    // 상태/조회 편의
+    List<PostAsset> findByPostIdAndStatus(PostId postId, ProcessingStatus status);
+    Page<PostAsset> findPageByPostId(PostId postId, Pageable pageable);
+
+    // 특정 variant 존재/조회
+    boolean existsVariantByName(PostId postId, String variantName); // poster/hls 등
+    List<PostAsset> findByPostIdAndVariantName(PostId postId, String variantName);
+
+    // 일괄 순서 반영(드래그앤드롭)
+    int bulkUpdateOrders(PostId postId, Map<PostAssetId, Integer> newOrders);
+
+    // 정리
+    int deleteAllByPostId(PostId postId);
 }

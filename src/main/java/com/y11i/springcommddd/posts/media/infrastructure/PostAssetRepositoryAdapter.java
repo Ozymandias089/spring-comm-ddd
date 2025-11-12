@@ -4,10 +4,15 @@ import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.media.domain.PostAsset;
 import com.y11i.springcommddd.posts.media.domain.PostAssetId;
 import com.y11i.springcommddd.posts.media.domain.PostAssetRepository;
+import com.y11i.springcommddd.posts.media.domain.ProcessingStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * PostAsset 도메인 리포지토리 어댑터.
@@ -43,5 +48,25 @@ public class PostAssetRepositoryAdapter implements PostAssetRepository {
     @Override @Transactional
     public void delete(PostAsset a) {
         jpaPostAssetRepository.delete(a);
+    }
+
+    @Override public long countByPostId(PostId postId){ return jpaPostAssetRepository.countByPostId(postId); }
+    @Override public Optional<Integer> findMaxDisplayOrder(PostId postId){ return jpaPostAssetRepository.findMaxDisplayOrder(postId); }
+    @Override public boolean existsByPostIdAndDisplayOrder(PostId postId, int order){ return jpaPostAssetRepository.existsByPostIdAndDisplayOrder(postId, order); }
+    @Override @Transactional public int shiftRightFromOrder(PostId postId, int fromOrder){ return jpaPostAssetRepository.shiftRightFromOrder(postId, fromOrder); }
+    @Override @Transactional public int shiftLeftAfterOrder(PostId postId, int removedOrder){ return jpaPostAssetRepository.shiftLeftAfterOrder(postId, removedOrder); }
+    @Override public List<PostAsset> findByPostIdAndStatus(PostId postId, ProcessingStatus status){ return jpaPostAssetRepository.findByPostIdAndStatus(postId, status); }
+    @Override public Page<PostAsset> findPageByPostId(PostId postId, Pageable pageable){ return jpaPostAssetRepository.findPageByPostId(postId, pageable); }
+    @Override public boolean existsVariantByName(PostId postId, String name){ return jpaPostAssetRepository.existsVariantByName(postId, name); }
+    @Override public List<PostAsset> findByPostIdAndVariantName(PostId postId, String name){ return jpaPostAssetRepository.findByPostIdAndVariantName(postId, name); }
+    @Override @Transactional public int deleteAllByPostId(PostId postId){ return jpaPostAssetRepository.deleteByPostId(postId); }
+
+    @Override @Transactional
+    public int bulkUpdateOrders(PostId postId, Map<PostAssetId, Integer> newOrders){
+        AtomicInteger updated = new AtomicInteger();
+        for (var e : newOrders.entrySet()) {
+            jpaPostAssetRepository.findById(e.getKey()).ifPresent(a -> { a.changeDisplayOrder(e.getValue()); updated.getAndIncrement(); });
+        }
+        return updated.get();
     }
 }

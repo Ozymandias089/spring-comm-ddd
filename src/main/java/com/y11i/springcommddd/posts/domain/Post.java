@@ -72,7 +72,7 @@ public class Post implements AggregateRoot {
     private Title title;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "content", nullable = false))
+    @AttributeOverride(name = "value", column = @Column(name = "content"))
     private Content content;
 
     @Embedded
