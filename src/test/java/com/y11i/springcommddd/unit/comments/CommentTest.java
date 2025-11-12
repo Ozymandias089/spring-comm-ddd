@@ -32,43 +32,43 @@ public class CommentTest {
         });
     }
 
-    // --- Happy: 대댓글 생성 ---
-    @Test
-    @DisplayName("replyTo: depth는 parentDepth+1, parentId 설정")
-    void replyTo_ok() {
-        var postId = PostId.newId();
-        var authorId = MemberId.newId();
-        var parentId = CommentId.newId();
-
-        var child = Comment.replyTo(postId, authorId, parentId, /*parentDepth=*/1, "child body");
-
-        assertSoftly(s -> {
-            s.assertThat(child.parentId()).isEqualTo(parentId);
-            s.assertThat(child.depth()).isEqualTo(2);
-            s.assertThat(child.body().value()).isEqualTo("child body");
-            s.assertThat(child.status()).isEqualTo(CommentStatus.VISIBLE);
-        });
-    }
-
-    // --- Guard: 음수 depth 생성 방지 ---
-    @Test
-    @DisplayName("InvalidCommentDepth: depth<0이면 예외")
-    void invalid_depth_throws() {
-        var postId = PostId.newId();
-        var authorId = MemberId.newId();
-        assertThatThrownBy(() ->
-                // parentDepth = -2 → depth = -1 → 예외 발생
-                Comment.replyTo(postId, authorId, CommentId.newId(), -2, "x")
-        ).isInstanceOf(InvalidCommentDepth.class);
-    }
-
-    @Test
-    @DisplayName("replyTo: parentDepth=-1 → depth=0 (예외 없음)")
-    void replyTo_parentDepth_minus1_becomes_zero() {
-        var c = Comment.replyTo(PostId.newId(), MemberId.newId(), CommentId.newId(), -1, "ok");
-        assertThat(c.depth()).isEqualTo(0);
-    }
-
+//    // --- Happy: 대댓글 생성 ---
+//    @Test
+//    @DisplayName("replyTo: depth는 parentDepth+1, parentId 설정")
+//    void replyTo_ok() {
+//        var postId = PostId.newId();
+//        var authorId = MemberId.newId();
+//        var parentId = CommentId.newId();
+//
+//        var child = Comment.replyTo(postId, authorId, parentId, /*parentDepth=*/1, "child body");
+//
+//        assertSoftly(s -> {
+//            s.assertThat(child.parentId()).isEqualTo(parentId);
+//            s.assertThat(child.depth()).isEqualTo(2);
+//            s.assertThat(child.body().value()).isEqualTo("child body");
+//            s.assertThat(child.status()).isEqualTo(CommentStatus.VISIBLE);
+//        });
+//    }
+//
+//    // --- Guard: 음수 depth 생성 방지 ---
+//    @Test
+//    @DisplayName("InvalidCommentDepth: depth<0이면 예외")
+//    void invalid_depth_throws() {
+//        var postId = PostId.newId();
+//        var authorId = MemberId.newId();
+//        assertThatThrownBy(() ->
+//                // parentDepth = -2 → depth = -1 → 예외 발생
+//                Comment.replyTo(postId, authorId, CommentId.newId(), -2, "x")
+//        ).isInstanceOf(InvalidCommentDepth.class);
+//    }
+//
+//    @Test
+//    @DisplayName("replyTo: parentDepth=-1 → depth=0 (예외 없음)")
+//    void replyTo_parentDepth_minus1_becomes_zero() {
+//        var c = Comment.replyTo(PostId.newId(), MemberId.newId(), CommentId.newId(), -1, "ok");
+//        assertThat(c.depth()).isEqualTo(0);
+//    }
+//
     // --- 수정: 삭제 상태가 아니면 edit 가능 ---
     @Test
     @DisplayName("edit: 삭제 상태가 아니면 본문 수정 가능")

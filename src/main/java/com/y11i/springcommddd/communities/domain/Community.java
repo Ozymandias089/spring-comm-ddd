@@ -185,7 +185,7 @@ public class Community implements AggregateRoot {
      * @throws IllegalStateException 보관 상태인 경우
      */
     private void ensureNotArchived(){
-        if (status == CommunityStatus.ARCHIVED) throw new CommunityArchivedModificationNotAllowed("Archived community cannot be renamed");
+        if (status == CommunityStatus.ARCHIVED) throw new CommunityArchivedModificationNotAllowed("Archived community cannot be modified");
     }
 
     // -----------------------------------------------------
