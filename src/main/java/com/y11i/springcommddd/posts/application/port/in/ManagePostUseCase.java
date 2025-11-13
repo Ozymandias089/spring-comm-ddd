@@ -23,53 +23,53 @@ public interface ManagePostUseCase {
 
     // --- 내용 수정 ---
 
-    /** 제목 변경 */
-    PostDTO rename(RenameTitleCommand cmd);
-
-    /** 텍스트 본문 변경 (TEXT/MEDIA용) */
-    PostDTO rewrite(RewriteContentCommand cmd);
-
-    /** 링크 게시글의 링크 교체 (LINK용) */
-    PostDTO replaceLink(ReplaceLinkCommand cmd);
-
-    // --- 미디어 variant 조작 ---
+    /**
+     * 텍스트 게시글 수정.
+     * - title / content 둘 중 하나 혹은 둘 다 수정 가능
+     * - null인 필드는 수정하지 않음
+     */
+    PostDTO editTextPost(EditTextPostCommand cmd);
 
     /**
-     * 특정 PostAsset에 대한 variant upsert (없으면 생성, 있으면 갱신).
-     * 예: poster, hls, mp4_720 등.
+     * 링크 게시글 수정.
+     * - title만 수정 가능
+     * - 링크(URL)는 강한 불변성 정책으로 인해 수정 불가
      */
-    PostDTO upsertVariant(UpsertVariantCommand cmd);
+    PostDTO editLinkPost(EditLinkPostCommand cmd);
 
     /**
-     * 특정 PostAsset의 variant 제거.
+     * 미디어 게시글 수정.
+     * - title 수정 가능
+     * - content는 미디어 게시글의 캡션/본문으로 사용된다고 가정하고 수정 허용
+     * - 미디어 파일 자체(src/variants)는 수정 불가
      */
-    PostDTO removeVariant(RemoveVariantCommand cmd);
+    PostDTO editMediaPost(EditMediaPostCommand cmd);
 
     record PublishPostCommand(PostId postId, MemberId actorId) {}
     record ArchivePostCommand(PostId postId, MemberId actorId) {}
     record RestorePostCommand(PostId postId, MemberId actorId) {}
 
-    record RenameTitleCommand(PostId postId, MemberId actorId, Title newTitle) {}
-
-    record RewriteContentCommand(PostId postId, MemberId actorId, Content newContent) {}
-
-    record ReplaceLinkCommand(PostId postId, MemberId actorId, LinkUrl newLink) {}
-
-    record UpsertVariantCommand(
+    // TEXT 전용: 제목/내용 둘 다 수정 가능
+    record EditTextPostCommand(
             PostId postId,
             MemberId actorId,
-            PostAssetId assetId,
-            String variantName,   // "poster", "hls", "mp4_720" 등
-            String url,
-            String mimeType,
-            Integer width,
-            Integer height
+            Title newTitle,      // nullable
+            Content newContent   // nullable
     ) {}
 
-    record RemoveVariantCommand(
+    // LINK 전용: 제목만 수정 (링크 URL은 고정)
+    record EditLinkPostCommand(
             PostId postId,
             MemberId actorId,
-            PostAssetId assetId,
-            String variantName
+            Title newTitle       // nullable (null이면 수정 없음)
     ) {}
+
+    // MEDIA 전용: 제목 + 캡션(Content) 수정
+    record EditMediaPostCommand(
+            PostId postId,
+            MemberId actorId,
+            Title newTitle,      // nullable
+            Content newContent   // nullable (캡션/본문)
+    ) {}
+
 }

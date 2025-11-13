@@ -2,10 +2,7 @@ package com.y11i.springcommddd.posts.application.port.in;
 
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
-import com.y11i.springcommddd.posts.domain.Content;
-import com.y11i.springcommddd.posts.domain.LinkUrl;
 import com.y11i.springcommddd.posts.domain.PostId;
-import com.y11i.springcommddd.posts.domain.Title;
 import com.y11i.springcommddd.posts.media.domain.MediaType;
 
 import java.util.List;
@@ -27,8 +24,8 @@ public interface CreatePostDraftUseCase {
     record CreateTextDraftCommand(
             CommunityId communityId,
             MemberId authorId,
-            Title title,
-            Content content
+            String title,
+            String content
     ) {}
 
     /**
@@ -37,8 +34,8 @@ public interface CreatePostDraftUseCase {
     record CreateLinkDraftCommand(
             CommunityId communityId,
             MemberId authorId,
-            Title title,
-            LinkUrl link
+            String title,
+            String link
     ) {}
 
     /**
@@ -48,8 +45,8 @@ public interface CreatePostDraftUseCase {
     record CreateMediaDraftCommand(
             CommunityId communityId,
             MemberId authorId,
-            Title title,
-            Content content,
+            String title,
+            String content,
             List<AssetMeta> assets
     ) {}
 

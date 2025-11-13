@@ -145,9 +145,9 @@ public class Post implements AggregateRoot {
         return new Post(PostKind.TEXT, communityId, authorId, new Title(title), new Content(content), null);
     }
 
-    public static Post createMedia(CommunityId communityId, MemberId authorId, String title) {
+    public static Post createMedia(CommunityId communityId, MemberId authorId, String title, String content) {
         // MEDIA는 content/caption 이 선택사항. 최소 non-blank 보장을 위해 한칸 넣어 저장(또는 Content VO를 null 허용으로 바꾸려면 VO 수정 필요)
-        return new Post(PostKind.MEDIA, communityId, authorId, new Title(title), new Content(" "), null);
+        return new Post(PostKind.MEDIA, communityId, authorId, new Title(title), new Content(content), null);
     }
 
     public static Post createLink(CommunityId communityId, MemberId authorId, String title, String linkUrl, String captionOptional) {

@@ -1,19 +1,22 @@
 package com.y11i.springcommddd.posts.infrastructure;
 
+import com.y11i.springcommddd.posts.application.port.out.LoadPostAssetsPort;
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.application.port.out.SavePostAssetsPort;
 import com.y11i.springcommddd.posts.media.domain.PostAsset;
+import com.y11i.springcommddd.posts.media.domain.PostAssetId;
 import com.y11i.springcommddd.posts.media.domain.PostAssetRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PostAssetPersistenceAdapter implements SavePostAssetsPort {
+public class PostAssetPersistenceAdapter implements SavePostAssetsPort, LoadPostAssetsPort {
     private final PostAssetRepository postAssetRepository;
 
     /**
@@ -50,5 +53,15 @@ public class PostAssetPersistenceAdapter implements SavePostAssetsPort {
     @Transactional
     public void deleteAllByPostId(PostId postId) {
         postAssetRepository.deleteAllByPostId(postId);
+    }
+
+    @Override
+    public Optional<PostAsset> loadById(PostAssetId assetId) {
+        return postAssetRepository.findById(assetId);
+    }
+
+    @Override
+    public List<PostAsset> loadByPostId(PostId postId) {
+        return postAssetRepository.findByPostIdOrderByDisplayOrder(postId);
     }
 }
