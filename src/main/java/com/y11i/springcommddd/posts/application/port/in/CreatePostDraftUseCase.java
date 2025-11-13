@@ -4,8 +4,8 @@ import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.Content;
 import com.y11i.springcommddd.posts.domain.LinkUrl;
+import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.domain.Title;
-import com.y11i.springcommddd.posts.dto.internal.PostDTO;
 import com.y11i.springcommddd.posts.media.domain.MediaType;
 
 import java.util.List;
@@ -16,15 +16,15 @@ import java.util.List;
  *     이 유스케이스는 새 게시글을 생성한다.
  * </p>
  */
-public interface CreatePostUseCase {
-    PostDTO createTextPost(CreateTextPostCommand cmd);
-    PostDTO createLinkPost(CreateLinkPostCommand cmd);
-    PostDTO createMediaPost(CreateMediaPostCommand cmd);
+public interface CreatePostDraftUseCase {
+    PostId createTextDraft(CreateTextDraftCommand cmd);
+    PostId createLinkDraft(CreateLinkDraftCommand cmd);
+    PostId createMediaDraft(CreateMediaDraftCommand cmd);
 
     /**
      * 텍스트 게시글 생성 커맨드.
      */
-    record CreateTextPostCommand(
+    record CreateTextDraftCommand(
             CommunityId communityId,
             MemberId authorId,
             Title title,
@@ -34,7 +34,7 @@ public interface CreatePostUseCase {
     /**
      * 링크 게시글 생성 커맨드.
      */
-    record CreateLinkPostCommand(
+    record CreateLinkDraftCommand(
             CommunityId communityId,
             MemberId authorId,
             Title title,
@@ -45,7 +45,7 @@ public interface CreatePostUseCase {
      * 미디어(이미지/영상) 게시글 생성 커맨드.
      * content는 캡션/본문으로 사용 가능.
      */
-    record CreateMediaPostCommand(
+    record CreateMediaDraftCommand(
             CommunityId communityId,
             MemberId authorId,
             Title title,

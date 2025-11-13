@@ -1,4 +1,4 @@
-package com.y11i.springcommddd.posts.media.application.port.out;
+package com.y11i.springcommddd.posts.application.port.out;
 
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.media.domain.PostAsset;
