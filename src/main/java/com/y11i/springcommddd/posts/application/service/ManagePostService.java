@@ -106,36 +106,29 @@ public class ManagePostService implements ManagePostUseCase {
     }
 
     /**
-     * 게시글 수정 (TEXT / LINK / MEDIA 공용).
-     * <p>
-     * 규칙:
-     * - LINK  가 아닌 경우(TEXT / MEDIA): content 수정 허용
-     * - 모든 타입: title 수정 허용
-     * <p>
-     * newTitle / newContent는 null 허용이며,
-     * null인 필드는 수정하지 않습니다.
-     *
-     * @param cmd command
+     * TEXT / LINK / MEDIA 공용 수정.
+     *  - LINK 가 아닌 경우(TEXT / MEDIA): content 수정 허용
+     *  - 모든 타입: title 수정 허용
      */
     @Override
     @Transactional
     public PostId editPost(EditPostCommand cmd) {
-        Post saved = executeWithPermission(
-                cmd.postId(),
-                cmd.actorId(),
-                PostPermissionAction.EDIT,
-                post -> {
-                    // 1) content 수정: LINK가 아닌 경우에만
-                    if (cmd.newContent() != null && post.kind() != PostKind.LINK) {
-                        post.rewrite(cmd.newContent());
-                    }
+        // 1. Post 로드
+        Post target = loadPostPort.loadById(cmd.postId())
+                .orElseThrow(() -> new PostNotFound(cmd.postId().id().toString()));
 
-                    // 2) title 수정: 모든 타입 허용
-                    if (cmd.newTitle() != null) {
-                        post.rename(cmd.newTitle());
-                    }
-                }
-        );
+        // 2. 권한 검증 (작성자만 EDIT 가능)
+        ensurePermission(target, cmd.actorId(), PostPermissionAction.EDIT);
+
+        // 3. 내용 수정
+        // content: LINK가 아닌 경우에만 허용
+        if (cmd.newContent() != null && target.kind() != PostKind.LINK) target.rewrite(cmd.newContent());
+
+        // title: 모든 타입에서 허용
+        if (cmd.newTitle() != null) target.rename(cmd.newTitle());
+
+        // 4. 저장
+        Post saved = savePostPort.save(target);
         return saved.postId();
     }
 
@@ -173,28 +166,5 @@ public class ManagePostService implements ManagePostUseCase {
         if (!allowed) {
             throw new AccessDeniedException("Not allowed to " + action + " this post");
         }
-    }
-
-    /**
-     * 공통 템플릿:
-     *  1) Post 로드
-     *  2) 권한 체크
-     *  3) mutator 실행
-     *  4) 저장 후 Post 반환
-     */
-    private Post executeWithPermission(
-            PostId postId,
-            MemberId actorId,
-            PostPermissionAction action,
-            Consumer<Post> mutator
-    ) {
-        Post target = loadPostPort.loadById(postId)
-                .orElseThrow(() -> new PostNotFound(postId.id().toString()));
-
-        ensurePermission(target, actorId, action);
-
-        mutator.accept(target);
-
-        return savePostPort.save(target);
     }
 }
