@@ -3,6 +3,7 @@ package com.y11i.springcommddd.comments.infrastructure;
 import com.y11i.springcommddd.comments.domain.Comment;
 import com.y11i.springcommddd.comments.domain.CommentId;
 import com.y11i.springcommddd.comments.domain.CommentRepository;
+import com.y11i.springcommddd.posts.application.port.out.LoadCommentCountPort;
 import com.y11i.springcommddd.posts.domain.PostId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +34,7 @@ import java.util.Optional;
  */
 @Repository
 @Transactional(readOnly = true)
-public class CommentRepositoryAdapter implements CommentRepository {
+public class CommentRepositoryAdapter implements CommentRepository, LoadCommentCountPort {
 
     private final JpaCommentRepository jpa;
 
@@ -66,5 +67,16 @@ public class CommentRepositoryAdapter implements CommentRepository {
     @Override
     public Page<Comment> findByPostId(PostId postId, Pageable pageable) {
         return jpa.findByPostId(postId, pageable);
+    }
+
+    /**
+     * 특정 게시글에 달린 댓글 수를 반환합니다.
+     *
+     * @param postId 게시글 식별자
+     * @return 댓글 개수
+     */
+    @Override
+    public long countByPostId(PostId postId) {
+        return jpa.countByPostId(postId);
     }
 }

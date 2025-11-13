@@ -79,4 +79,12 @@ public interface CommentRepository {
      * @return 게시글 전체 댓글의 {@link Page}
      */
     Page<Comment> findByPostId(PostId postId, Pageable pageable);
+
+    /**
+     * 특정 게시글에 달린 댓글 수를 반환합니다.
+     *
+     * @param postId 게시글 식별자
+     * @return 댓글 개수
+     */
+    long countByPostId(PostId postId);
 }

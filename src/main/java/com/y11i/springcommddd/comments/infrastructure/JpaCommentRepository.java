@@ -56,4 +56,6 @@ public interface JpaCommentRepository extends JpaRepository<Comment, CommentId> 
      * @return 게시글 전체 댓글을 포함한 {@link Page}
      */
     Page<Comment> findByPostId(PostId postId, Pageable pageable); // 선택
+
+    long countByPostId(PostId postId);
 }

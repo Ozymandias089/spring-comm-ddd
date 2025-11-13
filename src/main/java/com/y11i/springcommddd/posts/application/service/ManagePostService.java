@@ -13,13 +13,11 @@ import com.y11i.springcommddd.posts.domain.Post;
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.domain.PostKind;
 import com.y11i.springcommddd.posts.domain.exception.PostNotFound;
-import com.y11i.springcommddd.posts.dto.internal.PostDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.function.Consumer;
 
 @Service
@@ -46,7 +44,7 @@ public class ManagePostService implements ManagePostUseCase {
      */
     @Override
     @Transactional
-    public PostDTO publish(PublishPostCommand cmd) {
+    public PostId publish(PublishPostCommand cmd) {
         // 1. 게시 대상 로드
         Post publishTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound(cmd.postId().id().toString()));
         // 2. 권한 검증: 작성자만 publish 가능
@@ -65,7 +63,7 @@ public class ManagePostService implements ManagePostUseCase {
         // 5. 변경된 애그리게잇 저장
         Post saved = savePostPort.save(publishTarget);
         // 6. Post → PostDTO 매핑 (임시. 나중에 매퍼로 분리 가능)
-        return toPostDTO(saved);
+        return saved.postId();
     }
 
     /**
@@ -75,7 +73,7 @@ public class ManagePostService implements ManagePostUseCase {
      */
     @Override
     @Transactional
-    public PostDTO archive(ArchivePostCommand cmd) {
+    public PostId archive(ArchivePostCommand cmd) {
         // 1. 보관 대상 로드
         Post archiveTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound(cmd.postId().id().toString()));
         // 2. 권한 검증: 작성자, 어드민, 모더레이터(community 도메인의 서브로 관리함.)
@@ -85,7 +83,7 @@ public class ManagePostService implements ManagePostUseCase {
         // 4. 저장
         Post saved = savePostPort.save(archiveTarget);
         // 5. 반환
-        return toPostDTO(saved);
+        return saved.postId();
     }
 
     /**
@@ -95,7 +93,7 @@ public class ManagePostService implements ManagePostUseCase {
      */
     @Override
     @Transactional
-    public PostDTO restore(RestorePostCommand cmd) {
+    public PostId restore(RestorePostCommand cmd) {
         // 1. 복구 대상 로드
         Post restoreTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound(cmd.postId().id().toString()));
         // 2. 권한 검증 - ADMIN, 모더레이터
@@ -104,87 +102,41 @@ public class ManagePostService implements ManagePostUseCase {
         restoreTarget.restore();
         Post saved = savePostPort.save(restoreTarget);
         // 4. 반환
-        return toPostDTO(saved);
+        return saved.postId();
     }
 
     /**
-     * 텍스트 게시글 수정.
-     * - title / content 둘 중 하나 혹은 둘 다 수정 가능
-     * - null인 필드는 수정하지 않음
+     * 게시글 수정 (TEXT / LINK / MEDIA 공용).
+     * <p>
+     * 규칙:
+     * - LINK  가 아닌 경우(TEXT / MEDIA): content 수정 허용
+     * - 모든 타입: title 수정 허용
+     * <p>
+     * newTitle / newContent는 null 허용이며,
+     * null인 필드는 수정하지 않습니다.
+     *
+     * @param cmd command
      */
     @Override
-    public PostDTO editTextPost(EditTextPostCommand cmd) {
+    @Transactional
+    public PostId editPost(EditPostCommand cmd) {
         Post saved = executeWithPermission(
                 cmd.postId(),
                 cmd.actorId(),
-                PostPermissionAction.EDIT,  // 수정은 작성자만
+                PostPermissionAction.EDIT,
                 post -> {
-                    if (post.kind() != PostKind.TEXT) {
-                        throw new IllegalStateException("editTextPost can be used only for TEXT posts");
-                    }
-
-                    if (cmd.newTitle() != null) {
-                        post.rename(cmd.newTitle());
-                    }
-                    if (cmd.newContent() != null) {
+                    // 1) content 수정: LINK가 아닌 경우에만
+                    if (cmd.newContent() != null && post.kind() != PostKind.LINK) {
                         post.rewrite(cmd.newContent());
                     }
-                }
-        );
-        return toPostDTO(saved);
-    }
 
-    /**
-     * 링크 게시글 수정.
-     * - title만 수정 가능
-     * - 링크(URL)는 강한 불변성 정책으로 인해 수정 불가
-     */
-    @Override
-    public PostDTO editLinkPost(EditLinkPostCommand cmd) {
-        Post saved = executeWithPermission(
-                cmd.postId(),
-                cmd.actorId(),
-                PostPermissionAction.EDIT,
-                post -> {
-                    if (post.kind() != PostKind.LINK) {
-                        throw new IllegalStateException("editLinkPost can be used only for LINK posts");
-                    }
-
+                    // 2) title 수정: 모든 타입 허용
                     if (cmd.newTitle() != null) {
                         post.rename(cmd.newTitle());
                     }
-
-                    // 링크 URL은 불변 → 도메인 메서드 replaceLink(...)는 여기서 사용하지 않음
                 }
         );
-        return toPostDTO(saved);
-    }
-
-    /**
-     * 미디어 게시글 수정.
-     * - title 수정 가능
-     * - content는 미디어 게시글의 캡션/본문으로 사용된다고 가정하고 수정 허용
-     * - 미디어 파일 자체(src/variants)는 수정 불가
-     */
-    @Override
-    public PostDTO editMediaPost(EditMediaPostCommand cmd) {
-        Post saved = executeWithPermission(
-                cmd.postId(),
-                cmd.actorId(),
-                PostPermissionAction.EDIT,
-                post -> {
-                    if (post.kind() != PostKind.LINK) {
-                        throw new IllegalStateException("editLinkPost can be used only for LINK posts");
-                    }
-
-                    if (cmd.newTitle() != null) {
-                        post.rename(cmd.newTitle());
-                    }
-
-                    // 링크 URL은 불변 → 도메인 메서드 replaceLink(...)는 여기서 사용하지 않음
-                }
-        );
-        return toPostDTO(saved);
+        return saved.postId();
     }
 
     /**
@@ -227,7 +179,7 @@ public class ManagePostService implements ManagePostUseCase {
      * 공통 템플릿:
      *  1) Post 로드
      *  2) 권한 체크
-     *  3) mutator로 도메인 동작 수행
+     *  3) mutator 실행
      *  4) 저장 후 Post 반환
      */
     private Post executeWithPermission(
@@ -245,22 +197,4 @@ public class ManagePostService implements ManagePostUseCase {
 
         return savePostPort.save(target);
     }
-
-    private PostDTO toPostDTO(Post post) {
-        return PostDTO.builder()
-                .postId(post.postId())
-                .communityId(post.communityId())
-                .authorId(post.authorId())
-                .title(post.title() != null ? post.title().value() : null)
-                .content(post.content() != null ? post.content().value() : null)
-                .link(post.linkUrl() != null ? post.linkUrl().value() : null)
-                .postType(post.kind())
-                .status(post.status())
-                .createdAt(post.createdAt())
-                .updatedAt(post.updatedAt())
-                // TODO: 자산/점수/댓글 수 등은 아직 여기서 계산 X → 나중에 확장
-                .assets(Collections.emptyList())
-                .build();
-    }
-
 }
