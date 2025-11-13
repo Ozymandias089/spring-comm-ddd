@@ -1,7 +1,7 @@
-package com.y11i.springcommddd.posts.media.infrastructure;
+package com.y11i.springcommddd.posts.infrastructure;
 
 import com.y11i.springcommddd.posts.domain.PostId;
-import com.y11i.springcommddd.posts.media.application.port.out.SavePostAssetsPort;
+import com.y11i.springcommddd.posts.application.port.out.SavePostAssetsPort;
 import com.y11i.springcommddd.posts.media.domain.PostAsset;
 import com.y11i.springcommddd.posts.media.domain.PostAssetRepository;
 import lombok.RequiredArgsConstructor;
