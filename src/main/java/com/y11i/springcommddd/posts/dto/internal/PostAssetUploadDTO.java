@@ -1,4 +1,4 @@
-package com.y11i.springcommddd.posts.dto.request;
+package com.y11i.springcommddd.posts.dto.internal;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

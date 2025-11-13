@@ -1,39 +1,32 @@
 package com.y11i.springcommddd.posts.dto.response;
 
-
+import com.y11i.springcommddd.posts.dto.internal.PostAuthorDTO;
+import com.y11i.springcommddd.posts.dto.internal.PostCommunityDTO;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.Instant;
 
-public class PostResponseDTO {// TODO: DTO 쪼개기, 텍스트가 아닌 링크나 미디어인 경우 생각하기
-    private String communityId;
-    private String communityName;
-    private String communityProfileImageUrl;
+public final class PostResponseDTO {// TODO: DTO 쪼개기, 텍스트가 아닌 링크나 미디어인 경우 생각하기
+    @Getter private final PostCommunityDTO postCommunity;
+    @Getter private final PostAuthorDTO postAuthor;
+    @Getter private final String postId;
+    @Getter private final Instant createdDate;
+    @Getter private final Instant modifiedDate;
+    @Getter private final String title;
+    @Getter private final String content;
 
-    private String authorId;
-    private String authorDisplayName;
-
-    private String postId;
-    private Instant createdDate;
-    private Instant modifiedDate;
-    private String title;
-    private String content;
-
-    private int score;
-    private long commentCount;
+    @Getter private final int score;
+    @Getter private final long commentCount;
 
     @Builder
     public PostResponseDTO(
-            String communityId, String communityName, String communityProfileImageUrl,
-            String authorId, String authorDisplayName,
+            PostCommunityDTO postCommunity, PostAuthorDTO postAuthor,
             String postId, Instant createdDate, Instant modifiedDate,
             String title, String content, int score, long commentCount
     ) {
-        this.communityId = communityId;
-        this.communityName = communityName;
-        this.communityProfileImageUrl = communityProfileImageUrl;
-        this.authorId = authorId;
-        this.authorDisplayName = authorDisplayName;
+        this.postCommunity = postCommunity;
+        this.postAuthor = postAuthor;
         this.postId = postId;
         this.createdDate = createdDate;
         this.modifiedDate = modifiedDate;

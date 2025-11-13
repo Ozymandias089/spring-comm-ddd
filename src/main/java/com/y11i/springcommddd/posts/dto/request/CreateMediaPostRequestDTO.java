@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.posts.dto.request;
 
+import com.y11i.springcommddd.posts.dto.internal.PostAssetUploadDTO;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
