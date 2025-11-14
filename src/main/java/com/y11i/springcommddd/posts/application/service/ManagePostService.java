@@ -18,18 +18,52 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.function.Consumer;
-
+/**
+ * 게시글(Post) 상태 관리 및 수정 기능을 제공하는 애플리케이션 서비스.
+ *
+ * <p><b>책임</b></p>
+ * <ul>
+ *     <li>초안(DRAFT) 게시글을 게시(PUBLISH) 상태로 전환</li>
+ *     <li>게시(PUBLISHED) 게시글을 보관(ARCHIVED) 상태로 전환</li>
+ *     <li>보관된(ARCHIVED) 게시글을 복구(PUBLISHED) 상태로 전환</li>
+ *     <li>게시글의 제목/본문 수정</li>
+ *     <li>액터(actor)의 권한(작성자/모더레이터/관리자)에 대한 검증</li>
+ * </ul>
+ *
+ * <p><b>권한 모델</b></p>
+ * <ul>
+ *     <li>PUBLISH : <b>작성자만</b></li>
+ *     <li>ARCHIVE : <b>작성자 / 모더레이터 / 관리자</b></li>
+ *     <li>RESTORE : <b>모더레이터 / 관리자</b> (작성자는 불가)</li>
+ *     <li>EDIT    : <b>작성자만</b></li>
+ * </ul>
+ *
+ * <p>
+ * 도메인 규칙과 권한 체크를 조합하여 게시글 상태 전이를 안전하게 수행합니다.
+ * 상태 전이와 수정 자체는 <code>Post</code> 애그리게잇이 담당하며,<br>
+ * 이 서비스는 트랜잭션 경계, 권한 검증, 로딩·저장 포트 연결을 수행합니다.
+ * </p>
+ *
+ * @see com.y11i.springcommddd.posts.domain.Post
+ * @see com.y11i.springcommddd.posts.application.port.in.ManagePostUseCase
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ManagePostService implements ManagePostUseCase {
+
+    // == Port & Repository Dependencies ==
+
     private final LoadPostPort loadPostPort;
     private final LoadPostAssetsPort loadPostAssetsPort;
     private final SavePostPort savePostPort;
     private final LoadAuthorForPostPort loadAuthorForPostPort;
     private final CommunityModeratorRepository communityModeratorRepository;
 
+    /**
+     * 게시글 액션 구분(Enum).
+     * 권한 체크에서 어떤 정책을 적용할지 결정하기 위해 사용된다.
+     */
     private enum PostPermissionAction {
         PUBLISH,
         ARCHIVE,
@@ -37,10 +71,26 @@ public class ManagePostService implements ManagePostUseCase {
         EDIT   // rename, rewrite, replaceLink, variant 조작 등
     }
 
+    // ---------------------------------------------------------------------
+    // 게시 (PUBLISH)
+    // ---------------------------------------------------------------------
+
     /**
-     * DRAFT → PUBLISHED
+     * 게시글 초안(DRAFT)을 게시(PUBLISHED) 상태로 전환한다.
      *
-     * @param cmd {PostId postId, MemberId actorId}
+     * <p><b>도메인 규칙</b></p>
+     * <ul>
+     *     <li>작성자만 게시할 수 있다.</li>
+     *     <li>MEDIA 게시글은 최소 1개 이상의 PostAsset이 존재해야 한다.</li>
+     *     <li>도메인 메서드 {@link Post#publish()} 호출로 상태 전이가 수행된다.</li>
+     * </ul>
+     *
+     * @param cmd {@link PublishPostCommand} (postId, actorId)
+     * @return 게시 완료된 게시글의 {@link PostId}
+     *
+     * @throws PostNotFound 게시글이 존재하지 않는 경우
+     * @throws IllegalStateException MEDIA 게시글에 자산이 하나도 없는 경우
+     * @throws AccessDeniedException 권한이 없는 사용자가 호출한 경우
      */
     @Override
     @Transactional
@@ -66,10 +116,20 @@ public class ManagePostService implements ManagePostUseCase {
         return saved.postId();
     }
 
+    // ---------------------------------------------------------------------
+    // 보관 (ARCHIVE)
+    // ---------------------------------------------------------------------
+
     /**
-     * PUBLISHED → ARCHIVED (보관)
+     * 게시(PUBLISHED) 상태의 게시글을 보관(ARCHIVED) 상태로 전환한다.
      *
-     * @param cmd {PostId postId, MemberId actorId}
+     * <p><b>권한 규칙</b> : 작성자 / 모더레이터 / 관리자</p>
+     *
+     * @param cmd {@link ArchivePostCommand}
+     * @return 보관된 게시글의 {@link PostId}
+     *
+     * @throws PostNotFound 존재하지 않는 게시글
+     * @throws AccessDeniedException 권한 없는 사용자
      */
     @Override
     @Transactional
@@ -86,10 +146,20 @@ public class ManagePostService implements ManagePostUseCase {
         return saved.postId();
     }
 
+    // ---------------------------------------------------------------------
+    // 복구 (RESTORE)
+    // ---------------------------------------------------------------------
+
     /**
-     * ARCHIVED → PUBLISHED (복구). 어드민과 모더레이터만 접근할 수 있게 하려고 함.
+     * 보관(ARCHIVED) 상태의 게시글을 다시 게시(PUBLISHED) 상태로 복구한다.
      *
-     * @param cmd {PostId postId, MemberId actorId}
+     * <p><b>권한 규칙</b> : 모더레이터 / 관리자 (작성자는 불가)</p>
+     *
+     * @param cmd {@link RestorePostCommand}
+     * @return 복구된 게시글의 {@link PostId}
+     *
+     * @throws PostNotFound 존재하지 않는 게시글
+     * @throws AccessDeniedException 권한 없는 사용자
      */
     @Override
     @Transactional
@@ -105,10 +175,28 @@ public class ManagePostService implements ManagePostUseCase {
         return saved.postId();
     }
 
+    // ---------------------------------------------------------------------
+    // 수정 (EDIT)
+    // ---------------------------------------------------------------------
+
     /**
-     * TEXT / LINK / MEDIA 공용 수정.
-     *  - LINK 가 아닌 경우(TEXT / MEDIA): content 수정 허용
-     *  - 모든 타입: title 수정 허용
+     * TEXT / LINK / MEDIA 게시글을 공통 규칙에 따라 수정한다.
+     *
+     * <p><b>도메인 정책</b></p>
+     * <ul>
+     *     <li><b>모든 타입</b>: 제목(title) 수정 가능</li>
+     *     <li><b>TEXT / MEDIA</b>: 본문(content) 수정 가능</li>
+     *     <li><b>LINK</b>: content 없음 → content 수정 불가(무시)</li>
+     *     <li>미디어 파일(src, variants)은 강한 불변성 정책으로 수정 불가</li>
+     * </ul>
+     *
+     * <p><b>권한 규칙</b> : 작성자만 수정 가능</p>
+     *
+     * @param cmd {@link EditPostCommand}
+     * @return 수정된 게시글의 {@link PostId}
+     *
+     * @throws PostNotFound 게시글 존재 X
+     * @throws AccessDeniedException 권한 없음
      */
     @Override
     @Transactional
@@ -132,14 +220,26 @@ public class ManagePostService implements ManagePostUseCase {
         return saved.postId();
     }
 
+    // ---------------------------------------------------------------------
+    // 권한 검증
+    // ---------------------------------------------------------------------
+
     /**
-     * 게시글에 대한 액터의 권한을 검사한다.
-     * <p>
-     * 규칙:
-     *  - PUBLISH: 작성자만
-     *  - ARCHIVE: 작성자 OR 모더레이터 OR ADMIN
-     *  - RESTORE: 모더레이터 OR ADMIN
-     *  - EDIT   : 작성자만
+     * 액터(actor)의 게시글 액션 수행 권한을 검증한다.
+     *
+     * <p><b>검증 요소</b></p>
+     * <ul>
+     *     <li>작성자 여부</li>
+     *     <li>관리자 여부</li>
+     *     <li>커뮤니티 모더레이터 여부</li>
+     * </ul>
+     *
+     * @param post     대상 게시글
+     * @param actorId  액션 실행자
+     * @param action   수행하려는 액션
+     *
+     * @throws MemberNotFoundException 액터(member)가 존재하지 않을 때
+     * @throws AccessDeniedException 권한 부족
      */
     private void ensurePermission(Post post, MemberId actorId, PostPermissionAction action) {
         boolean isAuthor = post.authorId().equals(actorId);
