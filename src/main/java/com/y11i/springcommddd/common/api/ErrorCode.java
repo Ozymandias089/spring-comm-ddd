@@ -25,6 +25,7 @@ public enum ErrorCode {
     COMMUNITY_NAME_KEY_INVALID("community.name_key_invalid", HttpStatus.BAD_REQUEST),
     COMMUNITY_ARCHIVED_MODIFICATION_FORBIDDEN("community.archived_modification_forbidden", HttpStatus.CONFLICT),
     COMMUNITY_STATUS_TRANSITION_FORBIDDEN("community.status_transition_forbidden", HttpStatus.CONFLICT),
+    ID_FORMAT_INVALID("id_format_invalid", HttpStatus.BAD_REQUEST),
 
     IMAGE_URL_INVALID("image.url_invalid", HttpStatus.BAD_REQUEST),
 

@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.communities.domain;
 
+import com.y11i.springcommddd.common.exception.InvalidIdentifierFormatException;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -37,4 +38,23 @@ public record CommunityId(
      * @return 새 {@link CommunityId}
      */
     public static CommunityId newId() {return new CommunityId(UUID.randomUUID());}
+
+    /**
+     * 문자역 형식의 id 값을 받아 객체로 변환합니다.
+     * @param id 문자열 형식의 id 평문
+     * @return CommunityId 객체.
+     */
+    public static CommunityId objectify(String id) {
+        try {
+            return new CommunityId(UUID.fromString(id));
+        } catch (IllegalArgumentException e) {
+            throw new InvalidIdentifierFormatException("Invalid communityId: " + id);
+        }
+    }
+
+    /**
+     * CommunityId 객체 내부의 id를 문자열로 변환합니다.
+     * @return String 형식의 CommunityId
+     */
+    public String stringify() { return id.toString(); }
 }
