@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * <h2>회원 등록 및 조회 서비스</h2>
@@ -71,7 +70,7 @@ public class MemberService implements RegisterMemberUseCase, FindMemberUseCase {
     /** {@inheritDoc} */
     @Override
     @Transactional(readOnly = true)
-    public Optional<MemberDTO> findById(UUID memberId) {
-        return loadMemberPort.loadById(new MemberId(memberId)).map(MemberMapper::toMemberDTO);
+    public Optional<MemberDTO> findById(MemberId memberId) {
+        return loadMemberPort.loadById(memberId).map(MemberMapper::toMemberDTO);
     }
 }

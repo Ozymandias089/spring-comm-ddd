@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.iam.application.port.in;
 
+import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.dto.MemberDTO;
 
 import java.util.UUID;
@@ -69,7 +70,7 @@ public interface ManageProfileUseCase {
      * @param memberId     자기 자신의 회원 식별자(UUID)
      * @param displayName  새 표시명
      */
-    record RenameCommand(UUID memberId, String displayName) {}
+    record RenameCommand(MemberId memberId, String displayName) {}
 
     /**
      * 이메일 변경 명령.
@@ -77,7 +78,7 @@ public interface ManageProfileUseCase {
      * @param memberId 자기 자신의 회원 식별자(UUID)
      * @param email    새 이메일 주소
      */
-    record ChangeEmailCommand(UUID memberId, String email) {}
+    record ChangeEmailCommand(MemberId memberId, String email) {}
 
     /**
      * 비밀번호 변경 명령.
@@ -86,7 +87,7 @@ public interface ManageProfileUseCase {
      * @param rawPassword      새 비밀번호(평문)
      * @param currentPassword  기존 비밀번호(검증용)
      */
-    record ChangePasswordCommand(UUID memberId, String rawPassword, String currentPassword) {}
+    record ChangePasswordCommand(MemberId memberId, String rawPassword, String currentPassword) {}
 
     /**
      * 프로필 이미지 URL 변경 명령.
@@ -94,7 +95,7 @@ public interface ManageProfileUseCase {
      * @param memberId        자기 자신의 회원 식별자(UUID)
      * @param profileImageUrl 새 프로필 이미지 URL
      */
-    record ChangeProfileImageCommand(UUID memberId, String profileImageUrl) {}
+    record ChangeProfileImageCommand(MemberId memberId, String profileImageUrl) {}
 
     /**
      * 배너 이미지 URL 변경 명령.
@@ -102,5 +103,5 @@ public interface ManageProfileUseCase {
      * @param memberId       자기 자신의 회원 식별자(UUID)
      * @param bannerImageUrl 새 배너 이미지 URL
      */
-    record ChangeBannerImageCommand(UUID memberId, String bannerImageUrl) {}
+    record ChangeBannerImageCommand(MemberId memberId, String bannerImageUrl) {}
 }

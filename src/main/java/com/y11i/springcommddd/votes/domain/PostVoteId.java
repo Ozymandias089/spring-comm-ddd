@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.votes.domain;
 
+import com.y11i.springcommddd.common.exception.InvalidIdentifierFormatException;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -28,4 +29,16 @@ public record PostVoteId(
 
     /** 무작위 UUID로 새 식별자를 생성합니다. */
     public static PostVoteId newId(){ return new PostVoteId(UUID.randomUUID()); }
+
+    public static PostVoteId objectify(String id){
+        try {
+            return new PostVoteId(UUID.fromString(id));
+        } catch (IllegalArgumentException e) {
+            throw new InvalidIdentifierFormatException("Invalid Post Vote Id: " + id);
+        }
+    }
+
+    public String stringify() {
+        return id.toString();
+    }
 }

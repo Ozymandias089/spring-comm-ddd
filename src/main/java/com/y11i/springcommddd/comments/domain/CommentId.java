@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.comments.domain;
 
+import com.y11i.springcommddd.common.exception.InvalidIdentifierFormatException;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -38,4 +39,15 @@ public record CommentId(
      */
     public static CommentId newId() { return new CommentId(UUID.randomUUID()); }
 
+    public static CommentId objectify(String id) {
+        try {
+            return new CommentId(UUID.fromString(id));
+        } catch (IllegalArgumentException e) {
+            throw new InvalidIdentifierFormatException("Invalid comment id: " + id);
+        }
+    }
+
+    public String stringify() {
+        return id.toString();
+    }
 }

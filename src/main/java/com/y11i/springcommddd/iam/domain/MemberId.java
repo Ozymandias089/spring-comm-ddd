@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.iam.domain;
 
+import com.y11i.springcommddd.common.exception.InvalidIdentifierFormatException;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -40,5 +41,17 @@ public record MemberId(
     /** 무작위 UUID로 새로운 식별자를 생성합니다. */
     public static MemberId newId() {
         return new MemberId(UUID.randomUUID());
+    }
+
+    public static MemberId objectify(String id) {
+        try {
+            return new MemberId(UUID.fromString(id));
+        } catch (IllegalArgumentException e) {
+            throw new InvalidIdentifierFormatException("Invalid memberId: " + id);
+        }
+    }
+
+    public String stringify() {
+        return id.toString();
     }
 }

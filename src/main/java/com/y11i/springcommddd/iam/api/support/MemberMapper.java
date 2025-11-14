@@ -22,7 +22,7 @@ public class MemberMapper {
         String updated = dto.getUpdatedAt() == null ? null : ISO.format(dto.getUpdatedAt());
 
         return RegisterResponseDTO.builder()
-                .memberId(dto.getMemberId().id().toString())
+                .memberId(dto.getMemberId().stringify())
                 .email(dto.getEmail())
                 .displayName(dto.getDisplayName())
                 .roles(dto.getRoles())
@@ -36,7 +36,7 @@ public class MemberMapper {
 
     public static LoginResponseDTO toLoginResponseDTO(MemberDTO dto) {
         return LoginResponseDTO.builder()
-                .memberId(dto.getMemberId().id().toString())
+                .memberId(dto.getMemberId().stringify())
                 .email(dto.getEmail())
                 .displayName(dto.getDisplayName())
                 .roles(dto.getRoles())
@@ -75,7 +75,7 @@ public class MemberMapper {
         String created = dto.getCreatedAt() == null ? null : ISO.format(dto.getCreatedAt());
         String updated = dto.getUpdatedAt() == null ? null : ISO.format(dto.getUpdatedAt());
         return MyPageResponseDTO.builder()
-                .memberId(dto.getMemberId().id().toString())
+                .memberId(dto.getMemberId().stringify())
                 .email(dto.getEmail())
                 .displayName(dto.getDisplayName())
                 .roles(dto.getRoles())

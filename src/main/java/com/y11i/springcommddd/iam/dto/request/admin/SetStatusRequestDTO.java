@@ -9,7 +9,7 @@ import java.util.UUID;
 public class SetStatusRequestDTO {
     @Getter
     @NotNull
-    private UUID memberId;
+    private String memberId;
 
     @Getter @NotNull
     @Pattern(regexp = "ACTIVE|SUSPENDED|DELETED")

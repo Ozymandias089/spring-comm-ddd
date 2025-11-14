@@ -64,7 +64,7 @@ public class MyPageController {
      */
     @GetMapping
     public MyPageResponseDTO me(@AuthenticatedMember MemberId memberId) {
-        MemberDTO memberDTO = findMemberUseCase.findById(memberId.id()).orElseThrow();
+        MemberDTO memberDTO = findMemberUseCase.findById(memberId).orElseThrow();
         return MemberMapper.toMyPageResponseDTO(memberDTO);
     }
 
@@ -83,7 +83,7 @@ public class MyPageController {
     @PatchMapping(path="/display-name", consumes="application/json", produces="application/json")
     public MyPageResponseDTO rename(@AuthenticatedMember MemberId memberId, @Valid @RequestBody RenameRequestDTO requestDto) {
         MemberDTO memberDTO = manageProfileUseCase.rename(
-                new ManageProfileUseCase.RenameCommand(memberId.id(), requestDto.displayName())
+                new ManageProfileUseCase.RenameCommand(memberId, requestDto.displayName())
         );
         return MemberMapper.toMyPageResponseDTO(memberDTO);
     }
@@ -103,7 +103,7 @@ public class MyPageController {
     @PatchMapping(path="/email", consumes="application/json", produces="application/json")
     public MyPageResponseDTO changeEmail(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangeEmailRequestDTO requestDto) {
         MemberDTO memberDTO = manageProfileUseCase.changeEmail(
-                new ManageProfileUseCase.ChangeEmailCommand(memberId.id(), requestDto.getEmail())
+                new ManageProfileUseCase.ChangeEmailCommand(memberId, requestDto.getEmail())
         );
         return MemberMapper.toMyPageResponseDTO(memberDTO);
     }
@@ -124,7 +124,7 @@ public class MyPageController {
     @PatchMapping(path="/password", consumes="application/json", produces="application/json")
     public ResponseEntity<Void> changePassword(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangePasswordRequestDTO requestDto) {
         manageProfileUseCase.changePassword(
-                new ManageProfileUseCase.ChangePasswordCommand(memberId.id(), requestDto.getNewPassword(), requestDto.getCurrentPassword())
+                new ManageProfileUseCase.ChangePasswordCommand(memberId, requestDto.getNewPassword(), requestDto.getCurrentPassword())
         );
         return ResponseEntity.noContent().build();
     }
@@ -144,7 +144,7 @@ public class MyPageController {
     @PatchMapping(path="/profile-image", consumes="application/json", produces="application/json")
     public MyPageResponseDTO changeProfileImage(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangeProfileImageRequestDTO requestDto) {
         MemberDTO memberDTO = manageProfileUseCase.changeProfileImage(
-                new ManageProfileUseCase.ChangeProfileImageCommand(memberId.id(), requestDto.getProfileImageUrl())
+                new ManageProfileUseCase.ChangeProfileImageCommand(memberId, requestDto.getProfileImageUrl())
         );
         return MemberMapper.toMyPageResponseDTO(memberDTO);
     }
@@ -159,7 +159,7 @@ public class MyPageController {
     @PatchMapping(path="/banner-image", consumes="application/json", produces="application/json")
     public MyPageResponseDTO changeBannerImage(@AuthenticatedMember MemberId memberId, @Valid @RequestBody ChangeBannerImageRequestDTO requestDto) {
         MemberDTO memberDTO = manageProfileUseCase.changeBannerImage(
-                new ManageProfileUseCase.ChangeBannerImageCommand(memberId.id(), requestDto.getBannerImageUrl())
+                new ManageProfileUseCase.ChangeBannerImageCommand(memberId, requestDto.getBannerImageUrl())
         );
         return MemberMapper.toMyPageResponseDTO(memberDTO);
     }
