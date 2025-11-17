@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.util.List;
 
 public record PostDetailResponseDTO(PostAuthorDTO author, PostCommunityDTO postCommunity, String postId,
-                                    Instant createdAt, Instant updatedAt, String title, String content, String kind,
+                                    Instant publishedAt, boolean isEdited, String title, String content, String kind,
                                     String status, int upCount, int downCount, int score, int commentCount,
                                     Integer myVote, List<PostMediaAssetDTO> mediaAssets) {
     @Builder

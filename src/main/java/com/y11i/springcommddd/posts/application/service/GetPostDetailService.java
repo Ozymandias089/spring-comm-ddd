@@ -88,6 +88,11 @@ public class GetPostDetailService implements GetPostDetailUseCase {
         int downCount = post.downCount();
         int score = post.score();
 
+        boolean isEdited = post.updatedAt() != null
+                && post.publishedAt() != null
+                && !post.publishedAt().equals(post.updatedAt());
+
+
         // 5. Map Internal dto
         PostAuthorDTO postAuthorDTO = PostAuthorDTO.builder()
                 .authorId(post.authorId().stringify())
@@ -105,8 +110,8 @@ public class GetPostDetailService implements GetPostDetailUseCase {
                 .author(postAuthorDTO)
                 .postCommunity(postCommunityDTO)
                 .postId(post.postId().stringify())
-                .createdAt(post.createdAt())
-                .updatedAt(post.updatedAt())
+                .publishedAt(post.publishedAt())
+                .isEdited(isEdited)
                 .title(post.title().value())
                 .content(post.content().value())
                 .kind(post.kind().toString())
