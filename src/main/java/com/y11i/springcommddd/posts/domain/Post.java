@@ -254,14 +254,16 @@ public class Post implements AggregateRoot {
      * @param oldValue 이전 투표값 (-1/0/1)
      * @param newValue 새로운 투표값 (-1/0/1)
      */
-    public void applyVoteDelta(int oldValue, int newValue){
+    public void applyVoteDelta(int oldValue, int newValue) {
         if (oldValue == newValue) return;
-        if (oldValue == 1) upCount--;
-        if (oldValue == -1) downCount--;
-        if (newValue == 1) upCount++;
-        if (newValue == -1) downCount++;
-        if (upCount < 0) upCount = 0;
-        if (downCount < 0) downCount = 0;
+
+        upCount   += (newValue == 1 ? 1 : 0) - (oldValue == 1 ? 1 : 0);
+        downCount += (newValue == -1 ? 1 : 0) - (oldValue == -1 ? 1 : 0);
+
+        if (upCount < 0 || downCount < 0) {
+            upCount = Math.max(upCount, 0);
+            downCount = Math.max(downCount, 0);
+        }
     }
 
     // -----------------------------------------------------
