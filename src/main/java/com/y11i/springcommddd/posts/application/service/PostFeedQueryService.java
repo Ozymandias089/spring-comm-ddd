@@ -14,8 +14,6 @@ import com.y11i.springcommddd.posts.application.port.out.QueryPostPort;
 import com.y11i.springcommddd.posts.domain.Post;
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.dto.internal.PageResultDTO;
-import com.y11i.springcommddd.posts.dto.internal.PostAuthorDTO;
-import com.y11i.springcommddd.posts.dto.internal.PostCommunityDTO;
 import com.y11i.springcommddd.posts.dto.response.PostSummaryResponseDTO;
 import com.y11i.springcommddd.votes.domain.MyPostVote;
 import com.y11i.springcommddd.votes.domain.PostVoteRepository;
@@ -102,12 +100,16 @@ public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommu
             communityCache.put(fixedCommunityOrNull.communityId(), fixedCommunityOrNull);
         }
 
+        // 3) 작성자 캐시 (동일 작성자가 여러 게시글을 쓴 경우 중복 조회 방지)
+        Map<MemberId, Member> authorCache = new HashMap<>();
+
         // 3) Post → PostSummaryResponseDTO 매핑
         List<PostSummaryResponseDTO> summaries = posts.stream()
                 .map(post -> {
                     Community community = resolveCommunity(post, communityCache);
+                    Member author = resolveAuthor(post, authorCache);
                     Integer myVote = myVotesMap.get(post.postId());
-                    return toSummaryDTO(post, community, myVote);
+                    return PostSummaryResponseDTO.from(post, community, author, myVote);
                 })
                 .toList();
 
@@ -148,51 +150,14 @@ public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommu
         return loaded;
     }
 
-    private PostSummaryResponseDTO toSummaryDTO(Post post, Community community, Integer myVoteOrNull) {
-        // 작성자 로드
-        Member author = loadAuthorForPostPort.loadById(post.authorId())
-                .orElseThrow(() -> new MemberNotFoundException(post.authorId().stringify()));
+    private Member resolveAuthor(Post post, Map<MemberId, Member> cache) {
+        MemberId aid = post.authorId();
+        Member cached = cache.get(aid);
+        if (cached != null) return cached;
 
-        PostAuthorDTO authorDTO = PostAuthorDTO.builder()
-                .authorId(post.authorId().stringify())
-                .authorDisplayName(author.displayName().value())
-                .build();
-
-        PostCommunityDTO communityDTO = PostCommunityDTO.builder()
-                .communityId(community.communityId().stringify())
-                .communityName(community.communityName().value())
-                .communityProfileImageUrl(community.profileImage().value())
-                .build();
-
-        int upCount = post.upCount();
-        int downCount = post.downCount();
-        int score = post.score();
-
-        Instant publishedAt = post.publishedAt();
-        boolean isEdited = publishedAt != null
-                && post.updatedAt() != null
-                && !publishedAt.equals(post.updatedAt());
-
-        return PostSummaryResponseDTO.builder()
-                .author(authorDTO)
-                .community(communityDTO)
-                .postId(post.postId().stringify())
-                .title(post.title().value())
-                .contentPreview(buildContentPreview(post))
-                .kind(post.kind().name())
-                .upCount(upCount)
-                .downCount(downCount)
-                .score(score)
-                .commentCount(post.commentCount())
-                .myVote(myVoteOrNull)
-                .publishedAt(publishedAt)
-                .isEdited(isEdited)
-                .build();
-    }
-
-    private String buildContentPreview(Post post) {
-        if (post.content() == null || post.content().value() == null) return "";
-        String full = post.content().value();
-        return full.length() <= 200 ? full : full.substring(0, 200);
+        Member loaded = loadAuthorForPostPort.loadById(aid)
+                .orElseThrow(() -> new MemberNotFoundException(aid.stringify()));
+        cache.put(aid, loaded);
+        return loaded;
     }
 }

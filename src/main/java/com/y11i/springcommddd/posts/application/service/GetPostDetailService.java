@@ -13,12 +13,7 @@ import com.y11i.springcommddd.posts.application.port.out.LoadPostPort;
 import com.y11i.springcommddd.posts.domain.Post;
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.domain.exception.PostNotFound;
-import com.y11i.springcommddd.posts.dto.internal.MediaVariantDTO;
-import com.y11i.springcommddd.posts.dto.internal.PostAuthorDTO;
-import com.y11i.springcommddd.posts.dto.internal.PostCommunityDTO;
-import com.y11i.springcommddd.posts.dto.internal.PostMediaAssetDTO;
 import com.y11i.springcommddd.posts.dto.response.PostDetailResponseDTO;
-import com.y11i.springcommddd.posts.media.domain.MediaVariant;
 import com.y11i.springcommddd.posts.media.domain.PostAsset;
 import com.y11i.springcommddd.votes.domain.PostVote;
 import com.y11i.springcommddd.votes.domain.PostVoteRepository;
@@ -79,80 +74,9 @@ public class GetPostDetailService implements GetPostDetailUseCase {
                     .orElse(0);
         }
 
-        // 4. Load Media Assets(Nullable)
+        // 5. Media assets
         List<PostAsset> postAssets = loadPostAssetsPort.loadByPostId(post.postId());
-        List<PostMediaAssetDTO> mediaAssetDTOs = postAssets.stream()
-                .map(this::toPostMediaAssetDTO)
-                .toList();
-        int upCount = post.upCount();
-        int downCount = post.downCount();
-        int score = post.score();
 
-        boolean isEdited = post.updatedAt() != null
-                && post.publishedAt() != null
-                && !post.publishedAt().equals(post.updatedAt());
-
-
-        // 5. Map Internal dto
-        PostAuthorDTO postAuthorDTO = PostAuthorDTO.builder()
-                .authorId(post.authorId().stringify())
-                .authorDisplayName(author.displayName().value())
-                .build();
-
-        PostCommunityDTO postCommunityDTO = PostCommunityDTO.builder()
-                .communityId(post.communityId().stringify())
-                .communityName(community.communityName().value())
-                .communityProfileImageUrl(community.profileImage().value())
-                .build();
-
-        // 6. Map Final DTO
-        return PostDetailResponseDTO.builder()
-                .author(postAuthorDTO)
-                .postCommunity(postCommunityDTO)
-                .postId(post.postId().stringify())
-                .publishedAt(post.publishedAt())
-                .isEdited(isEdited)
-                .title(post.title().value())
-                .content(post.content().value())
-                .kind(post.kind().toString())
-                .status(post.status().toString())
-                .upCount(upCount)
-                .downCount(downCount)
-                .score(score)
-                .commentCount(post.commentCount())
-                .myVote(myVote)
-                .mediaAssets(mediaAssetDTOs)
-                .build();
-    }
-
-    private PostMediaAssetDTO toPostMediaAssetDTO(PostAsset postAsset) {
-        return PostMediaAssetDTO.builder()
-                .assetId(postAsset.postAssetId().stringify())
-                .mediaType(postAsset.mediaType().toString())
-                .displayOrder(postAsset.displayOrder())
-                .srcUrl(postAsset.srcUrl().value())
-                .mimeType(postAsset.mimeType())
-                .width(postAsset.width())
-                .height(postAsset.height())
-                .durationSec(postAsset.durationSec())
-                .altText(postAsset.altText())
-                .caption(postAsset.caption())
-                .processingStatus(postAsset.processingStatus().toString())
-                .processingError(postAsset.processingError())
-                .variants(
-                        postAsset.variants()
-                                .stream()
-                                .map(
-                                        v -> MediaVariantDTO.builder()
-                                                .name(v.name())
-                                                .url(v.url().value())
-                                                .mimeType(v.mimeType())
-                                                .width(v.width())
-                                                .height(v.height())
-                                                .build()
-                                )
-                                .toList()
-                )
-                .build();
+        return PostDetailResponseDTO.from(post, community, author, myVote, postAssets);
     }
 }
