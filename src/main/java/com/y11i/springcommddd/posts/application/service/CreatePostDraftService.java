@@ -247,7 +247,7 @@ public class CreatePostDraftService implements CreatePostDraftUseCase {
      * @throws CommunityNotFoundException 존재하지 않으면 발생
      */
     private void validateCommunity(CommunityId communityId) {
-        loadCommunityForPostPort.loadById(communityId).orElseThrow(() -> new CommunityNotFoundException(communityId));
+        loadCommunityForPostPort.loadById(communityId).orElseThrow(() -> new CommunityNotFoundException(communityId.stringify()));
     }
 
     /**
@@ -257,7 +257,7 @@ public class CreatePostDraftService implements CreatePostDraftUseCase {
      * @throws MemberNotFoundException 존재하지 않으면 발생
      */
     private void validateAuthor(MemberId authorId) {
-        loadAuthorForPostPort.loadById(authorId).orElseThrow(() -> new MemberNotFoundException(authorId));
+        loadAuthorForPostPort.loadById(authorId).orElseThrow(() -> new MemberNotFoundException(authorId.stringify()));
     }
 
     /**

@@ -3,6 +3,7 @@ package com.y11i.springcommddd.posts.domain;
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.exception.ArchivedPostModificationNotAllowed;
+import com.y11i.springcommddd.posts.domain.exception.PostNotVotableException;
 import com.y11i.springcommddd.posts.domain.exception.PostStatusTransitionNotAllowed;
 import com.y11i.springcommddd.shared.domain.AggregateRoot;
 import jakarta.persistence.*;
@@ -102,6 +103,9 @@ public class Post implements AggregateRoot {
 
     @Column(name="down_count", nullable=false)
     private int downCount = 0;
+
+    @Column(name = "comment_count", nullable = false)
+    private int commentCount = 0;
 
     /** JPA 전용 */
     protected Post() {}
@@ -266,6 +270,20 @@ public class Post implements AggregateRoot {
         }
     }
 
+    public void commentCountIncrement() {
+        commentCount++;
+    }
+    public void commentCountDecrement() {
+        if (this.commentCount > 0) this.commentCount--;
+    }
+
+    public void applyCommentVisibilityChange(boolean wasVisible, boolean isVisible) {
+        if (wasVisible == isVisible) return;
+        if (!wasVisible && isVisible) commentCount++;
+        if (wasVisible && !isVisible && commentCount > 0) commentCount--;
+    }
+
+
     // -----------------------------------------------------
     // 내부 검증 섹션
     // -----------------------------------------------------
@@ -278,6 +296,26 @@ public class Post implements AggregateRoot {
      */
     public void ensureNotArchived(String message) {
         if (status == PostStatus.ARCHIVED) throw new ArchivedPostModificationNotAllowed(message);
+    }
+
+    /**
+     * {@link Post}의 {@link PostStatus}가 <code>PUBLISHED</code>임을 보장합니다.<br>
+     * <code>ARCHIVED</code>, <code>DRAFT</code>인 경우 투표할 수 없습니다.
+     *
+     * @throws PostNotVotableException <code>PUBLISHED</code>가 아닌 경우
+     */
+    public void ensureVotable() {
+        if (status != PostStatus.PUBLISHED) throw new PostNotVotableException(postId, status);
+    }
+
+    /**
+     * {@link Post}의 {@link PostStatus}가 <code>PUBLISHED</code>임을 보장합니다.<br>
+     * <code>ARCHIVED</code>, <code>DRAFT</code>인 경우 댓글을 달 수 없습니다.
+     *
+     * @throws PostNotVotableException <code>PUBLISHED</code>가 아닌 경우
+     */
+    public void ensureCommentable() {
+        if (status != PostStatus.PUBLISHED) throw new PostNotVotableException(postId, status);
     }
 
     // -----------------------------------------------------
@@ -299,4 +337,5 @@ public class Post implements AggregateRoot {
     public int upCount(){ return upCount; }
     public int downCount(){ return downCount; }
     public int score(){ return upCount - downCount; }
+    public int commentCount(){ return commentCount; }
 }

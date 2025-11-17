@@ -99,6 +99,9 @@ public class VotePostService implements VotePostUseCase {
         Post post = loadPostPort.loadById(postId)
                 .orElseThrow(() -> new PostNotFound(postId.stringify()));
 
+        // Post의 status가 PUBLISHED인 경우에만 투표를 할 수 있다.
+        post.ensureVotable();
+
         // 2. 기존 투표 조회
         Optional<PostVote> existingOpt = postVoteRepository.findByPostIdAndVoterId(postId, voterId);
         int oldValue = existingOpt.map(PostVote::value).orElse(0);

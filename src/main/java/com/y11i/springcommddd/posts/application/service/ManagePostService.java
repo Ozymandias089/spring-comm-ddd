@@ -248,7 +248,7 @@ public class ManagePostService implements ManagePostUseCase {
         var memberOpt = loadAuthorForPostPort.loadById(actorId);
         if (memberOpt.isEmpty()) {
             // 계정 자체가 없으면 권한 이전에 없는 유저
-            throw new MemberNotFoundException(actorId);
+            throw new MemberNotFoundException(actorId.stringify());
         }
         var member = memberOpt.get();
 
