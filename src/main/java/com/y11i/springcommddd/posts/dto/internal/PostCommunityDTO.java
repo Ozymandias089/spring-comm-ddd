@@ -8,10 +8,13 @@ public record PostCommunityDTO(String communityId, String communityName, String 
     public PostCommunityDTO {}
 
     public static PostCommunityDTO from(Community community) {
+        String profileImageUrl = null;
+        if (community.profileImage() != null) profileImageUrl = community.profileImage().value();
+
         return PostCommunityDTO.builder()
                 .communityId(community.communityId().stringify())
                 .communityName(community.communityName().value())
-                .communityProfileImageUrl(community.profileImage().value())
+                .communityProfileImageUrl(profileImageUrl)
                 .build();
     }
 }

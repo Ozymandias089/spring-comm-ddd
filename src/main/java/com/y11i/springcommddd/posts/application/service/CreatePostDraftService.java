@@ -117,7 +117,7 @@ public class CreatePostDraftService implements CreatePostDraftUseCase {
         validateCommunity(cmd.communityId());
         validateAuthor(cmd.authorId());
 
-        Post post = Post.createLink(cmd.communityId(), cmd.authorId(), cmd.title(), cmd.link(), null);
+        Post post = Post.createLink(cmd.communityId(), cmd.authorId(), cmd.title(), cmd.link());
 
         Post saved = savePostPort.save(post);
         return saved.postId();

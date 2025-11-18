@@ -15,6 +15,9 @@ public record CreateLinkPostRequestDTO(
         String title,
 
         @NotBlank @Size(max = 1024)
-        @URL(protocol = "http", regexp = ".*", message = "link must be a valid http/https URL")
+        @URL(
+                regexp = "^(http|https)://.*$",
+                message = "link must be a valid http/https URL"
+        )
         String link
 ) {}

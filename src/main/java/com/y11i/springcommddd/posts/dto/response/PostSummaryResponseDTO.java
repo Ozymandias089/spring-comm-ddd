@@ -5,9 +5,12 @@ import com.y11i.springcommddd.iam.domain.Member;
 import com.y11i.springcommddd.posts.domain.Post;
 import com.y11i.springcommddd.posts.dto.internal.PostAuthorDTO;
 import com.y11i.springcommddd.posts.dto.internal.PostCommunityDTO;
+import com.y11i.springcommddd.posts.dto.internal.PostMediaAssetDTO;
+import com.y11i.springcommddd.posts.media.domain.PostAsset;
 import lombok.Builder;
 
 import java.time.Instant;
+import java.util.List;
 
 public record PostSummaryResponseDTO(
         PostAuthorDTO author,
@@ -15,6 +18,8 @@ public record PostSummaryResponseDTO(
         String postId,
         String title,
         String contentPreview,
+        String linkUrl,
+        List<PostMediaAssetDTO> assets,
         String kind,
         int upCount,
         int downCount,
@@ -34,7 +39,8 @@ public record PostSummaryResponseDTO(
             Post post,
             Community community,
             Member author,
-            Integer myVote
+            Integer myVote,
+            List<PostAsset> postAssets
     ) {
         int upCount = post.upCount();
         int downCount = post.downCount();
@@ -50,12 +56,19 @@ public record PostSummaryResponseDTO(
 
         String contentPreview = buildContentPreview(post);
 
+        List<PostMediaAssetDTO> mediaAssetDTOs = postAssets.stream()
+                .map(PostMediaAssetDTO::from)
+                .toList();
+        String linkUrl = (post.linkUrl() != null) ? post.linkUrl().value() : null;
+
         return PostSummaryResponseDTO.builder()
                 .author(authorDTO)
                 .community(communityDTO)
                 .postId(post.postId().stringify())
                 .title(post.title().value())
                 .contentPreview(contentPreview)
+                .linkUrl(linkUrl)
+                .assets(mediaAssetDTOs)
                 .kind(post.kind().name())
                 .upCount(upCount)
                 .downCount(downCount)

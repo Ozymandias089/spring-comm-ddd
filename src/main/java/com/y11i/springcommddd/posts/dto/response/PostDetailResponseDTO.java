@@ -13,7 +13,7 @@ import java.time.Instant;
 import java.util.List;
 
 public record PostDetailResponseDTO(PostAuthorDTO author, PostCommunityDTO postCommunity, String postId,
-                                    Instant publishedAt, boolean isEdited, String title, String content, String kind,
+                                    Instant publishedAt, boolean isEdited, String title, String content, String linkUrl, String kind,
                                     String status, int upCount, int downCount, int score, int commentCount,
                                     Integer myVote, List<PostMediaAssetDTO> mediaAssets) {
     @Builder
@@ -45,6 +45,7 @@ public record PostDetailResponseDTO(PostAuthorDTO author, PostCommunityDTO postC
                 .toList();
 
         String content = (post.content() != null) ? post.content().value() : null;
+        String linkUrl = (post.linkUrl() != null) ? post.linkUrl().value() : null;
 
         return PostDetailResponseDTO.builder()
                 .author(authorDTO)
@@ -54,6 +55,7 @@ public record PostDetailResponseDTO(PostAuthorDTO author, PostCommunityDTO postC
                 .isEdited(isEdited)
                 .title(post.title().value())
                 .content(content)
+                .linkUrl(linkUrl)
                 .kind(post.kind().toString())
                 .status(post.status().toString())
                 .upCount(upCount)

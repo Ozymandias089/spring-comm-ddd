@@ -16,7 +16,7 @@ public record CreateMediaPostRequestDTO(
         @NotBlank @Size(max = 120)
         String title,
 
-        @NotBlank @Size(max = 100)
+        @Size(max = 100)
         String content,
 
         List<PostAssetUploadDTO> postAssetUploadDTOs

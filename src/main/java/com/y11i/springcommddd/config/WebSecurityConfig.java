@@ -69,7 +69,8 @@ public class WebSecurityConfig {
                                 "/api/login",
                                 "/api/logout",
                                 "/api/password-reset",
-                                "/api/password-reset/confirm"
+                                "/api/password-reset/confirm",
+                                "/api/posts/community/bs"
                         )
                 )
 
@@ -92,6 +93,38 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // (옵션) 헬스체크 등
                         // .requestMatchers("/actuator/health").permitAll()
+                        // --- 게시글 관련 API ---
+
+                        // 초안 생성 (TEXT / LINK / MEDIA) → 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/api/posts/drafts/**").authenticated()
+
+                        // 피드 / 커뮤니티 피드 → 인증 불필요
+                        .requestMatchers(HttpMethod.GET, "/api/posts/feed").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/communities/*/posts").permitAll()
+
+                        // 게시글 상세 조회 → 인증 불필요 (GET /api/posts/{postId})
+                        .requestMatchers(HttpMethod.GET, "/api/posts/*").permitAll()
+
+                        // 게시글 상태 변경 (publish/archive/restore) → 인증 필요
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/posts/*/publish",
+                                "/api/posts/*/archive",
+                                "/api/posts/*/restore"
+                        ).authenticated()
+
+                        // 게시글 수정 (PATCH /api/posts/{postId}) → 인증 필요
+                        .requestMatchers(HttpMethod.PATCH, "/api/posts/*/edit").authenticated()
+
+                        // 투표 (up / down / cancel) → 인증 필요
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/posts/*/vote/up",
+                                "/api/posts/*/vote/down"
+                        ).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/*/vote").authenticated()
+
+                        // 테스트용 부트스트랩 API → 인증 불필요
+                        .requestMatchers(HttpMethod.POST, "/api/posts/community/bs").permitAll()
+
                         .anyRequest().authenticated()
                 )
 

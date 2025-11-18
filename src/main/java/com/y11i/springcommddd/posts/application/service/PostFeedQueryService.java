@@ -10,11 +10,13 @@ import com.y11i.springcommddd.posts.application.port.in.ListCommunityPostsUseCas
 import com.y11i.springcommddd.posts.application.port.in.ListHomeFeedPostsUseCase;
 import com.y11i.springcommddd.posts.application.port.out.LoadAuthorForPostPort;
 import com.y11i.springcommddd.posts.application.port.out.LoadCommunityForPostPort;
+import com.y11i.springcommddd.posts.application.port.out.LoadPostAssetsPort;
 import com.y11i.springcommddd.posts.application.port.out.QueryPostPort;
 import com.y11i.springcommddd.posts.domain.Post;
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.dto.internal.PageResultDTO;
 import com.y11i.springcommddd.posts.dto.response.PostSummaryResponseDTO;
+import com.y11i.springcommddd.posts.media.domain.PostAsset;
 import com.y11i.springcommddd.votes.domain.MyPostVote;
 import com.y11i.springcommddd.votes.domain.PostVoteRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,7 @@ public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommu
     private final LoadAuthorForPostPort loadAuthorForPostPort;
     private final LoadCommunityForPostPort loadCommunityForPostPort;
     private final PostVoteRepository postVoteRepository;
+    private final LoadPostAssetsPort loadPostAssetsPort;
 
     // ----------------------------------------------------
     // 홈 피드
@@ -108,7 +111,8 @@ public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommu
                     Community community = resolveCommunity(post, communityCache);
                     Member author = resolveAuthor(post, authorCache);
                     Integer myVote = myVotesMap.get(post.postId());
-                    return PostSummaryResponseDTO.from(post, community, author, myVote);
+                    List<PostAsset> assets = loadPostAssetsPort.loadByPostId(post.postId());
+                    return PostSummaryResponseDTO.from(post, community, author, myVote, assets);
                 })
                 .toList();
 

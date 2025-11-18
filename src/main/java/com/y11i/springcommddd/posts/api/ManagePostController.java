@@ -129,7 +129,7 @@ public class ManagePostController {
      * - LINK: title만 수정 가능 (content는 무시)
      * </p>
      */
-    @PatchMapping(path = "/{postId}", consumes = "application/json")
+    @PatchMapping(path = "/{postId}/edit", consumes = "application/json")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void editPost(
             @AuthenticatedMember MemberId actorId,
