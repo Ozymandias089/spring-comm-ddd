@@ -1,6 +1,6 @@
 package com.y11i.springcommddd.posts.domain;
 
-import com.y11i.springcommddd.common.exception.InvalidIdentifierFormatException;
+import com.y11i.springcommddd.shared.domain.exception.InvalidIdentifierFormat;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -36,7 +36,7 @@ public record PostId(
         try {
             return new PostId(UUID.fromString(id));
         } catch (IllegalArgumentException e) {
-            throw new InvalidIdentifierFormatException("Invalid PostId: " + id);
+            throw new InvalidIdentifierFormat("Invalid PostId: " + id);
         }
     }
 

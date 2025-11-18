@@ -2,10 +2,10 @@ package com.y11i.springcommddd.posts.application.service;
 
 import com.y11i.springcommddd.communities.domain.Community;
 import com.y11i.springcommddd.communities.domain.CommunityId;
-import com.y11i.springcommddd.communities.domain.exception.CommunityNotFoundException;
+import com.y11i.springcommddd.communities.domain.exception.CommunityNotFound;
 import com.y11i.springcommddd.iam.domain.Member;
 import com.y11i.springcommddd.iam.domain.MemberId;
-import com.y11i.springcommddd.iam.domain.exception.MemberNotFoundException;
+import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
 import com.y11i.springcommddd.posts.application.port.in.ListCommunityPostsUseCase;
 import com.y11i.springcommddd.posts.application.port.in.ListHomeFeedPostsUseCase;
 import com.y11i.springcommddd.posts.application.port.out.LoadAuthorForPostPort;
@@ -59,7 +59,7 @@ public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommu
 
         // 커뮤니티 존재 여부 검증 + 캐싱용으로 로드
         Community community = loadCommunityForPostPort.loadById(communityId)
-                .orElseThrow(() -> new CommunityNotFoundException(communityId.stringify()));
+                .orElseThrow(() -> new CommunityNotFound(communityId.stringify()));
 
         PageRequest pageReq = PageRequest.of(q.page(), q.size());
         Page<Post> page = queryPostPort.findByCommunity(communityId, q.sort(), pageReq);
@@ -148,7 +148,7 @@ public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommu
         if (cached != null) return cached;
 
         Community loaded = loadCommunityForPostPort.loadById(cid)
-                .orElseThrow(() -> new CommunityNotFoundException(cid.stringify()));
+                .orElseThrow(() -> new CommunityNotFound(cid.stringify()));
         cache.put(cid, loaded);
         return loaded;
     }
@@ -159,7 +159,7 @@ public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommu
         if (cached != null) return cached;
 
         Member loaded = loadAuthorForPostPort.loadById(aid)
-                .orElseThrow(() -> new MemberNotFoundException(aid.stringify()));
+                .orElseThrow(() -> new MemberNotFound("Member not found"));
         cache.put(aid, loaded);
         return loaded;
     }

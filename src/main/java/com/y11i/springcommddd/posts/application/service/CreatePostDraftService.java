@@ -1,9 +1,9 @@
 package com.y11i.springcommddd.posts.application.service;
 
 import com.y11i.springcommddd.communities.domain.CommunityId;
-import com.y11i.springcommddd.communities.domain.exception.CommunityNotFoundException;
+import com.y11i.springcommddd.communities.domain.exception.CommunityNotFound;
 import com.y11i.springcommddd.iam.domain.MemberId;
-import com.y11i.springcommddd.iam.domain.exception.MemberNotFoundException;
+import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
 import com.y11i.springcommddd.posts.application.port.in.CreatePostDraftUseCase;
 import com.y11i.springcommddd.posts.application.port.out.LoadAuthorForPostPort;
 import com.y11i.springcommddd.posts.application.port.out.LoadCommunityForPostPort;
@@ -73,8 +73,8 @@ public class CreatePostDraftService implements CreatePostDraftUseCase {
      * @param cmd communityId, authorId, title, content
      * @return 생성된 게시글의 {@link PostId}
      *
-     * @throws CommunityNotFoundException 커뮤니티 존재 X
-     * @throws MemberNotFoundException 작성자 존재 X
+     * @throws CommunityNotFound 커뮤니티 존재 X
+     * @throws MemberNotFound 작성자 존재 X
      */
     @Override
     @Transactional
@@ -108,8 +108,8 @@ public class CreatePostDraftService implements CreatePostDraftUseCase {
      * @param cmd communityId, authorId, title, link
      * @return 생성된 게시글의 {@link PostId}
      *
-     * @throws CommunityNotFoundException 커뮤니티 존재 X
-     * @throws MemberNotFoundException 작성자 존재 X
+     * @throws CommunityNotFound 커뮤니티 존재 X
+     * @throws MemberNotFound 작성자 존재 X
      */
     @Override
     @Transactional
@@ -148,8 +148,8 @@ public class CreatePostDraftService implements CreatePostDraftUseCase {
      * @param cmd communityId, authorId, title, content, assets
      * @return 생성된 게시글의 {@link PostId}
      *
-     * @throws CommunityNotFoundException 커뮤니티 존재 X
-     * @throws MemberNotFoundException 작성자 존재 X
+     * @throws CommunityNotFound 커뮤니티 존재 X
+     * @throws MemberNotFound 작성자 존재 X
      */
     @Override
     @Transactional
@@ -244,20 +244,20 @@ public class CreatePostDraftService implements CreatePostDraftUseCase {
      * 커뮤니티 존재 여부 검증.
      *
      * @param communityId 커뮤니티 ID
-     * @throws CommunityNotFoundException 존재하지 않으면 발생
+     * @throws CommunityNotFound 존재하지 않으면 발생
      */
     private void validateCommunity(CommunityId communityId) {
-        loadCommunityForPostPort.loadById(communityId).orElseThrow(() -> new CommunityNotFoundException(communityId.stringify()));
+        loadCommunityForPostPort.loadById(communityId).orElseThrow(() -> new CommunityNotFound("Community not found"));
     }
 
     /**
      * 작성자 존재 여부 검증.
      *
      * @param authorId 작성자 ID
-     * @throws MemberNotFoundException 존재하지 않으면 발생
+     * @throws MemberNotFound 존재하지 않으면 발생
      */
     private void validateAuthor(MemberId authorId) {
-        loadAuthorForPostPort.loadById(authorId).orElseThrow(() -> new MemberNotFoundException(authorId.stringify()));
+        loadAuthorForPostPort.loadById(authorId).orElseThrow(() -> new MemberNotFound("Author not found"));
     }
 
     /**

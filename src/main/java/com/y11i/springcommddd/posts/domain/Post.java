@@ -3,7 +3,8 @@ package com.y11i.springcommddd.posts.domain;
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.exception.ArchivedPostModificationNotAllowed;
-import com.y11i.springcommddd.posts.domain.exception.PostNotVotableException;
+import com.y11i.springcommddd.posts.domain.exception.PostNotCommentable;
+import com.y11i.springcommddd.posts.domain.exception.PostNotVotable;
 import com.y11i.springcommddd.posts.domain.exception.PostStatusTransitionNotAllowed;
 import com.y11i.springcommddd.shared.domain.AggregateRoot;
 import jakarta.persistence.*;
@@ -303,20 +304,20 @@ public class Post implements AggregateRoot {
      * {@link Post}의 {@link PostStatus}가 <code>PUBLISHED</code>임을 보장합니다.<br>
      * <code>ARCHIVED</code>, <code>DRAFT</code>인 경우 투표할 수 없습니다.
      *
-     * @throws PostNotVotableException <code>PUBLISHED</code>가 아닌 경우
+     * @throws PostNotVotable <code>PUBLISHED</code>가 아닌 경우
      */
     public void ensureVotable() {
-        if (status != PostStatus.PUBLISHED) throw new PostNotVotableException(postId, status);
+        if (status != PostStatus.PUBLISHED) throw new PostNotVotable("You cannot vote on " + status.toString().toLowerCase() + " posts");
     }
 
     /**
      * {@link Post}의 {@link PostStatus}가 <code>PUBLISHED</code>임을 보장합니다.<br>
      * <code>ARCHIVED</code>, <code>DRAFT</code>인 경우 댓글을 달 수 없습니다.
      *
-     * @throws PostNotVotableException <code>PUBLISHED</code>가 아닌 경우
+     * @throws PostNotVotable <code>PUBLISHED</code>가 아닌 경우
      */
     public void ensureCommentable() {
-        if (status != PostStatus.PUBLISHED) throw new PostNotVotableException(postId, status);
+        if (status != PostStatus.PUBLISHED) throw new PostNotCommentable("You cannot comment post on " + status.toString().toLowerCase() + " Posts");
     }
 
     // -----------------------------------------------------

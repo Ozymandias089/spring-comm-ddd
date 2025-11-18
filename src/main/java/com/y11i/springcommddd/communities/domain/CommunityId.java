@@ -1,6 +1,6 @@
 package com.y11i.springcommddd.communities.domain;
 
-import com.y11i.springcommddd.common.exception.InvalidIdentifierFormatException;
+import com.y11i.springcommddd.shared.domain.exception.InvalidIdentifierFormat;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -48,7 +48,7 @@ public record CommunityId(
         try {
             return new CommunityId(UUID.fromString(id));
         } catch (IllegalArgumentException e) {
-            throw new InvalidIdentifierFormatException("Invalid communityId: " + id);
+            throw new InvalidIdentifierFormat("Invalid communityId: " + id);
         }
     }
 

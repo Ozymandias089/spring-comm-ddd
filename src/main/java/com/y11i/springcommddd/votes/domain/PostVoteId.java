@@ -1,6 +1,6 @@
 package com.y11i.springcommddd.votes.domain;
 
-import com.y11i.springcommddd.common.exception.InvalidIdentifierFormatException;
+import com.y11i.springcommddd.shared.domain.exception.InvalidIdentifierFormat;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -34,7 +34,7 @@ public record PostVoteId(
         try {
             return new PostVoteId(UUID.fromString(id));
         } catch (IllegalArgumentException e) {
-            throw new InvalidIdentifierFormatException("Invalid Post Vote Id: " + id);
+            throw new InvalidIdentifierFormat("Invalid Post Vote Id: " + id);
         }
     }
 

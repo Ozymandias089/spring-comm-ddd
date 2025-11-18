@@ -1,10 +1,10 @@
 package com.y11i.springcommddd.posts.application.service;
 
 import com.y11i.springcommddd.communities.domain.Community;
-import com.y11i.springcommddd.communities.domain.exception.CommunityNotFoundException;
+import com.y11i.springcommddd.communities.domain.exception.CommunityNotFound;
 import com.y11i.springcommddd.iam.domain.Member;
 import com.y11i.springcommddd.iam.domain.MemberId;
-import com.y11i.springcommddd.iam.domain.exception.MemberNotFoundException;
+import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
 import com.y11i.springcommddd.posts.application.port.in.GetPostDetailUseCase;
 import com.y11i.springcommddd.posts.application.port.out.LoadAuthorForPostPort;
 import com.y11i.springcommddd.posts.application.port.out.LoadCommunityForPostPort;
@@ -56,15 +56,15 @@ public class GetPostDetailService implements GetPostDetailUseCase {
     public PostDetailResponseDTO getPostDetail(PostId postId, MemberId viewerId) {
         // 1. Load Post
         Post post = loadPostPort.loadById(postId)
-                .orElseThrow(() -> new PostNotFound(postId.stringify()));
+                .orElseThrow(() -> new PostNotFound("Post not found"));
 
         // 2. Load Community
         Community community = loadCommunityForPostPort.loadById(post.communityId())
-                .orElseThrow(() -> new CommunityNotFoundException(post.communityId().stringify()));
+                .orElseThrow(() -> new CommunityNotFound("Community not found"));
 
         // Load Author info
         Member author = loadAuthorForPostPort.loadById(post.authorId())
-                .orElseThrow(() -> new MemberNotFoundException(post.authorId().stringify()));
+                .orElseThrow(() -> new MemberNotFound("Member not found"));
 
         //3. My Vote status (-1 / 0 / 1)
         Integer myVote = null;

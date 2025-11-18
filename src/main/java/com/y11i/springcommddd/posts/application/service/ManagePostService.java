@@ -3,7 +3,7 @@ package com.y11i.springcommddd.posts.application.service;
 import com.y11i.springcommddd.communities.moderators.domain.CommunityModeratorRepository;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.domain.MemberRole;
-import com.y11i.springcommddd.iam.domain.exception.MemberNotFoundException;
+import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
 import com.y11i.springcommddd.posts.application.port.in.ManagePostUseCase;
 import com.y11i.springcommddd.posts.application.port.out.LoadAuthorForPostPort;
 import com.y11i.springcommddd.posts.application.port.out.LoadPostAssetsPort;
@@ -13,6 +13,7 @@ import com.y11i.springcommddd.posts.domain.Post;
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.domain.PostKind;
 import com.y11i.springcommddd.posts.domain.exception.PostNotFound;
+import com.y11i.springcommddd.posts.domain.exception.PostStatusTransitionNotAllowed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -96,7 +97,7 @@ public class ManagePostService implements ManagePostUseCase {
     @Transactional
     public PostId publish(PublishPostCommand cmd) {
         // 1. 게시 대상 로드
-        Post publishTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound(cmd.postId().id().toString()));
+        Post publishTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound("Post not found"));
         // 2. 권한 검증: 작성자만 publish 가능
         ensurePermission(publishTarget, cmd.actorId(), PostPermissionAction.PUBLISH);
         // 3. MEDIA 타입이면 자산 최소 1개 검증
@@ -135,7 +136,7 @@ public class ManagePostService implements ManagePostUseCase {
     @Transactional
     public PostId archive(ArchivePostCommand cmd) {
         // 1. 보관 대상 로드
-        Post archiveTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound(cmd.postId().id().toString()));
+        Post archiveTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound("Post not found"));
         // 2. 권한 검증: 작성자, 어드민, 모더레이터(community 도메인의 서브로 관리함.)
         ensurePermission(archiveTarget, cmd.actorId(), PostPermissionAction.ARCHIVE);
         // 3. 상태 변경
@@ -165,7 +166,7 @@ public class ManagePostService implements ManagePostUseCase {
     @Transactional
     public PostId restore(RestorePostCommand cmd) {
         // 1. 복구 대상 로드
-        Post restoreTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound(cmd.postId().id().toString()));
+        Post restoreTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound("Post not found"));
         // 2. 권한 검증 - ADMIN, 모더레이터
         ensurePermission(restoreTarget, cmd.actorId(), PostPermissionAction.RESTORE);
         // 3. 복구
@@ -203,7 +204,7 @@ public class ManagePostService implements ManagePostUseCase {
     public PostId editPost(EditPostCommand cmd) {
         // 1. Post 로드
         Post target = loadPostPort.loadById(cmd.postId())
-                .orElseThrow(() -> new PostNotFound(cmd.postId().id().toString()));
+                .orElseThrow(() -> new PostNotFound("Post not found"));
 
         // 2. 권한 검증 (작성자만 EDIT 가능)
         ensurePermission(target, cmd.actorId(), PostPermissionAction.EDIT);
@@ -238,7 +239,7 @@ public class ManagePostService implements ManagePostUseCase {
      * @param actorId  액션 실행자
      * @param action   수행하려는 액션
      *
-     * @throws MemberNotFoundException 액터(member)가 존재하지 않을 때
+     * @throws MemberNotFound 액터(member)가 존재하지 않을 때
      * @throws AccessDeniedException 권한 부족
      */
     private void ensurePermission(Post post, MemberId actorId, PostPermissionAction action) {
@@ -248,7 +249,7 @@ public class ManagePostService implements ManagePostUseCase {
         var memberOpt = loadAuthorForPostPort.loadById(actorId);
         if (memberOpt.isEmpty()) {
             // 계정 자체가 없으면 권한 이전에 없는 유저
-            throw new MemberNotFoundException(actorId.stringify());
+            throw new MemberNotFound("Member not found");
         }
         var member = memberOpt.get();
 
@@ -264,7 +265,7 @@ public class ManagePostService implements ManagePostUseCase {
         };
 
         if (!allowed) {
-            throw new AccessDeniedException("Not allowed to " + action + " this post");
+            throw new PostStatusTransitionNotAllowed("Not allowed to " + action.toString().toLowerCase() + " this post");
         }
     }
 }

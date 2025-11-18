@@ -1,6 +1,6 @@
 package com.y11i.springcommddd.posts.media.domain;
 
-import com.y11i.springcommddd.common.exception.InvalidIdentifierFormatException;
+import com.y11i.springcommddd.shared.domain.exception.InvalidIdentifierFormat;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -21,7 +21,7 @@ public record PostAssetId(
         try {
             return new PostAssetId(UUID.fromString(id));
         } catch (IllegalArgumentException e) {
-            throw new InvalidIdentifierFormatException("Invalid Post Asset Id: " + id);
+            throw new InvalidIdentifierFormat("Invalid Post Asset Id: " + id);
         }
     }
 

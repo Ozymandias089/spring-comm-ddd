@@ -1,6 +1,6 @@
 package com.y11i.springcommddd.communities.moderators.domain;
 
-import com.y11i.springcommddd.common.exception.InvalidIdentifierFormatException;
+import com.y11i.springcommddd.shared.domain.exception.InvalidIdentifierFormat;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -32,7 +32,7 @@ public record CommunityModeratorId(
         try {
             return new CommunityModeratorId(UUID.fromString(id));
         } catch (IllegalArgumentException e) {
-            throw new InvalidIdentifierFormatException("Invalid community moderator id: " + id);
+            throw new InvalidIdentifierFormat("Invalid community moderator id: " + id);
         }
     }
 

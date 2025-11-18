@@ -97,7 +97,7 @@ public class VotePostService implements VotePostUseCase {
 
         // 1. 게시글 로드 (없으면 예외)
         Post post = loadPostPort.loadById(postId)
-                .orElseThrow(() -> new PostNotFound(postId.stringify()));
+                .orElseThrow(() -> new PostNotFound("Post not found"));
 
         // Post의 status가 PUBLISHED인 경우에만 투표를 할 수 있다.
         post.ensureVotable();
