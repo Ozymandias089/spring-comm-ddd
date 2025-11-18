@@ -1,6 +1,7 @@
 package com.y11i.springcommddd.iam.api;
 
 import com.y11i.springcommddd.iam.application.port.in.AdminMemberUseCase;
+import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.dto.request.admin.CreateAdminRequestDTO;
 import com.y11i.springcommddd.iam.dto.request.admin.GrantAdminRequestDTO;
 import com.y11i.springcommddd.iam.dto.request.admin.RevokeAdminRequestDTO;
@@ -87,7 +88,7 @@ public class AdminMemberController {
      */
     @PostMapping("/grant-admin")
     public ResponseEntity<Void> grantAdmin(@Valid @RequestBody GrantAdminRequestDTO req) {
-        adminMemberUseCase.grantAdmin(new AdminMemberUseCase.GrantAdminCommand(req.getMemberId()));
+        adminMemberUseCase.grantAdmin(new AdminMemberUseCase.GrantAdminCommand(MemberId.objectify(req.getMemberId())));
         return ResponseEntity.noContent().build();
     }
 
@@ -106,7 +107,7 @@ public class AdminMemberController {
      */
     @PostMapping("/revoke-admin")
     public ResponseEntity<Void> revokeAdmin(@Valid @RequestBody RevokeAdminRequestDTO req) {
-        adminMemberUseCase.revokeAdmin(new AdminMemberUseCase.RevokeAdminCommand(req.getMemberId()));
+        adminMemberUseCase.revokeAdmin(new AdminMemberUseCase.RevokeAdminCommand(MemberId.objectify(req.getMemberId())));
         return ResponseEntity.noContent().build();
     }
 
@@ -131,7 +132,7 @@ public class AdminMemberController {
      */
     @PostMapping("/set-status")
     public ResponseEntity<Void> setStatus(@Valid @RequestBody SetStatusRequestDTO req) {
-        adminMemberUseCase.setStatus(new AdminMemberUseCase.SetStatusCommand(req.getMemberId(), req.getStatus()));
+        adminMemberUseCase.setStatus(new AdminMemberUseCase.SetStatusCommand(MemberId.objectify(req.getMemberId()), req.getStatus()));
         return ResponseEntity.noContent().build();
     }
 

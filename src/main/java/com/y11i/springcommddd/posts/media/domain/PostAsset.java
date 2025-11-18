@@ -10,7 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 게시글 자산(PostAsset) 애그리게잇 루트.
@@ -49,6 +49,12 @@ public class PostAsset implements AggregateRoot {
             column = @Column(name = "post_id", columnDefinition = "BINARY(16)", nullable = false, updatable = false))
     private PostId postId;
 
+    @Column(name = "size_bytes")
+    private Long sizeBytes; // null 허용
+
+    @Column(name = "original_filename", length = 255)
+    private String originalFilename; // null 허용
+
     @Enumerated(EnumType.STRING)
     @Column(name = "media_type", nullable = false, length = 20)
     private MediaType mediaType;
@@ -61,11 +67,6 @@ public class PostAsset implements AggregateRoot {
     @Embedded
     @AttributeOverride(name = "url", column = @Column(name = "src_url", nullable = false, length = 1024))
     private Url srcUrl;
-
-    /** 썸네일 URL(선택) */
-    @Embedded
-    @AttributeOverride(name = "url", column = @Column(name = "thumb_url", length = 1024))
-    private Url thumbUrl;
 
     @Column(name = "mime_type", length = 255)
     private String mimeType;
@@ -88,6 +89,28 @@ public class PostAsset implements AggregateRoot {
     @Column(name = "caption", length = 255)
     private String caption;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "processing_status", nullable = false, length = 20)
+    private ProcessingStatus processingStatus = ProcessingStatus.READY;
+
+    @Column(name = "processing_error", length = 512)
+    private String processingError;
+
+    @ElementCollection
+    @CollectionTable(
+            name = "post_asset_variants",
+            joinColumns = @JoinColumn(name = "post_asset_id", nullable = false)
+    )
+    @AttributeOverrides({
+            @AttributeOverride(name = "name", column = @Column(name = "variant_name", nullable = false, length = 64)),
+            @AttributeOverride(name = "url.url", column = @Column(name = "variant_url", nullable = false, length = 1024)),
+            @AttributeOverride(name = "mimeType", column = @Column(name = "variant_mime_type", length = 255)),
+            @AttributeOverride(name = "width", column = @Column(name = "variant_width")),
+            @AttributeOverride(name = "height", column = @Column(name = "variant_height"))
+    })
+    // (post_asset_id, variant_name) 유니크/인덱스는 DDL로 추가 권장
+    private List<MediaVariant> variants = new ArrayList<>();
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -103,10 +126,11 @@ public class PostAsset implements AggregateRoot {
 
     public PostAsset (
             PostId postId,
+            Long sizeBytes,
+            String originalFilename,
             MediaType mediaType,
             int displayOrder,
             Url srcUrl,
-            Url thumbUrl,
             String mimeType,
             Integer width,
             Integer height,
@@ -116,17 +140,20 @@ public class PostAsset implements AggregateRoot {
     ) {
         this.postAssetId = PostAssetId.newId();
         this.postId = Objects.requireNonNull(postId);
+        this.sizeBytes = sizeBytes;
+        this.originalFilename = originalFilename;
         this.mediaType = Objects.requireNonNull(mediaType);
         if (displayOrder < 0) throw new IllegalArgumentException("displayOrder must be >= 0");
         this.displayOrder = displayOrder;
         this.srcUrl = Objects.requireNonNull(srcUrl);
-        this.thumbUrl = thumbUrl;
         this.mimeType = mimeType;
         this.width = width;
         this.height = height;
         this.durationSec = durationSec;
         this.altText = altText;
         this.caption = caption;
+
+        validateMeta(this.mediaType, width, height, durationSec);
     }
 
     // -----------------------------------------------------
@@ -139,7 +166,6 @@ public class PostAsset implements AggregateRoot {
      * @param postId        게시글 식별자
      * @param displayOrder  표시 순서(0부터)
      * @param srcUrl        원본/대표 URL
-     * @param thumbUrl      썸네일 URL(옵션)
      * @param mimeType      MIME 타입(예: image/jpeg)
      * @param width         가로(px)
      * @param height        세로(px)
@@ -148,9 +174,10 @@ public class PostAsset implements AggregateRoot {
      */
     public static PostAsset image (
             PostId postId,
+            Long sizeBytes,
+            String originalFilename,
             int displayOrder,
             String srcUrl,
-            String thumbUrl,
             String mimeType,
             Integer width,
             Integer height,
@@ -159,10 +186,11 @@ public class PostAsset implements AggregateRoot {
     ) {
         return new PostAsset(
                 postId,
+                sizeBytes,
+                originalFilename,
                 MediaType.IMAGE,
                 displayOrder,
                 new Url(srcUrl),
-                thumbUrl != null ? new Url(thumbUrl) : null,
                 mimeType,
                 width,
                 height,
@@ -178,7 +206,6 @@ public class PostAsset implements AggregateRoot {
      * @param postId        게시글 식별자
      * @param displayOrder  표시 순서(0부터)
      * @param srcUrl        원본/대표 URL
-     * @param thumbUrl      썸네일 URL(옵션)
      * @param mimeType      MIME 타입(예: video/mp4)
      * @param width         가로(px)
      * @param height        세로(px)
@@ -187,9 +214,10 @@ public class PostAsset implements AggregateRoot {
      */
     public static PostAsset video (
             PostId postId,
+            Long sizeBytes,
+            String originalFilename,
             int displayOrder,
             String srcUrl,
-            String thumbUrl,
             String mimeType,
             Integer width,
             Integer height,
@@ -199,10 +227,11 @@ public class PostAsset implements AggregateRoot {
     ) {
         return new PostAsset(
                 postId,
+                sizeBytes,
+                originalFilename,
                 MediaType.VIDEO,
                 displayOrder,
                 new Url(srcUrl),
-                thumbUrl != null ? new Url(thumbUrl) : null,
                 mimeType,
                 width,
                 height,
@@ -225,9 +254,6 @@ public class PostAsset implements AggregateRoot {
     /** 원본/대표 URL을 교체합니다. */
     public void changeSrcUrl(String newSrcUrl) { this.srcUrl = new Url(newSrcUrl); }
 
-    /** 썸네일 URL을 교체/제거합니다. */
-    public void changeThumbUrl(String newThumbUrl) { this.thumbUrl = newThumbUrl != null ? new Url(newThumbUrl) : null; }
-
     /** 캡션/ALT를 갱신합니다(널 허용). */
     public void changeTexts(String newAltText, String newCaption) {
         this.altText = newAltText;
@@ -243,6 +269,61 @@ public class PostAsset implements AggregateRoot {
         this.mimeType = mimeType;
     }
 
+    public void changeFileInfo(Long sizeBytes, String originalFilename, String mimeType) {
+        if (sizeBytes != null && sizeBytes < 0) throw new InvalidMediaMetadata("sizeBytes must be >= 0");
+        this.sizeBytes = sizeBytes;
+        this.originalFilename = originalFilename;
+        this.mimeType = mimeType;
+    }
+
+    /* === Variant 조작 === */
+
+    /** upsert: 이름 기준으로 있으면 교체, 없으면 추가 */
+    public void upsertVariant(String name, String url, String mimeType, Integer width, Integer height) {
+        removeVariant(name); // 있으면 제거
+        variants.add(new MediaVariant(name, new Url(url), mimeType, width, height));
+    }
+
+    /** 이름으로 제거 (없으면 noop) */
+    public void removeVariant(String name) {
+        variants.removeIf(v -> v.name().equals(name));
+    }
+
+    /** 단일 조회(옵션) */
+    public Optional<MediaVariant> getVariant(String name) {
+        return variants.stream().filter(v -> v.name().equals(name)).findFirst();
+    }
+
+    /** 일괄 교체(드래그 앤 드롭 이후 전체 세트 교체 등) */
+    public void replaceVariants(Collection<MediaVariant> newVariants) {
+        // 중복 이름 방지
+        var names = new HashSet<String>();
+        for (var v : newVariants) {
+            if (!names.add(v.name()))
+                throw new InvalidMediaMetadata("Duplicate variant name: " + v.name());
+        }
+        this.variants.clear();
+        this.variants.addAll(newVariants);
+    }
+
+    /** === [신규] 가공 상태 전이 === */
+
+    public void markProcessing() {
+        this.processingStatus = ProcessingStatus.PROCESSING;
+        this.processingError = null;
+    }
+
+    public void markReady() {
+        this.processingStatus = ProcessingStatus.READY;
+        this.processingError = null;
+    }
+
+    public void markFailed(String errorMessage) {
+        this.processingStatus = ProcessingStatus.FAILED;
+        this.processingError = (errorMessage != null && errorMessage.length() > 512)
+                ? errorMessage.substring(0, 512) : errorMessage;
+    }
+
     // --- 내부 검증
 
     private void validateMeta(MediaType type, Integer width, Integer height, Integer durationSec) {
@@ -250,13 +331,15 @@ public class PostAsset implements AggregateRoot {
         if (height != null && height < 0) throw new InvalidMediaMetadata("height must be >= 0");
 
         if (type == MediaType.VIDEO) {
-            if (durationSec == null || durationSec < 0) {
+            if (durationSec == null || durationSec < 0)
                 throw new InvalidMediaMetadata("durationSec must be provided and >= 0 for VIDEO");
-            }
-        } else { // IMAGE 등
-            if (durationSec != null) {
+            if (mimeType != null && !mimeType.startsWith("video/"))
+                throw new InvalidMediaMetadata("mimeType must start with video/ for VIDEO");
+        } else { // IMAGE
+            if (durationSec != null)
                 throw new InvalidMediaMetadata("durationSec must be null for non-VIDEO media");
-            }
+            if (mimeType != null && !mimeType.startsWith("image/"))
+                throw new InvalidMediaMetadata("mimeType must start with image/ for IMAGE");
         }
     }
 
@@ -269,13 +352,15 @@ public class PostAsset implements AggregateRoot {
     public MediaType mediaType() { return mediaType; }
     public int displayOrder() { return displayOrder; }
     public Url srcUrl() { return srcUrl; }
-    public Url thumbUrl() { return thumbUrl; }
     public String mimeType() { return mimeType; }
     public Integer width() { return width; }
     public Integer height() { return height; }
     public Integer durationSec() { return durationSec; }
     public String altText() { return altText; }
     public String caption() { return caption; }
+    public ProcessingStatus processingStatus() { return processingStatus; }
+    public String processingError() { return processingError; }
+    public List<MediaVariant> variants() { return Collections.unmodifiableList(variants); }
     public Instant createdAt() { return createdAt; }
     public Instant updatedAt() { return updatedAt; }
     public long version() { return version; }

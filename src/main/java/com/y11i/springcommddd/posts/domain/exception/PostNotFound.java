@@ -4,5 +4,5 @@ import com.y11i.springcommddd.common.api.ErrorCode;
 import com.y11i.springcommddd.common.exception.BaseException;
 
 public class PostNotFound extends BaseException {
-    public PostNotFound(String id) { super(ErrorCode.POST_NOT_FOUND, "Post not found: " + id); }
+    public PostNotFound(String message) { super(ErrorCode.POST_NOT_FOUND, message); }
 }

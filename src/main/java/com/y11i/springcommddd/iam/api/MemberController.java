@@ -132,7 +132,7 @@ public class MemberController {
         MemberId memberId = p.getMemberId();
 
         // 5. 이제 이메일이 아니라 안정적인 ID로 조회
-        MemberDTO memberDTO = findMemberUseCase.findById(memberId.id()).orElseThrow();
+        MemberDTO memberDTO = findMemberUseCase.findById(memberId).orElseThrow();
 
         // 6. 응답 DTO 구성
         LoginResponseDTO body = MemberMapper.toLoginResponseDTO(memberDTO);

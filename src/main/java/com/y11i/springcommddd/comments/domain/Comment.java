@@ -125,19 +125,18 @@ public class Comment {
         return new Comment(postId, authorId, null, 0, new CommentBody(body));
     }
 
-    /**
-     * 특정 부모에 대한 대댓글을 생성합니다.
-     *
-     * @param postId       댓글이 속한 게시글 식별자
-     * @param authorId     작성자 식별자
-     * @param parentId     부모 댓글 식별자 (필수)
-     * @param parentDepth  부모 댓글의 깊이
-     * @param body         본문(문자열). 공백/빈값 금지
-     * @return 생성된 대댓글
-     * @throws CommentDeletedModificationNotAllowed 본문이 비어 있거나 null인 경우
-     */
-    public static Comment replyTo(PostId postId, MemberId authorId, CommentId parentId, int parentDepth, String body) {
-        return new Comment(postId, authorId, parentId, parentDepth+1,  new CommentBody(body));
+    public static Comment replyTo(PostId postId, MemberId authorId, Comment parent, String body) {
+        Objects.requireNonNull(parent, "parent comment required");
+        if (!parent.postId().equals(postId)) {
+            throw new IllegalArgumentException("parent belongs to different post");
+        }
+        return new Comment(
+                postId,
+                authorId,
+                parent.commentId(),
+                parent.depth() + 1,
+                new CommentBody(body)
+        );
     }
 
     // -----------------------------------------------------

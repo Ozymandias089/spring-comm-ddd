@@ -29,7 +29,7 @@ import java.util.Optional;
  */
 @Repository
 @Transactional(readOnly = true)
-public class CommuityRepositoryAdapter implements CommunityRepository {
+public class CommunityRepositoryAdapter implements CommunityRepository {
 
     private final JpaCommunityRepository jpaCommunityRepository;
 
@@ -38,7 +38,7 @@ public class CommuityRepositoryAdapter implements CommunityRepository {
      *
      * @param jpaCommunityRepository JPA 기반 커뮤니티 리포지토리
      */
-    public CommuityRepositoryAdapter(JpaCommunityRepository jpaCommunityRepository) {
+    public CommunityRepositoryAdapter(JpaCommunityRepository jpaCommunityRepository) {
         this.jpaCommunityRepository = jpaCommunityRepository;
     }
 

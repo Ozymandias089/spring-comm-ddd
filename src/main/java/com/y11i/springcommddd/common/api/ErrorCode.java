@@ -19,12 +19,15 @@ public enum ErrorCode {
     COMMENT_BODY_INVALID("comment.body_invalid", HttpStatus.BAD_REQUEST),
     COMMENT_DELETED_MODIFICATION_FORBIDDEN("comment.deleted_modification_forbidden", HttpStatus.CONFLICT),
     COMMENT_DEPTH_INVALID("comment.depth_invalid", HttpStatus.BAD_REQUEST),
+    COMMENT_UNAVAILABLE("comment.unavailable", HttpStatus.BAD_REQUEST),
 
     // --- Community
     COMMUNITY_NAME_INVALID("community.name_invalid", HttpStatus.BAD_REQUEST),
     COMMUNITY_NAME_KEY_INVALID("community.name_key_invalid", HttpStatus.BAD_REQUEST),
     COMMUNITY_ARCHIVED_MODIFICATION_FORBIDDEN("community.archived_modification_forbidden", HttpStatus.CONFLICT),
     COMMUNITY_STATUS_TRANSITION_FORBIDDEN("community.status_transition_forbidden", HttpStatus.CONFLICT),
+    ID_FORMAT_INVALID("id_format_invalid", HttpStatus.BAD_REQUEST),
+    COMMUNITY_NOT_FOUND("community.not_found", HttpStatus.NOT_FOUND),
 
     IMAGE_URL_INVALID("image.url_invalid", HttpStatus.BAD_REQUEST),
 
@@ -39,11 +42,13 @@ public enum ErrorCode {
     EMAIL_INVALID("member.email_invalid", HttpStatus.BAD_REQUEST),
     DISPLAY_NAME_INVALID("member.display_name_invalid", HttpStatus.BAD_REQUEST),
     PASSWORD_HASH_INVALID("member.password_hash_invalid", HttpStatus.BAD_REQUEST),
+    MEMBER_NOT_FOUND("member.not_found", HttpStatus.NOT_FOUND),
 
     // --- Vote
     VOTE_VALUE_INVALID("vote.value_invalid", HttpStatus.BAD_REQUEST),
     VOTE_DUPLICATE("vote.duplicate", HttpStatus.CONFLICT),
     VOTE_NOT_FOUND("vote.not_found", HttpStatus.NOT_FOUND),
+    POST_VOTE_UNAVAILABLE("post.vote_unavailable", HttpStatus.BAD_REQUEST),
 
     // --- common/app/infra
     BAD_REQUEST("generic.bad_request", HttpStatus.BAD_REQUEST),

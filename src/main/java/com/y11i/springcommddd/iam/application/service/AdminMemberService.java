@@ -4,7 +4,6 @@ import com.y11i.springcommddd.iam.application.port.in.AdminMemberUseCase;
 import com.y11i.springcommddd.iam.application.port.out.LoadMemberPort;
 import com.y11i.springcommddd.iam.application.port.out.SaveMemberPort;
 import com.y11i.springcommddd.iam.domain.Member;
-import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.domain.MemberRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -63,7 +62,7 @@ public class AdminMemberService implements AdminMemberUseCase {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void grantAdmin(GrantAdminCommand cmd) {
-        Member member = loadMemberPort.loadById(new MemberId(cmd.targetMemberId()))
+        Member member = loadMemberPort.loadById(cmd.targetMemberId())
                 .orElseThrow();
         member.grantRole(MemberRole.ADMIN);
         saveMemberPort.save(member);
@@ -74,7 +73,7 @@ public class AdminMemberService implements AdminMemberUseCase {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void revokeAdmin(RevokeAdminCommand cmd) {
-        Member member = loadMemberPort.loadById(new MemberId(cmd.targetMemberId()))
+        Member member = loadMemberPort.loadById(cmd.targetMemberId())
                 .orElseThrow();
         // 자기 자신 ADMIN 회수 금지 (간단 가드)
         Authentication a = SecurityContextHolder.getContext().getAuthentication();
@@ -90,7 +89,7 @@ public class AdminMemberService implements AdminMemberUseCase {
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public void setStatus(SetStatusCommand cmd) {
-        Member member = loadMemberPort.loadById(new MemberId(cmd.targetMemberId()))
+        Member member = loadMemberPort.loadById(cmd.targetMemberId())
                 .orElseThrow();
 
         String status = cmd.status();

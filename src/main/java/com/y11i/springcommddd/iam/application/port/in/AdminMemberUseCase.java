@@ -1,5 +1,7 @@
 package com.y11i.springcommddd.iam.application.port.in;
 
+import com.y11i.springcommddd.iam.domain.MemberId;
+
 import java.util.UUID;
 
 /**
@@ -65,14 +67,14 @@ public interface AdminMemberUseCase {
      *
      * @param targetMemberId 관리 권한을 부여할 대상 회원의 고유 식별자(UUID)
      */
-    record GrantAdminCommand(UUID targetMemberId) {}
+    record GrantAdminCommand(MemberId targetMemberId) {}
 
     /**
      * 특정 회원에게서 관리자 권한을 회수한다.
      *
      * @param targetMemberId 관리자 권한을 회수할 대상 회원의 고유 식별자(UUID)
      */
-    record RevokeAdminCommand(UUID targetMemberId) {}
+    record RevokeAdminCommand(MemberId targetMemberId) {}
 
     /**
      * 특정 회원의 상태를 변경한다.
@@ -83,7 +85,7 @@ public interface AdminMemberUseCase {
      * @param targetMemberId 상태를 바꿀 회원의 고유 식별자(UUID)
      * @param status 새 상태 문자열
      */
-    record SetStatusCommand(UUID targetMemberId, String status) {} // "ACTIVE"|"SUSPENDED"|"DELETED"
+    record SetStatusCommand(MemberId targetMemberId, String status) {} // "ACTIVE"|"SUSPENDED"|"DELETED"
 
     /**
      * 신규 관리자 계정을 생성하기 위한 명령.

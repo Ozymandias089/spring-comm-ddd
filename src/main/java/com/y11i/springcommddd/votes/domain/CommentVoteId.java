@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.votes.domain;
 
+import com.y11i.springcommddd.shared.domain.exception.InvalidIdentifierFormat;
 import com.y11i.springcommddd.shared.domain.ValueObject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -28,4 +29,16 @@ public record CommentVoteId(
 
     /** 무작위 UUID로 새 식별자를 생성합니다. */
     public static CommentVoteId newId() { return new CommentVoteId(UUID.randomUUID()); }
+
+    public static CommentVoteId objectify(String id) {
+        try {
+            return new CommentVoteId(UUID.fromString(id));
+        } catch (IllegalArgumentException e) {
+            throw new InvalidIdentifierFormat("Invalid comment vote id value: " + id);
+        }
+    }
+
+    public String stringify() {
+        return id.toString();
+    }
 }

@@ -1,5 +1,6 @@
 package com.y11i.springcommddd.iam.application.port.in;
 
+import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.dto.MemberDTO;
 
 import java.util.Optional;
@@ -16,7 +17,7 @@ import java.util.UUID;
 public interface FindMemberUseCase {
     /**
      * @deprecated 이메일은 더 이상 인증 식별자로 사용되지 않습니다.
-     *              {@link #findById(UUID)}를 대신 사용하세요.
+     *              {@link #findById(MemberId)}를 대신 사용하세요.
      */
     @Deprecated
     Optional<MemberDTO> findByEmail(String email);
@@ -27,5 +28,5 @@ public interface FindMemberUseCase {
      * @param memberId 불변 회원 식별자 (MemberId 내부 UUID)
      * @return 해당 사용자의 정보를 담은 DTO. 없으면 empty.
      */
-    Optional<MemberDTO> findById(UUID memberId);
+    Optional<MemberDTO> findById(MemberId memberId);
 }

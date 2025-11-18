@@ -18,11 +18,11 @@ import java.util.Optional;
  * <ul>
  *     <li>Spring Data JPA가 자동 구현체를 생성</li>
  *     <li>쿼리 메서드 파생(query derivation)을 통해 엔티티 조회</li>
- *     <li>{@link CommuityRepositoryAdapter}에서 사용되어 도메인에 연결됨</li>
+ *     <li>{@link CommunityRepositoryAdapter}에서 사용되어 도메인에 연결됨</li>
  * </ul>
  *
  * @see JpaRepository
- * @see CommuityRepositoryAdapter
+ * @see CommunityRepositoryAdapter
  */
 public interface JpaCommunityRepository extends JpaRepository<Community, CommunityId> {
     /**

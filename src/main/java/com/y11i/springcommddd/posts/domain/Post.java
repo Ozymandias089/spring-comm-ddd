@@ -3,10 +3,11 @@ package com.y11i.springcommddd.posts.domain;
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.exception.ArchivedPostModificationNotAllowed;
+import com.y11i.springcommddd.posts.domain.exception.PostNotCommentable;
+import com.y11i.springcommddd.posts.domain.exception.PostNotVotable;
 import com.y11i.springcommddd.posts.domain.exception.PostStatusTransitionNotAllowed;
 import com.y11i.springcommddd.shared.domain.AggregateRoot;
 import jakarta.persistence.*;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -63,14 +64,21 @@ public class Post implements AggregateRoot {
     )
     private MemberId authorId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "kind", nullable = false, length = 20)
+    private PostKind kind;
+
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "title", nullable = false, length = 200))
     private Title title;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "content", nullable = false, columnDefinition = "LONGTEXT"))
-    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @AttributeOverride(name = "value", column = @Column(name = "content"))
     private Content content;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "link_url", length = 1024))
+    private LinkUrl linkUrl; // LINK 에서만 필수
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
@@ -96,6 +104,9 @@ public class Post implements AggregateRoot {
     @Column(name="down_count", nullable=false)
     private int downCount = 0;
 
+    @Column(name = "comment_count", nullable = false)
+    private int commentCount = 0;
+
     /** JPA 전용 */
     protected Post() {}
 
@@ -109,12 +120,14 @@ public class Post implements AggregateRoot {
      * </ul>
      * </p>
      */
-    private Post(CommunityId communityId, MemberId authorId, Title title, Content content) {
+    private Post(PostKind kind, CommunityId communityId, MemberId authorId, Title title, Content content, LinkUrl linkUrl) {
         this.postId = PostId.newId();
+        this.kind = Objects.requireNonNull(kind);
         this.communityId = Objects.requireNonNull(communityId);
         this.authorId = Objects.requireNonNull(authorId);
         rename(title);
         rewrite(content);
+        this.linkUrl = linkUrl;
         this.status = PostStatus.DRAFT;
     }
 
@@ -132,8 +145,20 @@ public class Post implements AggregateRoot {
      * @return 새 {@link Post}
      * @throws IllegalArgumentException 제목/본문 규칙 위반
      */
-    public static Post create(CommunityId communityId, MemberId authorId, String title, String content) {
-        return new Post(communityId, authorId, new Title(title), new Content(content));
+    public static Post createText(CommunityId communityId, MemberId authorId, String title, String content) {
+        return new Post(PostKind.TEXT, communityId, authorId, new Title(title), new Content(content), null);
+    }
+
+    public static Post createMedia(CommunityId communityId, MemberId authorId, String title, String captionOptional) {
+        Content caption = (captionOptional != null && !captionOptional.isBlank())
+                ? new Content(captionOptional)
+                : null;  // 캡션이 없으면 content 자체를 null로
+        // MEDIA는 content/caption 이 선택사항. 최소 non-blank 보장을 위해 한칸 넣어 저장(또는 Content VO를 null 허용으로 바꾸려면 VO 수정 필요)
+        return new Post(PostKind.MEDIA, communityId, authorId, new Title(title), caption, null);
+    }
+
+    public static Post createLink(CommunityId communityId, MemberId authorId, String title, String linkUrl) {
+        return new Post(PostKind.LINK, communityId, authorId, new Title(title), null, new LinkUrl(linkUrl));
     }
 
     // -----------------------------------------------------
@@ -174,6 +199,12 @@ public class Post implements AggregateRoot {
         this.content = newContent;
     }
 
+    public void setLinkUrl(String newLinkUrl) {
+        ensureNotArchived("Archived post cannot be modified");
+        if (this.kind != PostKind.LINK) throw new IllegalStateException("linkUrl can be set only when kind == LINK");
+        this.linkUrl = new LinkUrl(newLinkUrl);
+    }
+
     /**
      * 게시(Publish)합니다. (초안 상태에서만 가능)
      *
@@ -182,8 +213,22 @@ public class Post implements AggregateRoot {
      *
      * @throws PostStatusTransitionNotAllowed DRAFT가 아닌 상태에서 호출한 경우
      */
-    public void publish(){
+    public void publish() {
         if (status != PostStatus.DRAFT) throw new PostStatusTransitionNotAllowed("Only DRAFT status can be published");
+
+        // kind별 최소 제약
+        if (kind == PostKind.TEXT) {
+            if (content == null || content.value().isBlank()) {
+                throw new IllegalStateException("TEXT post requires non-blank content");
+            }
+        } else if (kind == PostKind.LINK) {
+            if (linkUrl == null) {
+                throw new IllegalStateException("LINK post requires linkUrl");
+            }
+        } else if (kind == PostKind.MEDIA) {
+            // 자산(assets) 개수 검사는 애플리케이션 서비스에서 검증 (리포지토리로 count 확인)
+        }
+
         this.status = PostStatus.PUBLISHED;
         this.publishedAt = Instant.now();
     }
@@ -215,15 +260,31 @@ public class Post implements AggregateRoot {
      * @param oldValue 이전 투표값 (-1/0/1)
      * @param newValue 새로운 투표값 (-1/0/1)
      */
-    public void applyVoteDelta(int oldValue, int newValue){
+    public void applyVoteDelta(int oldValue, int newValue) {
         if (oldValue == newValue) return;
-        if (oldValue == 1) upCount--;
-        if (oldValue == -1) downCount--;
-        if (newValue == 1) upCount++;
-        if (newValue == -1) downCount++;
-        if (upCount < 0) upCount = 0;
-        if (downCount < 0) downCount = 0;
+
+        upCount   += (newValue == 1 ? 1 : 0) - (oldValue == 1 ? 1 : 0);
+        downCount += (newValue == -1 ? 1 : 0) - (oldValue == -1 ? 1 : 0);
+
+        if (upCount < 0 || downCount < 0) {
+            upCount = Math.max(upCount, 0);
+            downCount = Math.max(downCount, 0);
+        }
     }
+
+    public void commentCountIncrement() {
+        commentCount++;
+    }
+    public void commentCountDecrement() {
+        if (this.commentCount > 0) this.commentCount--;
+    }
+
+    public void applyCommentVisibilityChange(boolean wasVisible, boolean isVisible) {
+        if (wasVisible == isVisible) return;
+        if (!wasVisible && isVisible) commentCount++;
+        if (wasVisible && !isVisible && commentCount > 0) commentCount--;
+    }
+
 
     // -----------------------------------------------------
     // 내부 검증 섹션
@@ -239,6 +300,26 @@ public class Post implements AggregateRoot {
         if (status == PostStatus.ARCHIVED) throw new ArchivedPostModificationNotAllowed(message);
     }
 
+    /**
+     * {@link Post}의 {@link PostStatus}가 <code>PUBLISHED</code>임을 보장합니다.<br>
+     * <code>ARCHIVED</code>, <code>DRAFT</code>인 경우 투표할 수 없습니다.
+     *
+     * @throws PostNotVotable <code>PUBLISHED</code>가 아닌 경우
+     */
+    public void ensureVotable() {
+        if (status != PostStatus.PUBLISHED) throw new PostNotVotable("You cannot vote on " + status.toString().toLowerCase() + " posts");
+    }
+
+    /**
+     * {@link Post}의 {@link PostStatus}가 <code>PUBLISHED</code>임을 보장합니다.<br>
+     * <code>ARCHIVED</code>, <code>DRAFT</code>인 경우 댓글을 달 수 없습니다.
+     *
+     * @throws PostNotVotable <code>PUBLISHED</code>가 아닌 경우
+     */
+    public void ensureCommentable() {
+        if (status != PostStatus.PUBLISHED) throw new PostNotCommentable("You cannot comment post on " + status.toString().toLowerCase() + " Posts");
+    }
+
     // -----------------------------------------------------
     // 접근자 섹션 (읽기 전용)
     // -----------------------------------------------------
@@ -246,8 +327,10 @@ public class Post implements AggregateRoot {
     public PostId postId() { return postId; }
     public CommunityId communityId() { return communityId; }
     public MemberId authorId() { return authorId; }
+    public PostKind kind() { return kind; }
     public Title title() { return title; }
     public Content content() { return content; }
+    public LinkUrl linkUrl() { return linkUrl; }
     public PostStatus status() { return status; }
     public Instant publishedAt() { return publishedAt; }
     public Instant createdAt() { return createdAt; }
@@ -256,4 +339,5 @@ public class Post implements AggregateRoot {
     public int upCount(){ return upCount; }
     public int downCount(){ return downCount; }
     public int score(){ return upCount - downCount; }
+    public int commentCount(){ return commentCount; }
 }
