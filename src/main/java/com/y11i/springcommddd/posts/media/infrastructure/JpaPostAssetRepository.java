@@ -57,6 +57,7 @@ public interface JpaPostAssetRepository extends JpaRepository<PostAsset, PostAss
     @Query("update PostAsset a set a.displayOrder = a.displayOrder - 1 where a.postId = :postId and a.displayOrder > :removedOrder")
     int shiftLeftAfterOrder(@Param("postId") PostId postId, @Param("removedOrder") int removedOrder);
 
-    @Modifying
-    int deleteByPostId(PostId postId);
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM PostAsset pa WHERE pa.postId = :postId")
+    int deleteByPostId(@Param("postId") PostId postId);
 }

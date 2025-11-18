@@ -9,15 +9,18 @@ import com.y11i.springcommddd.posts.application.port.out.LoadAuthorForPostPort;
 import com.y11i.springcommddd.posts.application.port.out.LoadPostAssetsPort;
 import com.y11i.springcommddd.posts.application.port.out.LoadPostPort;
 import com.y11i.springcommddd.posts.application.port.out.SavePostPort;
-import com.y11i.springcommddd.posts.domain.Post;
-import com.y11i.springcommddd.posts.domain.PostId;
-import com.y11i.springcommddd.posts.domain.PostKind;
+import com.y11i.springcommddd.posts.domain.*;
 import com.y11i.springcommddd.posts.domain.exception.PostNotFound;
 import com.y11i.springcommddd.posts.domain.exception.PostStatusTransitionNotAllowed;
+import com.y11i.springcommddd.posts.media.domain.PostAsset;
+import com.y11i.springcommddd.posts.media.domain.PostAssetRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * 게시글(Post) 상태 관리 및 수정 기능을 제공하는 애플리케이션 서비스.
@@ -49,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @see com.y11i.springcommddd.posts.application.port.in.ManagePostUseCase
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ManagePostService implements ManagePostUseCase {
@@ -60,6 +64,8 @@ public class ManagePostService implements ManagePostUseCase {
     private final SavePostPort savePostPort;
     private final LoadAuthorForPostPort loadAuthorForPostPort;
     private final CommunityModeratorRepository communityModeratorRepository;
+    private final PostRepository postRepository;
+    private final PostAssetRepository postAssetRepository;
 
     /**
      * 게시글 액션 구분(Enum).
@@ -174,6 +180,21 @@ public class ManagePostService implements ManagePostUseCase {
         Post saved = savePostPort.save(restoreTarget);
         // 4. 반환
         return saved.postId();
+    }
+
+    @Override
+    @Transactional
+    public void scrapDraft(ScrapDraftCommand cmd) {
+        Post scrapTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound("Post not found"));
+
+        ensurePermission(scrapTarget, cmd.actorId(), PostPermissionAction.EDIT);
+
+        if (scrapTarget.status() != PostStatus.DRAFT) throw new PostStatusTransitionNotAllowed("Only DRAFT posts can be scrapped");
+
+        int deletedAssets = postAssetRepository.deleteAllByPostId(scrapTarget.postId());
+        log.debug("ScrapDraft: postId={} deletedAssets={}", scrapTarget.postId().stringify(), deletedAssets);
+
+        postRepository.delete(scrapTarget);
     }
 
     // ---------------------------------------------------------------------
