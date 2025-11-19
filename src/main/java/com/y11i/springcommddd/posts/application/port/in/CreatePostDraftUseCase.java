@@ -3,7 +3,7 @@ package com.y11i.springcommddd.posts.application.port.in;
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.PostId;
-import com.y11i.springcommddd.posts.media.domain.MediaType;
+import com.y11i.springcommddd.posts.media.model.AssetMeta;
 
 import java.util.List;
 
@@ -50,15 +50,4 @@ public interface CreatePostDraftUseCase {
             List<AssetMeta> assets
     ) {}
 
-    /**
-     * 업로드된 미디어 자산 메타정보.
-     * (컨트롤러에서 PostAssetUploadDTO -> AssetMeta로 변환해서 넘겨주면 됨)
-     */
-    record AssetMeta(
-            MediaType mediaType,  // IMAGE | VIDEO
-            int displayOrder,
-            long fileSize,
-            String fileName,
-            String mimeType
-    ) {}
 }

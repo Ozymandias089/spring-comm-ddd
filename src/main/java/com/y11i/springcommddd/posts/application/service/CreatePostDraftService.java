@@ -11,8 +11,9 @@ import com.y11i.springcommddd.posts.application.port.out.SavePostAssetsPort;
 import com.y11i.springcommddd.posts.application.port.out.SavePostPort;
 import com.y11i.springcommddd.posts.domain.Post;
 import com.y11i.springcommddd.posts.domain.PostId;
-import com.y11i.springcommddd.posts.media.domain.MediaType;
+import com.y11i.springcommddd.posts.media.model.AssetMeta;
 import com.y11i.springcommddd.posts.media.domain.PostAsset;
+import com.y11i.springcommddd.posts.application.port.out.PostAssetFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +52,7 @@ public class CreatePostDraftService implements CreatePostDraftUseCase {
     private final SavePostAssetsPort savePostAssetsPort;
     private final LoadCommunityForPostPort loadCommunityForPostPort;
     private final LoadAuthorForPostPort loadAuthorForPostPort;
+    private final PostAssetFactory postAssetFactory;
 
     // ----------------------------------------------------------------------
     // TEXT Draft
@@ -167,73 +169,13 @@ public class CreatePostDraftService implements CreatePostDraftUseCase {
         List<AssetMeta> metas = cmd.assets();
         if (metas != null && !metas.isEmpty()) {
             List<PostAsset> assets = metas.stream()
-                    .map(meta -> toPostAsset(postId, meta))
+                    .map(meta -> postAssetFactory.fromMeta(postId, meta))
                     .toList();
 
             savePostAssetsPort.saveAll(assets);
         }
 
         return postId;
-    }
-
-    // ----------------------------------------------------------------------
-    // 내부 헬퍼
-    // ----------------------------------------------------------------------
-
-    /**
-     * AssetMeta → PostAsset 변환.
-     *
-     * <p>
-     * 파일 업로드는 이미 완료되었다고 가정하고 있으며,
-     * fileName(=스토리지 key)을 기반으로 접근 URL을 생성한다.
-     * 현재는 스텁으로 fileName을 그대로 URL로 사용한다.
-     * </p>
-     *
-     * @param postId 게시글 ID
-     * @param meta AssetMeta (이미지/영상)
-     * @return 변환된 PostAsset
-     *
-     * @throws IllegalArgumentException 지원되지 않는 미디어 타입
-     */
-    private PostAsset toPostAsset(PostId postId, AssetMeta meta) {
-        // 여기서는 파일이 이미 업로드되어 있고,
-        // fileName이 스토리지 key라고 가정하고 URL을 "스텁"으로 만든다.
-        // 나중에 실제 업로드/URL 생성 파이프라인이 정해지면 이 부분만 교체하면 됨.
-        String srcUrl = buildSrcUrlFromFileName(meta.fileName());
-
-        if (meta.mediaType() == MediaType.IMAGE) {
-            return PostAsset.image(
-                    postId,
-                    meta.fileSize(),        // sizeBytes
-                    meta.fileName(),        // originalFilename
-                    meta.displayOrder(),
-                    srcUrl,
-                    meta.mimeType(),
-                    null,                   // width
-                    null,                   // height
-                    null,                   // altText
-                    null                    // caption
-            );
-
-        } else if (meta.mediaType() == MediaType.VIDEO) {
-            // ✅ 비디오 팩토리 시그니처에 맞게 인자 11개 전달
-            return PostAsset.video(
-                    postId,
-                    meta.fileSize(),        // sizeBytes
-                    meta.fileName(),        // originalFilename
-                    meta.displayOrder(),
-                    srcUrl,
-                    meta.mimeType(),
-                    null,                   // width
-                    null,                   // height
-                    null,                   // durationSec
-                    null,                   // altText
-                    null                    // caption
-            );
-
-        } else {
-            throw new IllegalArgumentException("Unsupported mediaType: " + meta.mediaType());
-        }
     }
 
     // ----------------------------------------------------------------------
@@ -258,18 +200,5 @@ public class CreatePostDraftService implements CreatePostDraftUseCase {
      */
     private void validateAuthor(MemberId authorId) {
         loadAuthorForPostPort.loadById(authorId).orElseThrow(() -> new MemberNotFound("Author not found"));
-    }
-
-    /**
-     * 현재는 fileName을 그대로 URL로 사용하는 스텁 메서드.
-     *
-     * <p>나중에 CDN 도입 시 다음과 같이 교체 가능:</p>
-     * <pre>
-     * <code>https://cdn.example.com/media/{fileName}</code>
-     * </pre>
-     */
-    private String buildSrcUrlFromFileName(String fileName) {
-        return fileName;
-        // 예: return "https://cdn.springcomm.app/media/" + fileName;
     }
 }

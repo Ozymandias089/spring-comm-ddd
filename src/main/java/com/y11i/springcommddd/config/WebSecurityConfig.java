@@ -111,6 +111,9 @@ public class WebSecurityConfig {
                                 "/api/posts/*/archive",
                                 "/api/posts/*/restore"
                         ).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/draft/*/delete").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/posts/draft/*/edit").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/posts/draft/*/publish").authenticated()
 
                         // 게시글 수정 (PATCH /api/posts/{postId}) → 인증 필요
                         .requestMatchers(HttpMethod.PATCH, "/api/posts/*/edit").authenticated()

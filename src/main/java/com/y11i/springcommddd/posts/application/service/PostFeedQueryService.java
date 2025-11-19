@@ -7,6 +7,7 @@ import com.y11i.springcommddd.iam.domain.Member;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
 import com.y11i.springcommddd.posts.application.port.in.ListCommunityPostsUseCase;
+import com.y11i.springcommddd.posts.application.port.in.ListDraftsUseCase;
 import com.y11i.springcommddd.posts.application.port.in.ListHomeFeedPostsUseCase;
 import com.y11i.springcommddd.posts.application.port.out.LoadAuthorForPostPort;
 import com.y11i.springcommddd.posts.application.port.out.LoadCommunityForPostPort;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommunityPostsUseCase {
+public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommunityPostsUseCase, ListDraftsUseCase {
 
     private final QueryPostPort queryPostPort;
     private final LoadAuthorForPostPort loadAuthorForPostPort;
@@ -65,6 +66,14 @@ public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommu
         Page<Post> page = queryPostPort.findByCommunity(communityId, q.sort(), pageReq);
 
         return buildPageResult(page, q.viewerId(), community);
+    }
+
+    @Override
+    public PageResultDTO<PostSummaryResponseDTO> listDrafts(ListDraftsUseCase.Query q) {
+        PageRequest pageReq = PageRequest.of(q.page(), q.size());
+        Page<Post> page = queryPostPort.findDraftsByAuthorId(q.memberId(), q.sort(), pageReq);
+
+        return buildPageResult(page, q.memberId(), null);
     }
 
     // ----------------------------------------------------

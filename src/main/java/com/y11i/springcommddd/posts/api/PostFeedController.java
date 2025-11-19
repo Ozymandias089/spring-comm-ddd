@@ -1,7 +1,9 @@
 package com.y11i.springcommddd.posts.api;
 
+import com.y11i.springcommddd.iam.api.support.AuthenticatedMember;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.application.port.in.ListCommunityPostsUseCase;
+import com.y11i.springcommddd.posts.application.port.in.ListDraftsUseCase;
 import com.y11i.springcommddd.posts.application.port.in.ListHomeFeedPostsUseCase;
 import com.y11i.springcommddd.posts.dto.internal.PageResultDTO;
 import com.y11i.springcommddd.posts.dto.response.PostSummaryResponseDTO;
@@ -19,6 +21,7 @@ import static com.y11i.springcommddd.posts.api.support.CurrentMemberResolver.res
 public class PostFeedController {
     private final ListHomeFeedPostsUseCase listHomeFeedPostsUseCase;
     private final ListCommunityPostsUseCase listCommunityPostsUseCase;
+    private final ListDraftsUseCase listDraftsUseCase;
 
     // ----------------------------------------------------
     // 홈 피드
@@ -87,5 +90,22 @@ public class PostFeedController {
         );
 
         return listCommunityPostsUseCase.listCommunityPosts(query);
+    }
+
+    @GetMapping(path = "/posts/drafts", produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    public PageResultDTO<PostSummaryResponseDTO> getDrafts(
+            @AuthenticatedMember MemberId memberId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size
+    ) {
+        var query = new ListDraftsUseCase.Query(
+                memberId,
+                "new",
+                page,
+                size
+        );
+
+        return listDraftsUseCase.listDrafts(query);
     }
 }

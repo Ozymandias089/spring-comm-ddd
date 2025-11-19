@@ -7,12 +7,18 @@ import com.y11i.springcommddd.posts.application.port.in.ManagePostUseCase.*;
 import com.y11i.springcommddd.posts.domain.Content;
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.domain.Title;
+import com.y11i.springcommddd.posts.dto.internal.PostAssetUploadDTO;
 import com.y11i.springcommddd.posts.dto.request.EditPostRequestDTO;
+import com.y11i.springcommddd.posts.dto.request.UpdateDraftPostRequestDTO;
+import com.y11i.springcommddd.posts.media.domain.MediaType;
+import com.y11i.springcommddd.posts.media.model.AssetMeta;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 게시글(Post) 상태 전이 및 수정 API 컨트롤러.
@@ -144,5 +150,89 @@ public class ManagePostController {
                         new Content(requestDTO.content())
                 )
         );
+    }
+
+    @DeleteMapping(path = "/draft/{postId}/delete")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void scrapDraft(
+            @AuthenticatedMember MemberId actorId,
+            @PathVariable String postId
+    ){
+        managePostUseCase.scrapDraft(new ScrapDraftCommand(PostId.objectify(postId), actorId));
+    }
+
+    @PatchMapping(path = "/draft/{postId}/edit", consumes = "application/json")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void editDraftPost(
+            @PathVariable String postId,
+            @AuthenticatedMember MemberId memberId,
+            @RequestBody @Validated UpdateDraftPostRequestDTO request
+    ) {
+        List<PostAssetUploadDTO> assetDTOs = request.postAssetUploadDTOs();
+
+        // null -> 첨부 변경 안 함, empty -> 다 지우기
+        List<AssetMeta> metas = (assetDTOs == null) ? null
+                : assetDTOs.stream()
+                .map(this::toAssetMeta)
+                .toList();
+
+        managePostUseCase.editDraft(
+                new ManagePostUseCase.EditDraftPostCommand(
+                        PostId.objectify(postId),
+                        memberId,
+                        request.communityId(),
+                        request.title(),
+                        request.content(),
+                        request.link(),
+                        metas
+                )
+        );
+    }
+
+    @PostMapping(path = "/draft/{postId}/publish", consumes = "application/json")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void editDraftAndPublish(
+            @PathVariable String postId,
+            @AuthenticatedMember MemberId memberId,
+            @RequestBody @Valid UpdateDraftPostRequestDTO request
+    ) {
+        List<PostAssetUploadDTO> assetDTOs = request.postAssetUploadDTOs();
+
+        List<AssetMeta> metas = (assetDTOs == null) ? null
+                : assetDTOs.stream()
+                .map(this::toAssetMeta)
+                .toList();
+
+        managePostUseCase.editDraftAndPublish(
+                new EditDraftAndPublishCommand(
+                        PostId.objectify(postId),
+                        memberId,
+                        request.communityId(),
+                        request.title(),
+                        request.content(),
+                        request.link(),
+                        metas
+                )
+        );
+    }
+
+    /**
+     * 업로드 DTO를 내부 AssetMeta로 변환한다.
+     * (초안 생성 시 사용하던 매핑 로직과 동일하게 유지할 것)
+     */
+    private AssetMeta toAssetMeta(PostAssetUploadDTO dto) {
+        return new AssetMeta(
+                toMediaType(dto.mediaType()),
+                dto.displayOrder(),
+                dto.fileSize(),
+                dto.fileName(),
+                dto.mimeType()
+        );
+    }
+
+    private MediaType toMediaType(String raw) {
+        // 기존에 쓰던 규칙에 맞춰서 구현
+        // 예: "IMAGE", "VIDEO" 같은 값을 enum으로 매핑
+        return MediaType.valueOf(raw.toUpperCase());
     }
 }
