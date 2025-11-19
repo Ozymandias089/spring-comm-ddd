@@ -175,6 +175,18 @@ public class Post implements AggregateRoot {
     public void rename(String newTitle) {rename(new Title(newTitle));}
 
     /**
+     * 커뮤니티를 변경합니다. DRAFT인 게시글만 변경할 수 있습니다.
+     * <p>파라미터 communityId가 null인 경우 아무 동작도 하지 않습니다.</p>
+     *
+     * @param communityId 목적지
+     * @throws PostStatusTransitionNotAllowed DRAFT가 아닌 게시글을 변경 시도
+     */
+    public void moveTo(CommunityId communityId) {
+        ensureDraftStatus("Only Draft status can move community");
+        if (communityId != null) this.communityId = communityId;
+    }
+
+    /**
      * 제목을 변경합니다. (보관 상태에서 금지)
      */
     public void rename(Title newTitle) {
@@ -199,6 +211,12 @@ public class Post implements AggregateRoot {
         this.content = newContent;
     }
 
+    /**
+     * 링크를 변경합니다. 타입이 link인 게시글인지 내부에서 검증합니다.
+     * @param newLinkUrl 변경할 링크.
+     * @throws IllegalStateException PostKind가 Link가 아닌 경우
+     * @throws ArchivedPostModificationNotAllowed 보관된 게시글인 경우
+     */
     public void setLinkUrl(String newLinkUrl) {
         ensureNotArchived("Archived post cannot be modified");
         if (this.kind != PostKind.LINK) throw new IllegalStateException("linkUrl can be set only when kind == LINK");
@@ -318,6 +336,10 @@ public class Post implements AggregateRoot {
      */
     public void ensureCommentable() {
         if (status != PostStatus.PUBLISHED) throw new PostNotCommentable("You cannot comment post on " + status.toString().toLowerCase() + " Posts");
+    }
+
+    public void ensureDraftStatus(String message) {
+        if (status != PostStatus.DRAFT) throw new PostStatusTransitionNotAllowed(message);
     }
 
     // -----------------------------------------------------

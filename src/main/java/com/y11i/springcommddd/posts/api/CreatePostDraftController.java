@@ -7,7 +7,7 @@ import com.y11i.springcommddd.posts.application.port.in.CreatePostDraftUseCase;
 import com.y11i.springcommddd.posts.application.port.in.CreatePostDraftUseCase.CreateTextDraftCommand;
 import com.y11i.springcommddd.posts.application.port.in.CreatePostDraftUseCase.CreateLinkDraftCommand;
 import com.y11i.springcommddd.posts.application.port.in.CreatePostDraftUseCase.CreateMediaDraftCommand;
-import com.y11i.springcommddd.posts.application.port.in.CreatePostDraftUseCase.AssetMeta;
+import com.y11i.springcommddd.posts.media.model.AssetMeta;
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.dto.internal.PostAssetUploadDTO;
 import com.y11i.springcommddd.posts.dto.request.CreateLinkPostRequestDTO;

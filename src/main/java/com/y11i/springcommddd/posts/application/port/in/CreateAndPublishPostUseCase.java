@@ -3,6 +3,7 @@ package com.y11i.springcommddd.posts.application.port.in;
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.PostId;
+import com.y11i.springcommddd.posts.media.model.AssetMeta;
 
 import java.util.List;
 
@@ -55,7 +56,7 @@ public interface CreateAndPublishPostUseCase {
      * 미디어(이미지/영상) 게시글을 바로 게시하기 위한 커맨드.
      *
      * <p>
-     * assets는 기존 {@link CreatePostDraftUseCase.AssetMeta} 와 동일한 메타 정보를 사용한다.
+     * assets는 기존 {@link AssetMeta} 와 동일한 메타 정보를 사용한다.
      * 컨트롤러에서는 PostAssetUploadDTO → AssetMeta 로 변환하여 넘겨주면 된다.
      * </p>
      */
@@ -64,6 +65,6 @@ public interface CreateAndPublishPostUseCase {
             MemberId authorId,
             String title,
             String content,
-            List<CreatePostDraftUseCase.AssetMeta> assets
+            List<AssetMeta> assets
     ) {}
 }

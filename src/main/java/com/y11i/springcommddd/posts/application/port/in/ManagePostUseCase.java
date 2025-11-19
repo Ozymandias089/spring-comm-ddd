@@ -4,6 +4,9 @@ import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.Content;
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.domain.Title;
+import com.y11i.springcommddd.posts.media.model.AssetMeta;
+
+import java.util.List;
 
 public interface ManagePostUseCase {
 
@@ -30,8 +33,10 @@ public interface ManagePostUseCase {
      */
     PostId editPost(EditPostCommand cmd);
 
+    // --- 초안 관리 ---
     void scrapDraft(ScrapDraftCommand cmd);
-//    PostId editDraft();
+    PostId editDraft(EditDraftPostCommand cmd);
+    PostId editDraftAndPublish(EditDraftAndPublishCommand cmd);
 
     record PublishPostCommand(PostId postId, MemberId actorId) {}
     record ArchivePostCommand(PostId postId, MemberId actorId) {}
@@ -43,4 +48,24 @@ public interface ManagePostUseCase {
             Content newContent   // nullable
     ) {}
     record ScrapDraftCommand(PostId postId, MemberId actorId) {}
+
+    record EditDraftPostCommand(
+            PostId postId,
+            MemberId actorId,
+            String communityId,  // nullable
+            String title,        // nullable
+            String content,      // nullable
+            String link,         // nullable
+            List<AssetMeta> assets// nullable
+    ) {}
+
+    record EditDraftAndPublishCommand(
+            PostId postId,
+            MemberId actorId,
+            String communityId,      // nullable
+            String title,            // nullable
+            String content,          // nullable
+            String link,             // nullable
+            List<AssetMeta> assets   // nullable
+    ) {}
 }

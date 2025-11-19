@@ -1,19 +1,19 @@
 package com.y11i.springcommddd.posts.application.service;
 
+import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.communities.moderators.domain.CommunityModeratorRepository;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.domain.MemberRole;
 import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
 import com.y11i.springcommddd.posts.application.port.in.ManagePostUseCase;
-import com.y11i.springcommddd.posts.application.port.out.LoadAuthorForPostPort;
-import com.y11i.springcommddd.posts.application.port.out.LoadPostAssetsPort;
-import com.y11i.springcommddd.posts.application.port.out.LoadPostPort;
-import com.y11i.springcommddd.posts.application.port.out.SavePostPort;
+import com.y11i.springcommddd.posts.application.port.out.*;
 import com.y11i.springcommddd.posts.domain.*;
 import com.y11i.springcommddd.posts.domain.exception.PostNotFound;
 import com.y11i.springcommddd.posts.domain.exception.PostStatusTransitionNotAllowed;
 import com.y11i.springcommddd.posts.media.domain.PostAsset;
 import com.y11i.springcommddd.posts.media.domain.PostAssetRepository;
+import com.y11i.springcommddd.posts.application.port.out.PostAssetFactory;
+import com.y11i.springcommddd.posts.media.model.AssetMeta;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -66,6 +66,8 @@ public class ManagePostService implements ManagePostUseCase {
     private final CommunityModeratorRepository communityModeratorRepository;
     private final PostRepository postRepository;
     private final PostAssetRepository postAssetRepository;
+    private final PostAssetFactory postAssetFactory;
+    private final SavePostAssetsPort savePostAssetsPort;
 
     /**
      * 게시글 액션 구분(Enum).
@@ -242,6 +244,63 @@ public class ManagePostService implements ManagePostUseCase {
         postRepository.delete(scrapTarget);
     }
 
+    @Override
+    @Transactional
+    public PostId editDraft(EditDraftPostCommand cmd) {
+        Post draft = loadPostPort.loadById(cmd.postId())
+                .orElseThrow(() -> new PostNotFound("Post not found"));
+
+        ensurePermission(draft, cmd.actorId(), PostPermissionAction.EDIT);
+        ensureDraftStatus(draft); // 이건 아래 private 메서드로 빼도 됨
+
+        applyDraftChanges(
+                draft,
+                cmd.communityId(),
+                cmd.title(),
+                cmd.content(),
+                cmd.link(),
+                cmd.assets()
+        );
+
+        Post saved = savePostPort.save(draft);
+        return saved.postId();
+    }
+
+    @Override
+    @Transactional
+    public PostId editDraftAndPublish(EditDraftAndPublishCommand cmd) {
+        Post draft = loadPostPort.loadById(cmd.postId())
+                .orElseThrow(() -> new PostNotFound("Post not found"));
+
+        // 여기서는 EDIT 대신 PUBLISH 권한을 기준으로 잡는 것도 가능 (작성자만 허용이니까 둘 다 같긴 함)
+        ensurePermission(draft, cmd.actorId(), PostPermissionAction.PUBLISH);
+        ensureDraftStatus(draft);
+
+        // 1) 초안 내용 수정 (커뮤니티/제목/본문/링크/미디어)
+        applyDraftChanges(
+                draft,
+                cmd.communityId(),
+                cmd.title(),
+                cmd.content(),
+                cmd.link(),
+                cmd.assets()
+        );
+
+        // 2) MEDIA 타입이면 자산이 최소 1개 있는지 검증 (publish() 로직과 동일)
+        if (draft.kind() == PostKind.MEDIA) {
+            var assets = loadPostAssetsPort.loadByPostId(draft.postId());
+            if (assets == null || assets.isEmpty()) {
+                throw new IllegalStateException("MEDIA post requires at least one asset to publish");
+            }
+        }
+
+        // 3) 게시 상태 전환
+        draft.publish();
+
+        Post saved = savePostPort.save(draft);
+        return saved.postId();
+    }
+
     // ---------------------------------------------------------------------
     // 권한 검증
     // ---------------------------------------------------------------------
@@ -289,4 +348,43 @@ public class ManagePostService implements ManagePostUseCase {
             throw new PostStatusTransitionNotAllowed("Not allowed to " + action.toString().toLowerCase() + " this post");
         }
     }
+
+    private void ensureDraftStatus(Post post) {
+        if (post.status() != PostStatus.DRAFT) {
+            throw new PostStatusTransitionNotAllowed("Only DRAFT posts can be edited as draft");
+        }
+    }
+
+    private void applyDraftChanges(
+            Post draft,
+            String communityId,
+            String title,
+            String content,
+            String link,
+            List<AssetMeta> assets
+    ) {
+        // 커뮤니티 변경
+        if (communityId != null) draft.moveTo(CommunityId.objectify(communityId));
+        // 제목 변경
+        if (title != null) draft.rename(title);
+        // 내용 변경
+        if (content != null) draft.rewrite(content);
+        // 링크 변경
+        if (link != null) draft.setLinkUrl(link);
+
+        // 미디어 자산 교체
+        if (assets != null) {
+            if (draft.kind() != PostKind.MEDIA) throw new IllegalStateException("Assets can be edited only when kind == MEDIA");
+
+            int deletedAssets = postAssetRepository.deleteAllByPostId(draft.postId());
+            log.debug("EditDraft: postId={} deletedAssets={}", draft.postId().stringify(), deletedAssets);
+
+            List<PostAsset> newAssets = assets.stream()
+                    .map(meta -> postAssetFactory.fromMeta(draft.postId(), meta))
+                    .toList();
+
+            savePostAssetsPort.saveAll(newAssets);
+        }
+    }
+
 }
