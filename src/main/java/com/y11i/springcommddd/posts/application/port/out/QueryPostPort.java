@@ -1,6 +1,7 @@
 package com.y11i.springcommddd.posts.application.port.out;
 
 import com.y11i.springcommddd.communities.domain.CommunityId;
+import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,4 +35,6 @@ public interface QueryPostPort {
      * @param pageable    페이지 정보
      */
     Page<Post> findByCommunity(CommunityId communityId, String sortKey, Pageable pageable);
+
+    Page<Post> findDraftsByAuthorId(MemberId authorId, String sortKey, Pageable pageable);
 }

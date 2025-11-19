@@ -18,8 +18,6 @@ public interface ManagePostUseCase {
     /** ARCHIVED → PUBLISHED (복구) */
     PostId restore(RestorePostCommand cmd);
 
-    void scrapDraft(ScrapDraftCommand cmd);
-
     /**
      * 게시글 수정 (TEXT / LINK / MEDIA 공용).
      * <p>
@@ -32,6 +30,8 @@ public interface ManagePostUseCase {
      */
     PostId editPost(EditPostCommand cmd);
 
+    void scrapDraft(ScrapDraftCommand cmd);
+//    PostId editDraft();
 
     record PublishPostCommand(PostId postId, MemberId actorId) {}
     record ArchivePostCommand(PostId postId, MemberId actorId) {}

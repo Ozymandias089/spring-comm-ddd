@@ -182,21 +182,6 @@ public class ManagePostService implements ManagePostUseCase {
         return saved.postId();
     }
 
-    @Override
-    @Transactional
-    public void scrapDraft(ScrapDraftCommand cmd) {
-        Post scrapTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound("Post not found"));
-
-        ensurePermission(scrapTarget, cmd.actorId(), PostPermissionAction.EDIT);
-
-        if (scrapTarget.status() != PostStatus.DRAFT) throw new PostStatusTransitionNotAllowed("Only DRAFT posts can be scrapped");
-
-        int deletedAssets = postAssetRepository.deleteAllByPostId(scrapTarget.postId());
-        log.debug("ScrapDraft: postId={} deletedAssets={}", scrapTarget.postId().stringify(), deletedAssets);
-
-        postRepository.delete(scrapTarget);
-    }
-
     // ---------------------------------------------------------------------
     // 수정 (EDIT)
     // ---------------------------------------------------------------------
@@ -240,6 +225,21 @@ public class ManagePostService implements ManagePostUseCase {
         // 4. 저장
         Post saved = savePostPort.save(target);
         return saved.postId();
+    }
+
+    @Override
+    @Transactional
+    public void scrapDraft(ScrapDraftCommand cmd) {
+        Post scrapTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound("Post not found"));
+
+        ensurePermission(scrapTarget, cmd.actorId(), PostPermissionAction.EDIT);
+
+        if (scrapTarget.status() != PostStatus.DRAFT) throw new PostStatusTransitionNotAllowed("Only DRAFT posts can be scrapped");
+
+        int deletedAssets = postAssetRepository.deleteAllByPostId(scrapTarget.postId());
+        log.debug("ScrapDraft: postId={} deletedAssets={}", scrapTarget.postId().stringify(), deletedAssets);
+
+        postRepository.delete(scrapTarget);
     }
 
     // ---------------------------------------------------------------------

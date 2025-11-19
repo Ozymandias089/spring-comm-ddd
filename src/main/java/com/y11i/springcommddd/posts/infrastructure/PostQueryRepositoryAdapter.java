@@ -1,6 +1,7 @@
 package com.y11i.springcommddd.posts.infrastructure;
 
 import com.y11i.springcommddd.communities.domain.CommunityId;
+import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.application.port.out.QueryPostPort;
 import com.y11i.springcommddd.posts.domain.Post;
 import com.y11i.springcommddd.posts.domain.PostStatus;
@@ -48,6 +49,13 @@ public class PostQueryRepositoryAdapter implements QueryPostPort {
             // TODO: "hot" 구현 시 분기 추가
             default -> jpaPostQueryRepository.findCommunityFeedOrderByNew(communityId, status, pageable);
         };
+    }
+
+    @Override
+    public Page<Post> findDraftsByAuthorId(MemberId authorId, String sortKey, Pageable pageable) {
+        PostStatus status = PostStatus.DRAFT;
+        String normalized = normalizeSortKey(sortKey);
+        return jpaPostQueryRepository.findByAuthorIdOrderByCreatedAtDesc(authorId, status, pageable);
     }
 
     /**

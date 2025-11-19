@@ -1,6 +1,7 @@
 package com.y11i.springcommddd.posts.infrastructure;
 
 import com.y11i.springcommddd.communities.domain.CommunityId;
+import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.Post;
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.domain.PostStatus;
@@ -70,4 +71,17 @@ public interface JpaPostQueryRepository extends JpaRepository<Post, PostId> {
             @Param("status") PostStatus status,
             Pageable pageable
     );
+
+    @Query("""
+        select p
+        from Post p
+        where p.status = :status
+        and p.authorId = :authorId
+        order by p.createdAt desc
+        """)
+    Page<Post> findByAuthorIdOrderByCreatedAtDesc(
+            @Param("authorId")MemberId authorId,
+            @Param("status") PostStatus status,
+            Pageable pageable
+            );
 }

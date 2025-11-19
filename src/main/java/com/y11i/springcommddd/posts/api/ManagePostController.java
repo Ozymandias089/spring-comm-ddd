@@ -116,15 +116,6 @@ public class ManagePostController {
         );
     }
 
-    @DeleteMapping(path = "/{postId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void scrapDraft(
-            @AuthenticatedMember MemberId actorId,
-            @PathVariable String postId
-    ){
-        managePostUseCase.scrapDraft(new ScrapDraftCommand(PostId.objectify(postId), actorId));
-    }
-
     // ---------------------------------------------------------------------
     // 수정 (EDIT)
     // ---------------------------------------------------------------------
@@ -153,5 +144,14 @@ public class ManagePostController {
                         new Content(requestDTO.content())
                 )
         );
+    }
+
+    @DeleteMapping(path = "/{postId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void scrapDraft(
+            @AuthenticatedMember MemberId actorId,
+            @PathVariable String postId
+    ){
+        managePostUseCase.scrapDraft(new ScrapDraftCommand(PostId.objectify(postId), actorId));
     }
 }
