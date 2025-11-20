@@ -10,7 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 커뮤니티(Community) 애그리게잇 루트.
@@ -63,6 +63,14 @@ public class Community implements AggregateRoot {
     @Embedded
     private CommunityNameKey communityNameKey;
 
+    @Embedded
+    private CommunityDescription description;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable( name = "community_rules", joinColumns = @JoinColumn(name = "community_id") )
+    @OrderBy("displayOrder ASC")
+    private Set<CommunityRule> rules = new LinkedHashSet<>();
+
     @Enumerated(EnumType.STRING)
     @Column(name="status", nullable=false, length=20)
     private CommunityStatus status;
@@ -81,10 +89,11 @@ public class Community implements AggregateRoot {
     /** JPA 기본 생성자. 외부에서 직접 호출하지 않습니다. */
     protected Community() {}
 
-    private Community(CommunityName communityName) {
+    private Community(CommunityName communityName, CommunityDescription description) {
         this.communityId = CommunityId.newId();
         this.communityName = Objects.requireNonNull(communityName);
         this.communityNameKey = new CommunityNameKey(communityName.value());
+        this.description = description;
         this.status = CommunityStatus.ACTIVE;
     }
 
@@ -99,8 +108,8 @@ public class Community implements AggregateRoot {
      * @return 새 {@link Community} 인스턴스
      * @throws IllegalArgumentException 이름이 null/공백/과다 길이인 경우
      */
-    public static Community create(String communityName) {
-        return new Community(new CommunityName(communityName));
+    public static Community create(String communityName, String communityDescription) {
+        return new Community(new CommunityName(communityName), new CommunityDescription(communityDescription));
     }
 
     // -----------------------------------------------------
@@ -121,6 +130,35 @@ public class Community implements AggregateRoot {
         ensureNotArchived();
         this.communityName = new CommunityName(newCommunityName);
         this.communityNameKey = new CommunityNameKey(newCommunityName);
+    }
+
+    /**
+     * 커뮤니티의 설명을 새로 작성합니다.
+     *
+     * <p><b>전제조건</b>: 상태가 {@link CommunityStatus#ARCHIVED}가 아니어야 합니다.</p>
+     *
+     * @param newDescription 새 설명 문자열
+     * @throws IllegalStateException 보관 상태에서 설명을 변경하려는 경우
+     */
+    public void redescribe(String newDescription) {
+        ensureNotArchived();
+        this.description = (newDescription == null ? null : new CommunityDescription(newDescription));
+    }
+
+    public void addRule(String title, String description, int displayOrder) {
+        ensureNotArchived();
+        rules.add(new CommunityRule(title, description, displayOrder));
+    }
+
+    public void clearRules() {
+        ensureNotArchived();
+        rules.clear();
+    }
+
+    public void replaceRules(Collection<CommunityRule> newRules) {
+        ensureNotArchived();
+        this.rules.clear();
+        this.rules.addAll(newRules);
     }
 
     /**
@@ -202,6 +240,10 @@ public class Community implements AggregateRoot {
     public CommunityName communityName(){ return communityName; }
     /** 이름 키(정규화, 고유) */
     public CommunityNameKey nameKey(){ return communityNameKey; }
+
+    public CommunityDescription communityDescription(){ return description; }
+
+    public Set<CommunityRule> rules() { return Collections.unmodifiableSet(rules); }
     /** 상태(활성/보관) */
     public CommunityStatus status(){ return status; }
     /** 생성 시각(감사) */

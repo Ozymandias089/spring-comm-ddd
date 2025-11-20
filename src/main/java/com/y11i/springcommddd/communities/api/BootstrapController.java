@@ -17,7 +17,7 @@ public class BootstrapController {
     @PostMapping("/bs")
     @Transactional
     public String bootstrap() {
-        Community community = Community.create("DemoCommunity");
+        Community community = Community.create("DemoCommunity", "DemoDescription");
         communityRepository.save(community);
         return community.communityId().stringify();
     }
