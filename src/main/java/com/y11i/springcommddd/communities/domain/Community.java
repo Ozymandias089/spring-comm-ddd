@@ -83,6 +83,9 @@ public class Community implements AggregateRoot {
     @Column(name="updated_at", nullable=false)
     private Instant updatedAt;
 
+    @Column(name = "activated_at")
+    private Instant activatedAt;
+
     @Version
     private long version;
 
@@ -176,6 +179,9 @@ public class Community implements AggregateRoot {
     public void activate() {
         if (status != CommunityStatus.PENDING) throw new CommunityStatusTransitionNotAllowed("Creating community is not pending");
         this.status = CommunityStatus.ACTIVE;
+
+        // 처음 ACTIVE로 전환될 때만 기록 (idempotent 관점)
+        if (this.activatedAt == null) this.activatedAt = Instant.now();  // 필요하면 Clock 주입/도메인 서비스로 빼도 됨
     }
 
     /**
@@ -268,6 +274,7 @@ public class Community implements AggregateRoot {
     public Instant createdAt(){ return createdAt; }
     /** 수정 시각(감사) */
     public Instant updatedAt(){ return updatedAt; }
+    public Instant activatedAt(){ return activatedAt; }
     /** 낙관적 락 버전 */
     public long version(){ return version; }
 }

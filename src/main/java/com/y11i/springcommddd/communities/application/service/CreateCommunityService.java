@@ -3,18 +3,21 @@ package com.y11i.springcommddd.communities.application.service;
 import com.y11i.springcommddd.communities.application.port.in.CreateCommunityUseCase;
 import com.y11i.springcommddd.communities.application.port.out.LoadCommunityPort;
 import com.y11i.springcommddd.communities.application.port.out.LoadMemberForCommunityPort;
+import com.y11i.springcommddd.communities.application.port.out.SaveCommunityModeratorsPort;
 import com.y11i.springcommddd.communities.application.port.out.SaveCommunityPort;
 import com.y11i.springcommddd.communities.domain.Community;
 import com.y11i.springcommddd.communities.domain.CommunityNameKey;
 import com.y11i.springcommddd.communities.domain.exception.DuplicateCommunityNameKey;
-import com.y11i.springcommddd.communities.dto.internal.CommunityRulesDTO;
+import com.y11i.springcommddd.communities.dto.internal.CommunityRuleDTO;
 import com.y11i.springcommddd.communities.dto.response.CommunityCreateResponseDTO;
+import com.y11i.springcommddd.communities.moderators.domain.CommunityModerator;
 import com.y11i.springcommddd.iam.domain.Member;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.domain.MemberStatus;
 import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
 import com.y11i.springcommddd.iam.domain.exception.UnauthorizedMemberAction;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
  *     <li>도메인 애그리게잇인 {@link Community} 생성 및 초기 규칙 설정</li>
  *     <li>액터(member)의 권한 및 상태 검증</li>
  *     <li>커뮤니티 이름 키(slug)의 형식 및 유일성 보장</li>
+ *     <li>요청자를 해당 커뮤니티의 초기 모더레이터로 등록</li>
  *     <li>도메인 모델을 영속화 포트({@link SaveCommunityPort})를 통해 저장</li>
  * </ul>
  *
@@ -40,12 +44,14 @@ import org.springframework.transaction.annotation.Transactional;
  * 본 서비스는 애플리케이션 계층에 위치하며, 내부적으로 도메인 로직을 조율하고,
  * 외부 인프라에 접근하는 모든 작업은 포트 인터페이스를 통해 추상화합니다.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CreateCommunityService implements CreateCommunityUseCase {
     private final SaveCommunityPort saveCommunityPort;
     private final LoadCommunityPort loadCommunityPort;
     private final LoadMemberForCommunityPort loadMemberForCommunityPort;
+    private final SaveCommunityModeratorsPort saveCommunityModeratorsPort;
 
     /**
      * 새 커뮤니티를 생성합니다.
@@ -57,6 +63,7 @@ public class CreateCommunityService implements CreateCommunityUseCase {
      *     <li>도메인 팩토리를 통해 {@link Community} 애그리게잇 생성</li>
      *     <li>요청된 규칙(rule)들을 도메인 메서드를 통해 추가</li>
      *     <li>포트({@link SaveCommunityPort})를 이용해 애그리게잇 영속화</li>
+     *     <li>요청자를 해당 커뮤니티의 모더레이터로 grant</li>
      *     <li>생성된 커뮤니티 정보를 DTO로 변환하여 반환</li>
      * </ol>
      *
@@ -80,14 +87,19 @@ public class CreateCommunityService implements CreateCommunityUseCase {
 
         // 4. 규칙 추가
         if (cmd.rules() != null)
-            for (CommunityRulesDTO rule : cmd.rules()) {
+            for (CommunityRuleDTO rule : cmd.rules()) {
                 community.addRule(rule.title(), rule.description(), rule.displayOrder());
             }
 
-        // 5. 저장
+        // 5. 커뮤니티 저장
         Community saved = saveCommunityPort.save(community);
 
-        // 6. DTO 매핑
+        // 7. 생성자를 모더레이터로 grant
+        CommunityModerator mod = CommunityModerator.grant(saved.communityId(), cmd.actorId());
+        CommunityModerator modSaved = saveCommunityModeratorsPort.save(mod);
+        log.info("Moderator created for community {} with actorId: {}", saved.nameKey().value(), modSaved.memberId());
+
+        // 7. DTO 매핑
         return CommunityCreateResponseDTO.builder()
                 .communityId(saved.communityId().stringify())
                 .name(saved.communityName().value())

@@ -1,6 +1,6 @@
 package com.y11i.springcommddd.communities.application.port.in;
 
-import com.y11i.springcommddd.communities.dto.internal.CommunityRulesDTO;
+import com.y11i.springcommddd.communities.dto.internal.CommunityRuleDTO;
 import com.y11i.springcommddd.communities.dto.response.CommunityCreateResponseDTO;
 import com.y11i.springcommddd.iam.domain.MemberId;
 
@@ -79,5 +79,5 @@ public interface CreateCommunityUseCase {
      * @param description 커뮤니티 설명 (null 가능)
      * @param rules 커뮤니티 초기 규칙 목록
      */
-    record CreateCommunityCommand(MemberId actorId, String name, String description, List<CommunityRulesDTO> rules){}
+    record CreateCommunityCommand(MemberId actorId, String name, String description, List<CommunityRuleDTO> rules){}
 }
