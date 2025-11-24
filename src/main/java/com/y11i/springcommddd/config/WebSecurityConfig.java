@@ -127,6 +127,7 @@ public class WebSecurityConfig {
 
                         // 커뮤니티 API
                         .requestMatchers(HttpMethod.POST, "/api/communities/create").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/admin/communities/*/activate").authenticated()
                         // 테스트용 부트스트랩 API → 인증 불필요
                         .requestMatchers(HttpMethod.POST, "/api/posts/community/bs").permitAll()
 
