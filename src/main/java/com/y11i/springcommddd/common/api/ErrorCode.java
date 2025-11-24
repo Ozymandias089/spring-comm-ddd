@@ -28,6 +28,7 @@ public enum ErrorCode {
     COMMUNITY_STATUS_TRANSITION_FORBIDDEN("community.status_transition_forbidden", HttpStatus.CONFLICT),
     ID_FORMAT_INVALID("id_format_invalid", HttpStatus.BAD_REQUEST),
     COMMUNITY_NOT_FOUND("community.not_found", HttpStatus.NOT_FOUND),
+    DUPLICATE_COMMUNITY_NAME_KEY("duplicate.community.name_key", HttpStatus.CONFLICT),
 
     IMAGE_URL_INVALID("image.url_invalid", HttpStatus.BAD_REQUEST),
 
@@ -43,6 +44,7 @@ public enum ErrorCode {
     DISPLAY_NAME_INVALID("member.display_name_invalid", HttpStatus.BAD_REQUEST),
     PASSWORD_HASH_INVALID("member.password_hash_invalid", HttpStatus.BAD_REQUEST),
     MEMBER_NOT_FOUND("member.not_found", HttpStatus.NOT_FOUND),
+    MEMBER_ACTION_UNAUTHORIZED("member.action_unauthorized", HttpStatus.UNAUTHORIZED),
 
     // --- Vote
     VOTE_VALUE_INVALID("vote.value_invalid", HttpStatus.BAD_REQUEST),

@@ -51,6 +51,8 @@ public interface CommunityRepository {
      */
     Optional<Community> findByCommunityNameKey(CommunityNameKey key);
 
+    Optional<Community> findByCommunityName(CommunityName communityName);
+
     /**
      * 모든 커뮤니티를 조회합니다.
      *

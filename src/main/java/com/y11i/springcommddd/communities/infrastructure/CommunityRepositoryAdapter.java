@@ -1,9 +1,6 @@
 package com.y11i.springcommddd.communities.infrastructure;
 
-import com.y11i.springcommddd.communities.domain.Community;
-import com.y11i.springcommddd.communities.domain.CommunityId;
-import com.y11i.springcommddd.communities.domain.CommunityNameKey;
-import com.y11i.springcommddd.communities.domain.CommunityRepository;
+import com.y11i.springcommddd.communities.domain.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +56,11 @@ public class CommunityRepositoryAdapter implements CommunityRepository {
     @Override
     public Optional<Community> findByCommunityNameKey(CommunityNameKey key) {
         return jpaCommunityRepository.findByCommunityNameKey(key);
+    }
+
+    @Override
+    public Optional<Community> findByCommunityName(CommunityName communityName) {
+        return jpaCommunityRepository.findByCommunityName(communityName);
     }
 
     /** {@inheritDoc} */

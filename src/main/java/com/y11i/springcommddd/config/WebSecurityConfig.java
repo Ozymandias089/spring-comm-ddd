@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -72,6 +73,7 @@ public class WebSecurityConfig {
                                 "/api/password-reset/confirm",
                                 "/api/posts/community/bs"
                         )
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/api/c/**", "GET"))
                 )
 
                 // 3) 세션: 상태 유지(세션 생성 허용)
@@ -125,6 +127,11 @@ public class WebSecurityConfig {
                         ).authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/posts/*/vote").authenticated()
 
+                        // 커뮤니티 API
+                        .requestMatchers(HttpMethod.POST, "/api/communities/create").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/admin/communities/*/activate").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/c/**").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/c/*/description").authenticated()
                         // 테스트용 부트스트랩 API → 인증 불필요
                         .requestMatchers(HttpMethod.POST, "/api/posts/community/bs").permitAll()
 

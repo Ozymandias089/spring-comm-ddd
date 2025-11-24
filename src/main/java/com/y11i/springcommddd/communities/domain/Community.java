@@ -83,17 +83,24 @@ public class Community implements AggregateRoot {
     @Column(name="updated_at", nullable=false)
     private Instant updatedAt;
 
+    @Column(name = "activated_at")
+    private Instant activatedAt;
+
     @Version
     private long version;
 
     /** JPA 기본 생성자. 외부에서 직접 호출하지 않습니다. */
     protected Community() {}
 
+    /**
+     * @param communityName 커뮤니티 표시명 (null 불가)
+     * @param description   커뮤니티 설명 (null 허용)
+     */
     private Community(CommunityName communityName, CommunityDescription description) {
         this.communityId = CommunityId.newId();
         this.communityName = Objects.requireNonNull(communityName);
         this.communityNameKey = new CommunityNameKey(communityName.value());
-        this.description = description;
+        this.description = description; // Nullable
         this.status = CommunityStatus.PENDING;
     }
 
@@ -109,7 +116,15 @@ public class Community implements AggregateRoot {
      * @throws IllegalArgumentException 이름이 null/공백/과다 길이인 경우
      */
     public static Community create(String communityName, String communityDescription) {
-        return new Community(new CommunityName(communityName), new CommunityDescription(communityDescription));
+        Objects.requireNonNull(communityName, "communityName must not be null");
+
+        CommunityName name = new CommunityName(communityName);
+
+        CommunityDescription description = (communityDescription == null || communityDescription.isBlank())
+                ? null
+                : new CommunityDescription(communityDescription);
+
+        return new Community(name, description);
     }
 
     // -----------------------------------------------------
@@ -164,6 +179,9 @@ public class Community implements AggregateRoot {
     public void activate() {
         if (status != CommunityStatus.PENDING) throw new CommunityStatusTransitionNotAllowed("Creating community is not pending");
         this.status = CommunityStatus.ACTIVE;
+
+        // 처음 ACTIVE로 전환될 때만 기록 (idempotent 관점)
+        if (this.activatedAt == null) this.activatedAt = Instant.now();  // 필요하면 Clock 주입/도메인 서비스로 빼도 됨
     }
 
     /**
@@ -172,7 +190,7 @@ public class Community implements AggregateRoot {
      * <p><b>부작용</b>: 상태가 {@link CommunityStatus#ARCHIVED}로 변경됩니다.</p>
      */
     public void archive() {
-        if(this.status == CommunityStatus.PENDING) throw new CommunityStatusTransitionNotAllowed("Creation pending Communities Cannot be archived");
+        if(this.status != CommunityStatus.ACTIVE) throw new CommunityStatusTransitionNotAllowed("Only ACTIVE status can be archived");
         this.status = CommunityStatus.ARCHIVED;
     }
 
@@ -256,6 +274,7 @@ public class Community implements AggregateRoot {
     public Instant createdAt(){ return createdAt; }
     /** 수정 시각(감사) */
     public Instant updatedAt(){ return updatedAt; }
+    public Instant activatedAt(){ return activatedAt; }
     /** 낙관적 락 버전 */
     public long version(){ return version; }
 }

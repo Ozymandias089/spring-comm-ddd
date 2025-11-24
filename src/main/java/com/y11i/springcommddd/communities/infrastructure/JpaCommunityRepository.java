@@ -2,6 +2,7 @@ package com.y11i.springcommddd.communities.infrastructure;
 
 import com.y11i.springcommddd.communities.domain.Community;
 import com.y11i.springcommddd.communities.domain.CommunityId;
+import com.y11i.springcommddd.communities.domain.CommunityName;
 import com.y11i.springcommddd.communities.domain.CommunityNameKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -32,4 +33,6 @@ public interface JpaCommunityRepository extends JpaRepository<Community, Communi
      * @return 일치하는 {@link Community}가 존재하면 반환, 없으면 빈 {@link Optional}
      */
     Optional<Community> findByCommunityNameKey(CommunityNameKey key);
+
+    Optional<Community> findByCommunityName(CommunityName communityName);
 }

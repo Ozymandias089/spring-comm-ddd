@@ -12,9 +12,14 @@ public class CommunityDescription implements ValueObject {
     protected CommunityDescription() {}
 
     public CommunityDescription(String value) {
-        if (value != null && value.isBlank()) throw new IllegalArgumentException("Description cannot be blank if provided");
-        if (value != null && value.length() > 1000) throw new IllegalArgumentException("Description length must be <= 1000");
-        this.value = value;
+        if (value == null) {
+            this.value = null;
+            return;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) throw new IllegalArgumentException("Description cannot be blank if provided");
+        if (trimmed.length() > 1000) throw new IllegalArgumentException("Description length must be <= 1000");
+        this.value = trimmed;
     }
 
     public String value() {
