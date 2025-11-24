@@ -94,7 +94,7 @@ public class Community implements AggregateRoot {
         this.communityName = Objects.requireNonNull(communityName);
         this.communityNameKey = new CommunityNameKey(communityName.value());
         this.description = description;
-        this.status = CommunityStatus.ACTIVE;
+        this.status = CommunityStatus.PENDING;
     }
 
     // -----------------------------------------------------
@@ -161,12 +161,18 @@ public class Community implements AggregateRoot {
         this.rules.addAll(newRules);
     }
 
+    public void activate() {
+        if (status != CommunityStatus.PENDING) throw new CommunityStatusTransitionNotAllowed("Creating community is not pending");
+        this.status = CommunityStatus.ACTIVE;
+    }
+
     /**
      * 커뮤니티를 보관(Archive) 상태로 전환합니다. (Soft delete의 성격)
      *
      * <p><b>부작용</b>: 상태가 {@link CommunityStatus#ARCHIVED}로 변경됩니다.</p>
      */
     public void archive() {
+        if(this.status == CommunityStatus.PENDING) throw new CommunityStatusTransitionNotAllowed("Creation pending Communities Cannot be archived");
         this.status = CommunityStatus.ARCHIVED;
     }
 
