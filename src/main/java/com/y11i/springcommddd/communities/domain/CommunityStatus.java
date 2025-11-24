@@ -9,6 +9,8 @@ package com.y11i.springcommddd.communities.domain;
  * </ul>
  */
 public enum CommunityStatus {
+    /** 생성 확인 대기 */
+    PENDING,
     /** 활성 */
     ACTIVE,
     /** 보관 (Soft delete) */
