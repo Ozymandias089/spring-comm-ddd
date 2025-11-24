@@ -5,7 +5,6 @@ import com.y11i.springcommddd.communities.application.port.out.LoadCommunityMode
 import com.y11i.springcommddd.communities.application.port.out.LoadCommunityPort;
 import com.y11i.springcommddd.communities.application.port.out.LoadMemberForCommunityPort;
 import com.y11i.springcommddd.communities.domain.Community;
-import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.communities.domain.CommunityNameKey;
 import com.y11i.springcommddd.communities.domain.CommunityRule;
 import com.y11i.springcommddd.communities.domain.exception.CommunityNotFound;
@@ -14,7 +13,6 @@ import com.y11i.springcommddd.communities.dto.internal.CommunityRuleDTO;
 import com.y11i.springcommddd.communities.dto.response.CommunityDetailsResponseDTO;
 import com.y11i.springcommddd.communities.moderators.domain.CommunityModerator;
 import com.y11i.springcommddd.iam.domain.Member;
-import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
