@@ -1,6 +1,6 @@
 package com.y11i.springcommddd.communities.application.service;
 
-import com.y11i.springcommddd.communities.application.port.in.ManageCommunityUseCase;
+import com.y11i.springcommddd.communities.application.port.in.ActivateCommunityUseCase;
 import com.y11i.springcommddd.communities.application.port.out.LoadCommunityPort;
 import com.y11i.springcommddd.communities.application.port.out.LoadMemberForCommunityPort;
 import com.y11i.springcommddd.communities.application.port.out.SaveCommunityPort;
@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class ManageCommunityService implements ManageCommunityUseCase {
+public class CommunityAdminService implements ActivateCommunityUseCase {
     private final LoadCommunityPort loadCommunityPort;
     private final LoadMemberForCommunityPort loadMemberForCommunityPort;
     private final SaveCommunityPort saveCommunityPort;

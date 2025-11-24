@@ -1,6 +1,6 @@
 package com.y11i.springcommddd.communities.api;
 
-import com.y11i.springcommddd.communities.application.port.in.ManageCommunityUseCase;
+import com.y11i.springcommddd.communities.application.port.in.ActivateCommunityUseCase;
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.api.support.AuthenticatedMember;
 import com.y11i.springcommddd.iam.domain.MemberId;
@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/communities")
-public class ManageCommunityController {
-    private final ManageCommunityUseCase manageCommunityUseCase;
+public class CommunityAdminController {
+    private final ActivateCommunityUseCase activateCommunityUseCase;
 
     @PatchMapping("/{communityId}/activate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void activateCommunity(@AuthenticatedMember MemberId memberId, @PathVariable String communityId) {
-        CommunityId cid = manageCommunityUseCase.activateCommunity(
-                new ManageCommunityUseCase.ActivateCommunityCommand(
+        CommunityId cid = activateCommunityUseCase.activateCommunity(
+                new ActivateCommunityUseCase.ActivateCommunityCommand(
                         memberId,
                         CommunityId.objectify(communityId)
                 )
