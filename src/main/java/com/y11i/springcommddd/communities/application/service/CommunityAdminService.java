@@ -54,7 +54,7 @@ public class CommunityAdminService implements ActivateCommunityUseCase {
     @Transactional
     public CommunityId activateCommunity(ActivateCommunityCommand cmd) {
         // 1. 권한 검증
-        ensurePermission(cmd.actorId(), MemberRole.ADMIN);
+        ensurePermission(cmd.actorId());
         // 2. 커뮤니티 로드
         Community community = loadCommunityPort.loadById(cmd.communityId())
                 .orElseThrow(() -> new CommunityNotFound("Community not found"));
@@ -70,15 +70,13 @@ public class CommunityAdminService implements ActivateCommunityUseCase {
      * 액터가 특정 역할을 가지고 있는지 검증합니다.
      *
      * @param actorId 권한을 검증할 멤버 ID
-     * @param role    요구되는 역할
-     *
-     * @throws MemberNotFound          멤버를 찾을 수 없는 경우
+     * @throws MemberNotFound           멤버를 찾을 수 없는 경우
      * @throws UnauthorizedMemberAction 요구된 역할을 가지고 있지 않은 경우
      */
-    private void ensurePermission(MemberId actorId, MemberRole role) {
+    private void ensurePermission(MemberId actorId) {
         Member member = loadMemberForCommunityPort.loadById(actorId).orElseThrow(() -> new MemberNotFound("Member not found"));
 
-        if (!member.hasRole(role))
+        if (!member.hasRole(MemberRole.ADMIN))
             throw new UnauthorizedMemberAction("Action not allowed");
     }
 }
