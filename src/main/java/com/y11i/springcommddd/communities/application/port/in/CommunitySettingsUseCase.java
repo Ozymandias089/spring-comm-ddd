@@ -10,6 +10,8 @@ import java.util.List;
 
 public interface CommunitySettingsUseCase {
     CommunityId redescribe(RedescribeCommand cmd);
+
+    /// TODO: IMPLEMENT THESE NUTS
 //    CommunityId changeProfileImage(ChangeProfileImageCommand cmd);
 //    CommunityId changeBannerImage(ChangeBannerImageCommand cmd);
 //    CommunityRulesResponseDTO getRules(GetRulesCommand cmd);
