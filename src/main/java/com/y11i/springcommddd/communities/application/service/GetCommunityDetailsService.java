@@ -90,6 +90,7 @@ public class GetCommunityDetailsService implements GetCommunityDetailsUseCase {
         return CommunityRuleDTO.builder()
                 .title(rule.title())
                 .description(rule.description())
+                .displayOrder(rule.displayOrder())
                 .build();
     }
 
