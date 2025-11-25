@@ -1,9 +1,8 @@
 package com.y11i.springcommddd.communities.infrastructure;
 
-import com.y11i.springcommddd.communities.domain.Community;
-import com.y11i.springcommddd.communities.domain.CommunityId;
-import com.y11i.springcommddd.communities.domain.CommunityName;
-import com.y11i.springcommddd.communities.domain.CommunityNameKey;
+import com.y11i.springcommddd.communities.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -35,4 +34,8 @@ public interface JpaCommunityRepository extends JpaRepository<Community, Communi
     Optional<Community> findByCommunityNameKey(CommunityNameKey key);
 
     Optional<Community> findByCommunityName(CommunityName communityName);
+
+    Page<Community> findByStatus(CommunityStatus status, Pageable pageable);
+
+    long countByStatus(CommunityStatus status);
 }

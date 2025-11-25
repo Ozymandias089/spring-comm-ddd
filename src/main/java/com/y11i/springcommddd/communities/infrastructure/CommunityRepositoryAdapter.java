@@ -1,6 +1,8 @@
 package com.y11i.springcommddd.communities.infrastructure;
 
 import com.y11i.springcommddd.communities.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,5 +69,15 @@ public class CommunityRepositoryAdapter implements CommunityRepository {
     @Override
     public List<Community> findAll() {
         return jpaCommunityRepository.findAll();
+    }
+
+    @Override
+    public Page<Community> findByStatus(CommunityStatus status, Pageable pageable) {
+        return jpaCommunityRepository.findByStatus(status, pageable);
+    }
+
+    @Override
+    public long countByStatus(CommunityStatus status) {
+        return jpaCommunityRepository.countByStatus(status);
     }
 }

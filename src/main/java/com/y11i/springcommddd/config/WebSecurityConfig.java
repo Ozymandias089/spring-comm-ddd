@@ -75,6 +75,7 @@ public class WebSecurityConfig {
                         )
                         .ignoringRequestMatchers(new AntPathRequestMatcher("/api/c/**", "GET"))
                         .ignoringRequestMatchers(new AntPathRequestMatcher("/api/c/*/rules", "GET"))
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/api/communities/**", "GET"))
                 )
 
                 // 3) 세션: 상태 유지(세션 생성 허용)
@@ -136,6 +137,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/c/*/rules").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/c/*/rules").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/c/*/settings/images").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/communities/**").permitAll()
                         // 테스트용 부트스트랩 API → 인증 불필요
                         .requestMatchers(HttpMethod.POST, "/api/posts/community/bs").permitAll()
 

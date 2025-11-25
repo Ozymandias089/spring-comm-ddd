@@ -1,5 +1,8 @@
 package com.y11i.springcommddd.communities.domain;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -59,4 +62,8 @@ public interface CommunityRepository {
      * @return 전체 {@link Community} 목록
      */
     List<Community> findAll();
+
+    Page<Community> findByStatus(CommunityStatus status, Pageable pageable);
+
+    long countByStatus(CommunityStatus status);
 }
