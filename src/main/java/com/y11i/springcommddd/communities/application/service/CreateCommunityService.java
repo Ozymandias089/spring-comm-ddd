@@ -1,8 +1,8 @@
 package com.y11i.springcommddd.communities.application.service;
 
 import com.y11i.springcommddd.communities.application.port.in.CreateCommunityUseCase;
+import com.y11i.springcommddd.communities.application.port.internal.CommunityAuthorization;
 import com.y11i.springcommddd.communities.application.port.out.LoadCommunityPort;
-import com.y11i.springcommddd.communities.application.port.out.LoadMemberForCommunityPort;
 import com.y11i.springcommddd.communities.application.port.out.SaveCommunityModeratorsPort;
 import com.y11i.springcommddd.communities.application.port.out.SaveCommunityPort;
 import com.y11i.springcommddd.communities.domain.Community;
@@ -11,9 +11,6 @@ import com.y11i.springcommddd.communities.domain.exception.DuplicateCommunityNam
 import com.y11i.springcommddd.communities.dto.internal.CommunityRuleDTO;
 import com.y11i.springcommddd.communities.dto.response.CommunityCreateResponseDTO;
 import com.y11i.springcommddd.communities.moderators.domain.CommunityModerator;
-import com.y11i.springcommddd.iam.domain.Member;
-import com.y11i.springcommddd.iam.domain.MemberId;
-import com.y11i.springcommddd.iam.domain.MemberStatus;
 import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
 import com.y11i.springcommddd.iam.domain.exception.UnauthorizedMemberAction;
 import lombok.RequiredArgsConstructor;
@@ -50,8 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class CreateCommunityService implements CreateCommunityUseCase {
     private final SaveCommunityPort saveCommunityPort;
     private final LoadCommunityPort loadCommunityPort;
-    private final LoadMemberForCommunityPort loadMemberForCommunityPort;
     private final SaveCommunityModeratorsPort saveCommunityModeratorsPort;
+    private final CommunityAuthorization communityAuthorization;
 
     /**
      * 새 커뮤니티를 생성합니다.
@@ -78,7 +75,7 @@ public class CreateCommunityService implements CreateCommunityUseCase {
     @Transactional
     public CommunityCreateResponseDTO createCommunity(CreateCommunityCommand cmd) {
         // 1. 액터 검증
-        validateMember(cmd.actorId());
+        communityAuthorization.requireActiveVerifiedMember(cmd.actorId());
         // 2. nameKey 중복 검증
         ensureNameKeyUnique(cmd.name());
 
@@ -107,26 +104,6 @@ public class CreateCommunityService implements CreateCommunityUseCase {
                 .status(saved.status().toString())
                 .createdAt(saved.createdAt())
                 .build();
-    }
-
-    /**
-     * 액터(member)의 권한을 검증합니다.
-     *
-     * <p><b>검증 규칙</b></p>
-     * <ul>
-     *     <li>멤버가 존재해야 함</li>
-     *     <li>이메일 인증 완료 상태여야 함</li>
-     *     <li>멤버 상태가 {@link MemberStatus#ACTIVE} 이어야 함</li>
-     * </ul>
-     *
-     * @param memberId 요청자 식별자
-     *
-     * @throws MemberNotFound 존재하지 않는 멤버
-     * @throws UnauthorizedMemberAction 활성 상태가 아니거나 이메일 미인증
-     */
-    private void validateMember(MemberId memberId) {
-        Member member = loadMemberForCommunityPort.loadById(memberId).orElseThrow(() -> new MemberNotFound("Member not found"));
-        if (!member.emailVerified() || member.status() != MemberStatus.ACTIVE) throw new UnauthorizedMemberAction("Member not active");
     }
 
     /**

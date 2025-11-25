@@ -1,12 +1,12 @@
 package com.y11i.springcommddd.communities.application.service;
 
 import com.y11i.springcommddd.communities.application.port.in.BrowseCommunitiesUseCase;
+import com.y11i.springcommddd.communities.application.port.internal.CommunityViewMapper;
 import com.y11i.springcommddd.communities.application.port.out.BrowseCommunitiesPort;
 import com.y11i.springcommddd.communities.domain.Community;
 import com.y11i.springcommddd.communities.domain.CommunityStatus;
 import com.y11i.springcommddd.communities.dto.internal.CommunitySummaryDTO;
 import com.y11i.springcommddd.communities.dto.response.CommunityPageResponseDTO;
-import com.y11i.springcommddd.shared.domain.ImageUrl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +20,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class BrowseCommunitiesService implements BrowseCommunitiesUseCase {
     private final BrowseCommunitiesPort browseCommunitiesPort;
+    private final CommunityViewMapper communityViewMapper;
 
 
     /**
@@ -45,7 +46,7 @@ public class BrowseCommunitiesService implements BrowseCommunitiesUseCase {
 
         // 3. DTO 매핑
         List<CommunitySummaryDTO> content = communities.stream()
-                .map(this::toSummaryDTO)
+                .map(communityViewMapper::toSummary)
                 .toList();
 
         log.debug("Browse communities result: {} items (totalElements={})", content.size(), totalElements);
@@ -56,21 +57,6 @@ public class BrowseCommunitiesService implements BrowseCommunitiesUseCase {
                 .size(size)
                 .totalElements(totalElements)
                 .totalPages(totalPages)
-                .build();
-    }
-
-    private CommunitySummaryDTO toSummaryDTO(Community community) {
-        String profileImageUrl = null;
-        ImageUrl profile = community.profileImage();
-        if (profile != null) {
-            profileImageUrl = profile.value(); // ImageUrl.value()라고 가정
-        }
-
-        return CommunitySummaryDTO.builder()
-                .communityId(community.communityId().stringify())
-                .nameKey(community.nameKey().value())
-                .name(community.communityName().value())
-                .profileImage(profileImageUrl)
                 .build();
     }
 }
