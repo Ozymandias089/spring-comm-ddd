@@ -5,7 +5,11 @@ import com.y11i.springcommddd.communities.application.port.out.SaveCommunityMode
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.communities.moderators.domain.CommunityModerator;
 import com.y11i.springcommddd.communities.moderators.domain.CommunityModeratorRepository;
+import com.y11i.springcommddd.iam.domain.MemberId;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +31,11 @@ public class CommunityModeratorPersistenceAdapter implements LoadCommunityModera
         return communityModeratorRepository.findByCommunityId(communityId);
     }
 
+    @Override
+    public List<CommunityModerator> loadByMemberId(MemberId memberId) {
+        return communityModeratorRepository.findByMemberId(memberId);
+    }
+
     /**
      * 커뮤니티 모더레이터 엔티티를 저장합니다.
      *
@@ -37,5 +46,10 @@ public class CommunityModeratorPersistenceAdapter implements LoadCommunityModera
     @Transactional
     public CommunityModerator save(CommunityModerator moderator) {
         return communityModeratorRepository.save(moderator);
+    }
+
+    @Override
+    public void delete(CommunityModerator moderator) {
+        communityModeratorRepository.delete(moderator);
     }
 }

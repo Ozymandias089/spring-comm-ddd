@@ -70,10 +70,11 @@ public class WebSecurityConfig {
                                 "/api/login",
                                 "/api/logout",
                                 "/api/password-reset",
-                                "/api/password-reset/confirm",
-                                "/api/posts/community/bs"
+                                "/api/password-reset/confirm"
                         )
                         .ignoringRequestMatchers(new AntPathRequestMatcher("/api/c/**", "GET"))
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/api/c/*/rules", "GET"))
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/api/communities/**", "GET"))
                 )
 
                 // 3) 세션: 상태 유지(세션 생성 허용)
@@ -132,8 +133,15 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/admin/communities/*/activate").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/c/**").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/c/*/description").authenticated()
-                        // 테스트용 부트스트랩 API → 인증 불필요
-                        .requestMatchers(HttpMethod.POST, "/api/posts/community/bs").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/c/*/rules").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/c/*/rules").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/c/*/settings/images").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/communities/**").permitAll()
+                        // 커뮤니티 모데레이터 기능
+                        .requestMatchers(HttpMethod.GET, "/api/me/mod-communities").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/c/*/moderators/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/c/*/moderators/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/c/*/moderators/**").authenticated()
 
                         .anyRequest().authenticated()
                 )

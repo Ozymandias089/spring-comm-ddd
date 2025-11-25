@@ -3,6 +3,8 @@ package com.y11i.springcommddd.communities.api;
 import com.y11i.springcommddd.communities.application.port.in.CommunitySettingsUseCase;
 import com.y11i.springcommddd.communities.domain.CommunityNameKey;
 import com.y11i.springcommddd.communities.dto.request.ChangeDescriptionRequestDTO;
+import com.y11i.springcommddd.communities.dto.request.ChangeImagesRequestDTO;
+import com.y11i.springcommddd.communities.dto.request.ReplaceRulesRequestDTO;
 import com.y11i.springcommddd.iam.api.support.AuthenticatedMember;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import jakarta.validation.Valid;
@@ -30,5 +32,39 @@ public class CommunitySettingsController {
     ) {
         var communityId = communitySettingsUseCase.redescribe(new CommunitySettingsUseCase.RedescribeCommand(actorId, new CommunityNameKey(nameKey), dto.description()));
         log.info("Change description for community with id {}", communityId.stringify());
+    }
+
+    @PutMapping(path = "/c/{nameKey}/rules", consumes = "application/json")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changeRules(
+            @AuthenticatedMember MemberId actorId,
+            @Pattern(regexp = "^[a-z0-9_]{3,32}$") @PathVariable("nameKey") String nameKey,
+            @Valid @RequestBody ReplaceRulesRequestDTO requestDTO
+    ) {
+        int result = communitySettingsUseCase.replaceRules(new CommunitySettingsUseCase.ReplaceRulesCommand(
+                actorId,
+                new CommunityNameKey(nameKey),
+                requestDTO.rules()
+        ));
+        log.info("Replace rules Successful for c/{}, total {} items", nameKey, result);
+    }
+
+    @PatchMapping(path = "/c/{nameKey}/settings/images", consumes = "application/json")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changeImages(
+            @AuthenticatedMember MemberId actorId,
+            @Pattern(regexp = "^[a-z0-9_]{3,32}$")
+            @PathVariable("nameKey") String nameKey,
+            @Valid @RequestBody ChangeImagesRequestDTO dto
+    ) {
+        var communityId = communitySettingsUseCase.changeImages(
+                new CommunitySettingsUseCase.ChangeImagesCommand(
+                        actorId,
+                        new CommunityNameKey(nameKey),
+                        dto.profileImageUrl(),
+                        dto.bannerImageUrl()
+                )
+        );
+        log.info("Change image for community with id {}", communityId.stringify());
     }
 }

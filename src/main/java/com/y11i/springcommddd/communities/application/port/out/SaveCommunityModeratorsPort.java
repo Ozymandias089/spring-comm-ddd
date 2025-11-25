@@ -10,4 +10,6 @@ public interface SaveCommunityModeratorsPort {
      * @return 저장된 모더레이터 애그리게잇 (ID, createdAt 등이 채워진 상태)
      */
     CommunityModerator save(CommunityModerator moderator);
+
+    void delete(CommunityModerator moderator);
 }
