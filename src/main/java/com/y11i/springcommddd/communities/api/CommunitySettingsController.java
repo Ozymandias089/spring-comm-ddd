@@ -3,6 +3,7 @@ package com.y11i.springcommddd.communities.api;
 import com.y11i.springcommddd.communities.application.port.in.CommunitySettingsUseCase;
 import com.y11i.springcommddd.communities.domain.CommunityNameKey;
 import com.y11i.springcommddd.communities.dto.request.ChangeDescriptionRequestDTO;
+import com.y11i.springcommddd.communities.dto.request.ChangeImagesRequestDTO;
 import com.y11i.springcommddd.communities.dto.request.ReplaceRulesRequestDTO;
 import com.y11i.springcommddd.iam.api.support.AuthenticatedMember;
 import com.y11i.springcommddd.iam.domain.MemberId;
@@ -48,4 +49,22 @@ public class CommunitySettingsController {
         log.info("Replace rules Successful for c/{}, total {} items", nameKey, result);
     }
 
+    @PatchMapping(path = "/c/{nameKey}/settings/images", consumes = "application/json")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changeImages(
+            @AuthenticatedMember MemberId actorId,
+            @Pattern(regexp = "^[a-z0-9_]{3,32}$")
+            @PathVariable("nameKey") String nameKey,
+            @Valid @RequestBody ChangeImagesRequestDTO dto
+    ) {
+        var communityId = communitySettingsUseCase.changeImages(
+                new CommunitySettingsUseCase.ChangeImagesCommand(
+                        actorId,
+                        new CommunityNameKey(nameKey),
+                        dto.profileImageUrl(),
+                        dto.bannerImageUrl()
+                )
+        );
+        log.info("Change image for community with id {}", communityId.stringify());
+    }
 }

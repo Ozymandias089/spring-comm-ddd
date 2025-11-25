@@ -135,6 +135,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/c/*/description").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/c/*/rules").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/c/*/rules").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/c/*/settings/images").authenticated()
                         // 테스트용 부트스트랩 API → 인증 불필요
                         .requestMatchers(HttpMethod.POST, "/api/posts/community/bs").permitAll()
 
