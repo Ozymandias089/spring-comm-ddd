@@ -22,14 +22,14 @@ public class GetCommunityDetailsController {
     @GetMapping(path = "/c/{nameKey}", produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public CommunityDetailsResponseDTO getCommunityDetails(@PathVariable("nameKey") @Pattern(regexp = "^[a-z0-9_]{3,32}$") String nameKey) {
-        log.debug("Entered GetCommunityDetailsController getCommunityDetails for {}", nameKey);
+        log.debug("Entered GetCommunityDetailsController getCommunityDetails for c/{}", nameKey);
         return getCommunityDetailsUseCase.getCommunityDetails(new CommunityNameKey(nameKey));
     }
 
     @GetMapping(path = "/c/{nameKey}/rules", produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public CommunityRulesResponseDTO getCommunityRules(@PathVariable("nameKey")@Pattern(regexp = "^[a-z0-9_]{3,32}$") String nameKey) {
-        log.debug("Entered GetCommunityDetailsController getCommunityRules for {}", nameKey);
+        log.debug("Entered GetCommunityDetailsController getCommunityRules for c/{}", nameKey);
         return getCommunityDetailsUseCase.getRules(new GetCommunityDetailsUseCase.GetRulesCommand(new CommunityNameKey(nameKey)));
     }
 }

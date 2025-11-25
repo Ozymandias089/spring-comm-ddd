@@ -17,7 +17,7 @@ public interface CommunitySettingsUseCase {
     int replaceRules(ReplaceRulesCommand cmd);
 
     record RedescribeCommand(MemberId actorId, CommunityNameKey nameKey, String description){}
-    record ChangeProfileImageCommand(CommunityNameKey nameKey, String url){}
-    record ChangeBannerImageCommand(CommunityNameKey nameKey, String url){}
+    record ChangeProfileImageCommand(MemberId actorId, CommunityNameKey nameKey, String url){}
+    record ChangeBannerImageCommand(MemberId actorId, CommunityNameKey nameKey, String url){}
     record ReplaceRulesCommand(MemberId actorId, CommunityNameKey nameKey, List<CommunityRuleDTO> rules){}
 }

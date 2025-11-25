@@ -31,21 +31,25 @@ public class GetCommunityDetailsService implements GetCommunityDetailsUseCase {
     private final LoadCommunityModeratorsPort loadCommunityModeratorsPort;
     private final LoadMemberForCommunityPort loadMemberForCommunityPort;
 
-
+    /**
+     * 네임키를 기준으로 커뮤니티를 검색해 정보를 반환합니다.
+     * @param communityNameKey 검색의 기준이 될 네임키 객체
+     * @return 커뮤니티의 상세 정보.
+     */
     @Override
     public CommunityDetailsResponseDTO getCommunityDetails(CommunityNameKey communityNameKey) {
         // 1. 커뮤니티 로드
         Community community = loadCommunityPort.loadByNameKey(communityNameKey).orElseThrow(() -> new CommunityNotFound("Community not found"));
-        log.debug("Get community details for {}", communityNameKey);
+        log.debug("Get community details for c/{}", communityNameKey.value());
         // 2. 규칙 매핑
         List<CommunityRuleDTO> ruleDTOs = community.rules().stream().map(this::toCommunityRuleDTO).toList();
-        log.debug("Mapped community rules for {}", communityNameKey);
+        log.debug("Mapped community rules for c/{}", communityNameKey.value());
         // 3. 모더레이터 엔트리 조회
         List<CommunityModerator> moderators = loadCommunityModeratorsPort.loadByCommunityId(community.communityId());
-        log.debug("Get community moderators for {}", communityNameKey);
+        log.debug("Get community moderators for c/{}", communityNameKey.value());
         // 4. 모더레이터 DTO 매핑
         List<CommunityModeratorDTO> moderatorDTOs = moderators.stream().map(this::toCommunityModeratorDTO).toList();
-        log.debug("Mapped community moderators for {}", communityNameKey);
+        log.debug("Mapped community moderators for c/{}", communityNameKey.value());
         // 5. DTO 빌드
         return CommunityDetailsResponseDTO.builder()
                 .communityId(community.communityId().stringify())
@@ -69,14 +73,19 @@ public class GetCommunityDetailsService implements GetCommunityDetailsUseCase {
                 .build();
     }
 
+    /**
+     * 커뮤니티의 규칙만 찾아 반환합니다.
+     * @param cmd 커맨드 객체
+     * @return 규칙만 담긴 객체
+     */
     @Override
     public CommunityRulesResponseDTO getRules(GetRulesCommand cmd) {
         // 1. Load Community
         Community community = loadCommunityPort.loadByNameKey(cmd.nameKey()).orElseThrow(() -> new CommunityNotFound("Community not found"));
-        log.debug("Get community rules for {}", cmd.nameKey());
+        log.debug("Get community rules for {}", cmd.nameKey().value());
         // 2. Map rules as List of CommunityRuleDTO
         List<CommunityRuleDTO> rules = community.rules().stream().map(this::toCommunityRuleDTO).toList();
-        log.debug("Mapped community rules for {}. total {} items.", cmd.nameKey(), rules.size());
+        log.debug("Mapped community rules for {}. total {} items.", cmd.nameKey().value(), rules.size());
         // 3. Map and return rules and basic info as responseDTO
         return CommunityRulesResponseDTO.builder()
                 .communityId(community.communityId().stringify())
