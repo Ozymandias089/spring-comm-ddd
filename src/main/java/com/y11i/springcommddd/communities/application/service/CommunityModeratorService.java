@@ -1,25 +1,22 @@
 package com.y11i.springcommddd.communities.application.service;
 
 import com.y11i.springcommddd.communities.application.port.in.CommunityModeratorUseCase;
+import com.y11i.springcommddd.communities.application.port.internal.CommunityAuthorization;
+import com.y11i.springcommddd.communities.application.port.internal.CommunityLookup;
+import com.y11i.springcommddd.communities.application.port.internal.CommunityModeratorViewMapper;
+import com.y11i.springcommddd.communities.application.port.internal.CommunityViewMapper;
 import com.y11i.springcommddd.communities.application.port.out.LoadCommunityModeratorsPort;
-import com.y11i.springcommddd.communities.application.port.out.LoadCommunityPort;
-import com.y11i.springcommddd.communities.application.port.out.LoadMemberForCommunityPort;
 import com.y11i.springcommddd.communities.application.port.out.SaveCommunityModeratorsPort;
 import com.y11i.springcommddd.communities.domain.Community;
 import com.y11i.springcommddd.communities.domain.CommunityNameKey;
-import com.y11i.springcommddd.communities.domain.exception.CommunityNotFound;
 import com.y11i.springcommddd.communities.dto.internal.CommunityModeratorDTO;
 import com.y11i.springcommddd.communities.dto.internal.CommunitySummaryDTO;
 import com.y11i.springcommddd.communities.dto.response.CommunityModeratorsResponseDTO;
 import com.y11i.springcommddd.communities.dto.response.CommunityPageResponseDTO;
 import com.y11i.springcommddd.communities.moderators.domain.CommunityModerator;
 import com.y11i.springcommddd.iam.domain.Member;
-import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.domain.MemberRole;
-import com.y11i.springcommddd.iam.domain.MemberStatus;
-import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
 import com.y11i.springcommddd.iam.domain.exception.UnauthorizedMemberAction;
-import com.y11i.springcommddd.shared.domain.ImageUrl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,23 +32,25 @@ import java.util.Objects;
 public class CommunityModeratorService implements CommunityModeratorUseCase {
     private final LoadCommunityModeratorsPort loadCommunityModeratorsPort;
     private final SaveCommunityModeratorsPort saveCommunityModeratorsPort;
-    private final LoadMemberForCommunityPort loadMemberForCommunityPort;
-    private final LoadCommunityPort loadCommunityPort;
+    private final CommunityAuthorization communityAuthorization;
+    private final CommunityLookup communityLookup;
+    private final CommunityViewMapper communityViewMapper;
+    private final CommunityModeratorViewMapper communityModeratorViewMapper;
 
     @Override
     public CommunityPageResponseDTO listMyModeratedCommunities(ListMyModeratedCommunitiesQuery query) {
         // 1. 멤버 존재 검증
-        Member member = loadMemberForCommunityPort.loadById(query.actorId()).orElseThrow(() -> new MemberNotFound("Member not found"));
+        Member member = communityAuthorization.requireMember(query.actorId());
         log.debug("Listing community moderators for member id {}", member.memberId().stringify());
         // 2. 모더레이터 엔트리 전체조회
         List<CommunityModerator> moderatorEntries = loadCommunityModeratorsPort.loadByMemberId(member.memberId());
 
-        // 3. Community JOIN
+        // 3. Community JOIN → SummaryDTO 매핑
         List<CommunitySummaryDTO> content = moderatorEntries.stream()
                 .map(CommunityModerator::communityId)
-                .map(cid -> loadCommunityPort.loadById(cid).orElse(null))
+                .map(communityLookup::getByIdOrThrow)
                 .filter(Objects::nonNull)
-                .map(this::toSummaryDTO)
+                .map(communityViewMapper::toSummary)
                 .toList();
 
         int size = content.size();
@@ -71,19 +70,16 @@ public class CommunityModeratorService implements CommunityModeratorUseCase {
     @Override
     public CommunityModeratorsResponseDTO listModerators(CommunityNameKey nameKey) {
         // 1. 커뮤니티 조회 (nameKey -> Community)
-        Community community = loadCommunityPort.loadByNameKey(nameKey)
-                .orElseThrow(() -> new CommunityNotFound("Community Not Found"));
+        Community community = communityLookup.getByNameKeyOrThrow(nameKey);
         log.debug("Loaded Community c/{}", nameKey.value());
 
         // 2. 모더레이터 엔트리 조회
-        List<CommunityModerator> moderators =
-                loadCommunityModeratorsPort.loadByCommunityId(community.communityId());
-        //noinspection LoggingSimilarMessage
+        List<CommunityModerator> moderators = communityLookup.getModerators(community);
         log.debug("Found {} moderators for c/{}", moderators.size(), nameKey.value());
 
         // 3. Member 로드해서 DTO 매핑
         List<CommunityModeratorDTO> moderatorDTOS = moderators.stream()
-                .map(this::toCommunityModeratorDTO)
+                .map(communityModeratorViewMapper::toDTO)
                 .toList();
 
         // 4. 응답 DTO 빌드
@@ -98,16 +94,15 @@ public class CommunityModeratorService implements CommunityModeratorUseCase {
     @Transactional
     public void grantModerator(GrantModeratorCommand cmd) {
         // 1. 커뮤니티 & 모더레이터 로드
-        Community community = loadCommunityByNameKey(cmd.nameKey());
-        List<CommunityModerator> moderators = loadModeratorsFor(community);
+        Community community = communityLookup.getByNameKeyOrThrow(cmd.nameKey());
+        List<CommunityModerator> moderators = communityLookup.getModerators(community);
 
         // 2. 액터 권한 검증 (ADMIN or MOD)
-        Member actor = loadMemberOrThrow(cmd.actorId());
-        ensureActorCanManageModerators(actor, moderators, cmd.nameKey());
+        Member actor = communityAuthorization.requireMember(cmd.actorId());
+        communityAuthorization.requireAdminOrModerator(actor.memberId(), community.communityId());
 
         // 3. 타깃 멤버 검증 (ACTIVE && emailVerified)
-        Member target = loadMemberOrThrow(cmd.targetMemberId());
-        ensureEligibleAsModerator(target);
+        communityAuthorization.requireEligibleAsModerator(cmd.targetMemberId());
 
         // 4. 이미 모더인지 체크 (멱등성)
         boolean alreadyModerator = moderators.stream()
@@ -119,7 +114,7 @@ public class CommunityModeratorService implements CommunityModeratorUseCase {
         }
 
         // 5. 생성 + 저장
-        CommunityModerator mod = CommunityModerator.grant(community.communityId(), target.memberId());
+        CommunityModerator mod = CommunityModerator.grant(community.communityId(), cmd.targetMemberId());
         CommunityModerator saved = saveCommunityModeratorsPort.save(mod);
 
         log.info("Granted moderator {} for community c/{} by actor {}",
@@ -132,12 +127,12 @@ public class CommunityModeratorService implements CommunityModeratorUseCase {
     @Transactional
     public void revokeModerator(RevokeModeratorCommand cmd) {
         // 1. 커뮤니티 & 모더레이터 로드
-        Community community = loadCommunityByNameKey(cmd.nameKey());
-        List<CommunityModerator> moderators = loadModeratorsFor(community);
+        Community community = communityLookup.getByNameKeyOrThrow(cmd.nameKey());
+        List<CommunityModerator> moderators = communityLookup.getModerators(community);
 
         // 2. 액터 권한 검증 (ADMIN or MOD)
-        Member actor = loadMemberOrThrow(cmd.actorId());
-        ensureActorCanManageModerators(actor, moderators, cmd.nameKey());
+        Member actor =communityAuthorization.requireMember(cmd.actorId());
+        communityAuthorization.requireAdminOrModerator(actor.memberId(), community.communityId());
 
         // 3. 타깃이 실제 모더인지 확인
         CommunityModerator targetMod = moderators.stream()
@@ -159,84 +154,5 @@ public class CommunityModeratorService implements CommunityModeratorUseCase {
                 cmd.targetMemberId().stringify(),
                 cmd.nameKey().value(),
                 actor.memberId().stringify());
-    }
-    // --- 헬퍼 메서드들 ---
-
-    private Community loadCommunityByNameKey(CommunityNameKey nameKey) {
-        Community community = loadCommunityPort.loadByNameKey(nameKey)
-                .orElseThrow(() -> new CommunityNotFound("Community Not Found"));
-        log.debug("Loaded Community c/{}", nameKey.value());
-        return community;
-    }
-
-    private List<CommunityModerator> loadModeratorsFor(Community community) {
-        List<CommunityModerator> moderators =
-                loadCommunityModeratorsPort.loadByCommunityId(community.communityId());
-        log.debug("Found {} moderators for c/{}", moderators.size(), community.nameKey().value());
-        return moderators;
-    }
-
-    private Member loadMemberOrThrow(MemberId memberId) {
-        return loadMemberForCommunityPort.loadById(memberId)
-                .orElseThrow(() -> new MemberNotFound("Member not found"));
-    }
-
-    /**
-     * 액터가 ADMIN이거나, 해당 커뮤니티의 모더레이터 중 한 명인지 검증.
-     */
-    private void ensureActorCanManageModerators(
-            Member actor,
-            List<CommunityModerator> moderators,
-            CommunityNameKey communityNameKey
-    ) {
-        boolean isModerator = moderators.stream()
-                .anyMatch(m -> m.memberId().equals(actor.memberId()));
-
-        if (!(actor.hasRole(MemberRole.ADMIN) || isModerator)) {
-            log.warn("Member {} attempted to manage moderators in c/{} without permission",
-                    actor.memberId().stringify(), communityNameKey.value());
-            throw new UnauthorizedMemberAction("This action is only allowed for admin or existing community moderators");
-        }
-    }
-
-    /**
-     * 모더로 부여 가능한 상태인지 검증 (ACTIVE && emailVerified)
-     */
-    private void ensureEligibleAsModerator(Member target) {
-        if (target.status() != MemberStatus.ACTIVE || !target.emailVerified()) {
-            log.warn("Target member {} is not eligible to become moderator (status={}, emailVerified={})",
-                    target.memberId().stringify(), target.status(), target.emailVerified());
-            throw new UnauthorizedMemberAction("Target member is not active or email not verified");
-        }
-    }
-
-    private CommunitySummaryDTO toSummaryDTO(Community community) {
-        String profileImageUrl = null;
-        ImageUrl profile = community.profileImage();
-        if (profile != null) {
-            profileImageUrl = profile.value(); // ImageUrl의 getter 이름에 맞게 value()/url() 등으로 수정
-        }
-
-        return CommunitySummaryDTO.builder()
-                .communityId(community.communityId().stringify())
-                .nameKey(community.nameKey().value())
-                .name(community.communityName().value())
-                .profileImage(profileImageUrl)
-                .build();
-    }
-
-    private CommunityModeratorDTO toCommunityModeratorDTO(CommunityModerator moderator) {
-        Member member = loadMemberForCommunityPort.loadById(moderator.memberId())
-                .orElseThrow(() -> new MemberNotFound("Moderator member not found"));
-
-        return CommunityModeratorDTO.builder()
-                .memberId(moderator.memberId().stringify())
-                .displayName(member.displayName().value())
-                .profileImage(
-                        member.profileImage() != null
-                                ? member.profileImage().value()
-                                : null
-                )
-                .build();
     }
 }

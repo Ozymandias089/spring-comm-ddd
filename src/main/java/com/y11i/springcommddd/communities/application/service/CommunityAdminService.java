@@ -1,15 +1,13 @@
 package com.y11i.springcommddd.communities.application.service;
 
 import com.y11i.springcommddd.communities.application.port.in.ActivateCommunityUseCase;
-import com.y11i.springcommddd.communities.application.port.out.LoadCommunityPort;
-import com.y11i.springcommddd.communities.application.port.out.LoadMemberForCommunityPort;
+import com.y11i.springcommddd.communities.application.port.internal.CommunityAuthorization;
+import com.y11i.springcommddd.communities.application.port.internal.CommunityLookup;
 import com.y11i.springcommddd.communities.application.port.out.SaveCommunityPort;
 import com.y11i.springcommddd.communities.domain.Community;
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.communities.domain.exception.CommunityNotFound;
 import com.y11i.springcommddd.communities.domain.exception.CommunityStatusTransitionNotAllowed;
-import com.y11i.springcommddd.iam.domain.Member;
-import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.domain.MemberRole;
 import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
 import com.y11i.springcommddd.iam.domain.exception.UnauthorizedMemberAction;
@@ -29,9 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class CommunityAdminService implements ActivateCommunityUseCase {
-    private final LoadCommunityPort loadCommunityPort;
-    private final LoadMemberForCommunityPort loadMemberForCommunityPort;
     private final SaveCommunityPort saveCommunityPort;
+    private final CommunityAuthorization communityAuthorization;
+    private final CommunityLookup communityLookup;
 
     /**
      * PENDING 상태의 커뮤니티를 ACTIVE 상태로 활성화합니다.
@@ -54,29 +52,14 @@ public class CommunityAdminService implements ActivateCommunityUseCase {
     @Transactional
     public CommunityId activateCommunity(ActivateCommunityCommand cmd) {
         // 1. 권한 검증
-        ensurePermission(cmd.actorId());
+        communityAuthorization.requireActiveVerifiedMember(cmd.actorId());
         // 2. 커뮤니티 로드
-        Community community = loadCommunityPort.loadById(cmd.communityId())
-                .orElseThrow(() -> new CommunityNotFound("Community not found"));
+        Community community = communityLookup.getByIdOrThrow(cmd.communityId());
         // 3. 권한 변경 (PENDING -> ACTIVE)
         community.activate();
         // 4. 저장
         Community saved = saveCommunityPort.save(community);
         // 5. 반환
         return saved.communityId();
-    }
-
-    /**
-     * 액터가 특정 역할을 가지고 있는지 검증합니다.
-     *
-     * @param actorId 권한을 검증할 멤버 ID
-     * @throws MemberNotFound           멤버를 찾을 수 없는 경우
-     * @throws UnauthorizedMemberAction 요구된 역할을 가지고 있지 않은 경우
-     */
-    private void ensurePermission(MemberId actorId) {
-        Member member = loadMemberForCommunityPort.loadById(actorId).orElseThrow(() -> new MemberNotFound("Member not found"));
-
-        if (!member.hasRole(MemberRole.ADMIN))
-            throw new UnauthorizedMemberAction("Action not allowed");
     }
 }
