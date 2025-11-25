@@ -11,6 +11,7 @@ import com.y11i.springcommddd.communities.domain.exception.CommunityNotFound;
 import com.y11i.springcommddd.communities.dto.internal.CommunityModeratorDTO;
 import com.y11i.springcommddd.communities.dto.internal.CommunityRuleDTO;
 import com.y11i.springcommddd.communities.dto.response.CommunityDetailsResponseDTO;
+import com.y11i.springcommddd.communities.dto.response.CommunityRulesResponseDTO;
 import com.y11i.springcommddd.communities.moderators.domain.CommunityModerator;
 import com.y11i.springcommddd.iam.domain.Member;
 import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
@@ -65,6 +66,23 @@ public class GetCommunityDetailsService implements GetCommunityDetailsUseCase {
                 .status(community.status().name())
                 .rules(ruleDTOs)
                 .moderators(moderatorDTOs)
+                .build();
+    }
+
+    @Override
+    public CommunityRulesResponseDTO getRules(GetRulesCommand cmd) {
+        // 1. Load Community
+        Community community = loadCommunityPort.loadByNameKey(cmd.nameKey()).orElseThrow(() -> new CommunityNotFound("Community not found"));
+        log.debug("Get community rules for {}", cmd.nameKey());
+        // 2. Map rules as List of CommunityRuleDTO
+        List<CommunityRuleDTO> rules = community.rules().stream().map(this::toCommunityRuleDTO).toList();
+        log.debug("Mapped community rules for {}. total {} items.", cmd.nameKey(), rules.size());
+        // 3. Map and return rules and basic info as responseDTO
+        return CommunityRulesResponseDTO.builder()
+                .communityId(community.communityId().stringify())
+                .communityName(community.communityName().value())
+                .communityNameKey(community.nameKey().value())
+                .rules(rules)
                 .build();
     }
 

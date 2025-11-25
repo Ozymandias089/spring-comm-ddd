@@ -71,6 +71,7 @@ public class WebSecurityConfig {
                                 "/api/logout",
                                 "/api/password-reset",
                                 "/api/password-reset/confirm",
+                                "/api/c/*/rules",
                                 "/api/posts/community/bs"
                         )
                         .ignoringRequestMatchers(new AntPathRequestMatcher("/api/c/**", "GET"))
@@ -132,6 +133,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/admin/communities/*/activate").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/c/**").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/c/*/description").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/c/*/rules").permitAll()
                         // 테스트용 부트스트랩 API → 인증 불필요
                         .requestMatchers(HttpMethod.POST, "/api/posts/community/bs").permitAll()
 
