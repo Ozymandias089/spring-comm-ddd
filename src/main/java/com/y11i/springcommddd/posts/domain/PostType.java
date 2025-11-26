@@ -1,5 +1,5 @@
 package com.y11i.springcommddd.posts.domain;
 
-public enum PostKind {
+public enum PostType {
     TEXT,MEDIA,LINK
 }

@@ -20,7 +20,7 @@ public record PostSummaryResponseDTO(
         String contentPreview,
         String linkUrl,
         List<PostMediaAssetDTO> assets,
-        String kind,
+        String type,
         int upCount,
         int downCount,
         int score,
@@ -69,7 +69,7 @@ public record PostSummaryResponseDTO(
                 .contentPreview(contentPreview)
                 .linkUrl(linkUrl)
                 .assets(mediaAssetDTOs)
-                .kind(post.kind().name())
+                .type(post.type().name())
                 .upCount(upCount)
                 .downCount(downCount)
                 .score(score)

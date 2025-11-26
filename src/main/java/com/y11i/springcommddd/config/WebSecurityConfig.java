@@ -99,7 +99,8 @@ public class WebSecurityConfig {
                         // --- 게시글 관련 API ---
 
                         // 초안 생성 (TEXT / LINK / MEDIA) → 인증 필요
-                        .requestMatchers(HttpMethod.POST, "/api/posts/drafts/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/posts/drafts/create").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/posts/drafts/create/publish").authenticated()
 
                         // 피드 / 커뮤니티 피드 → 인증 불필요
                         .requestMatchers(HttpMethod.GET, "/api/posts/feed").permitAll()

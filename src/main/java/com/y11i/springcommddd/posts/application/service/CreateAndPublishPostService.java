@@ -33,63 +33,23 @@ public class CreateAndPublishPostService implements CreateAndPublishPostUseCase 
     private final ManagePostUseCase managePostUseCase;
 
     @Override
-    public PostId createAndPublishText(CreateAndPublishTextCommand cmd) {
-        // 1) 초안 생성 (기존 서비스 재사용)
-        PostId postId = createPostDraftUseCase.createTextDraft(
-                new CreateTextDraftCommand(
+    public PostId createAndPublish(CreateAndPublishCommand cmd) {
+        // 1) 초안 생성 (통합 Draft 유스케이스 재사용)
+        PostId postId = createPostDraftUseCase.createDraft(
+                new CreatePostDraftUseCase.CreateDraftCommand(
                         cmd.communityId(),
                         cmd.authorId(),
-                        cmd.title(),
-                        cmd.content()
-                )
-        );
-
-        // 2) 즉시 게시 (기존 상태 전환 유스케이스 재사용)
-        managePostUseCase.publish(
-                new PublishPostCommand(
-                        postId,
-                        cmd.authorId()
-                )
-        );
-
-        return postId;
-    }
-
-    @Override
-    public PostId createAndPublishLink(CreateAndPublishLinkCommand cmd) {
-        PostId postId = createPostDraftUseCase.createLinkDraft(
-                new CreateLinkDraftCommand(
-                        cmd.communityId(),
-                        cmd.authorId(),
-                        cmd.title(),
-                        cmd.link()
-                )
-        );
-
-        managePostUseCase.publish(
-                new PublishPostCommand(
-                        postId,
-                        cmd.authorId()
-                )
-        );
-
-        return postId;
-    }
-
-    @Override
-    public PostId createAndPublishMedia(CreateAndPublishMediaCommand cmd) {
-        PostId postId = createPostDraftUseCase.createMediaDraft(
-                new CreateMediaDraftCommand(
-                        cmd.communityId(),
-                        cmd.authorId(),
+                        cmd.type(),
                         cmd.title(),
                         cmd.content(),
+                        cmd.link(),
                         cmd.assets()
                 )
         );
 
+        // 2) 즉시 게시 (상태 전환 유스케이스 재사용)
         managePostUseCase.publish(
-                new PublishPostCommand(
+                new ManagePostUseCase.PublishPostCommand(
                         postId,
                         cmd.authorId()
                 )

@@ -9,6 +9,7 @@ public enum ErrorCode {
     POST_CONTENT_INVALID("post.content_invalid", HttpStatus.BAD_REQUEST),
     POST_ARCHIVED_MODIFICATION_FORBIDDEN("post.archived_modification_forbidden", HttpStatus.CONFLICT),
     POST_STATUS_TRANSITION_FORBIDDEN("post.status_transition_forbidden", HttpStatus.CONFLICT),
+    MEMBER_BANNED_FROM_COMMUNITY("member_banned.from_community", HttpStatus.UNAUTHORIZED),
 
     // --- media (posts.media)
     MEDIA_URL_INVALID("media.url_invalid", HttpStatus.BAD_REQUEST),

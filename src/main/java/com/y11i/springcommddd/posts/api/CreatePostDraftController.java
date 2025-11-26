@@ -4,15 +4,11 @@ import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.api.support.AuthenticatedMember;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.application.port.in.CreatePostDraftUseCase;
-import com.y11i.springcommddd.posts.application.port.in.CreatePostDraftUseCase.CreateTextDraftCommand;
-import com.y11i.springcommddd.posts.application.port.in.CreatePostDraftUseCase.CreateLinkDraftCommand;
-import com.y11i.springcommddd.posts.application.port.in.CreatePostDraftUseCase.CreateMediaDraftCommand;
+import com.y11i.springcommddd.posts.domain.PostType;
+import com.y11i.springcommddd.posts.dto.request.CreatePostDraftRequestDTO;
 import com.y11i.springcommddd.posts.media.model.AssetMeta;
 import com.y11i.springcommddd.posts.domain.PostId;
 import com.y11i.springcommddd.posts.dto.internal.PostAssetUploadDTO;
-import com.y11i.springcommddd.posts.dto.request.CreateLinkPostRequestDTO;
-import com.y11i.springcommddd.posts.dto.request.CreateMediaPostRequestDTO;
-import com.y11i.springcommddd.posts.dto.request.CreateTextPostRequestDTO;
 import com.y11i.springcommddd.posts.dto.response.PostDraftCreatedResponseDTO;
 import com.y11i.springcommddd.posts.media.domain.MediaType;
 import jakarta.validation.Valid;
@@ -30,138 +26,79 @@ import java.util.List;
 public class CreatePostDraftController {
     private final CreatePostDraftUseCase createPostDraftUseCase;
 
-    // ----------------------------------------------------------------------
-    // TEXT Draft
-    // ----------------------------------------------------------------------
-
     /**
-     * 텍스트 게시글 초안을 작성한다.
+     * 게시글 초안을 생성한다.
      *
      * <p>
-     * 인증된 사용자(@AuthenticatedMember) 기준으로만 작성할 수 있으며,
-     * 요청 바디에는 authorId를 받지 않는다. (남의 계정으로 글 작성 방지)
+     * type 에 따라 TEXT / MEDIA / LINK 중 하나로 동작하며,
+     * 인증된 사용자(@AuthenticatedMember)만 초안을 생성할 수 있다.
      * </p>
      *
-     * <p>
-     * 응답으로는 생성된 초안의 postId만 내려준다.
-     * 실제 "게시"는 별도의 상태 관리 API에서 처리한다.
-     * </p>
-     *
-     * @param memberId   인증된 회원 ID
-     * @param requestDTO communityId, title, content
-     */
-    @PostMapping(path = "/text", consumes = "application/json", produces = "application/json")
-    @ResponseStatus(HttpStatus.CREATED)
-    public PostDraftCreatedResponseDTO createTextPostDraft(
-            @AuthenticatedMember MemberId memberId,
-            @Valid @RequestBody CreateTextPostRequestDTO requestDTO
-    ) {
-        PostId postId = createPostDraftUseCase.createTextDraft(
-                new CreateTextDraftCommand(
-                        CommunityId.objectify(requestDTO.communityId()),
-                        memberId,
-                        requestDTO.title(),
-                        requestDTO.content()
-                )
-        );
-        return new PostDraftCreatedResponseDTO(postId.stringify());
-    }
-
-    // ----------------------------------------------------------------------
-    // LINK Draft
-    // ----------------------------------------------------------------------
-
-    /**
-     * 링크 게시글 초안을 작성한다.
-     *
-     * <p>
-     * 인증된 사용자 기준으로만 작성 가능하며,
-     * 링크 URL 검증은 도메인 계층(Post.createLink/LinkUrl 값 객체)에서 처리한다.
-     * </p>
-     *
-     * @param memberId   인증된 회원 ID
-     * @param requestDTO communityId, title, link
-     */
-    @PostMapping(path = "/link", consumes = "application/json", produces = "application/json")
-    @ResponseStatus(HttpStatus.CREATED)
-    public PostDraftCreatedResponseDTO createLinkPostDraft(
-            @AuthenticatedMember MemberId memberId,
-            @Valid @RequestBody CreateLinkPostRequestDTO requestDTO
-    ) {
-        PostId postId = createPostDraftUseCase.createLinkDraft(
-                new CreateLinkDraftCommand(
-                        CommunityId.objectify(requestDTO.communityId()),
-                        memberId,
-                        requestDTO.title(),
-                        requestDTO.link()
-                )
-        );
-        return new PostDraftCreatedResponseDTO(postId.stringify());
-    }
-
-    // ----------------------------------------------------------------------
-    // MEDIA Draft
-    // ----------------------------------------------------------------------
-
-    /**
-     * 미디어 게시글 초안을 작성한다.
-     *
-     * <p><b>역할</b></p>
      * <ul>
-     *     <li>요청 DTO → CreateMediaDraftCommand + AssetMeta 리스트로 변환</li>
-     *     <li>초안(Post)과 자산(PostAsset)을 함께 생성하는 유스케이스 호출</li>
-     *     <li>생성된 PostId를 응답으로 반환</li>
+     *     <li>TEXT: title + content</li>
+     *     <li>LINK: title + link</li>
+     *     <li>MEDIA: title + (optional content) + assets[]</li>
      * </ul>
      *
-     * <p>
-     * 파일 업로드는 이미 끝났다고 가정하고, fileName을 스토리지 key로 사용한다.
-     * 실제 URL 생성/썸네일링 등은 애플리케이션/도메인 서비스의 책임이다.
-     * </p>
-     *
-     * @param memberId   인증된 회원 ID
-     * @param requestDTO communityId, title, content, assets[]
+     * 밴된 사용자에 대한 차단은 애플리케이션 서비스
+     * ({@link CreatePostDraftUseCase}) 내부의 CheckCommunityBanPort에서 처리한다.
      */
-    @PostMapping(path = "/media", consumes = "application/json", produces = "application/json")
+    @PostMapping(path = "/create", consumes = "application/json", produces = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
-    public PostDraftCreatedResponseDTO createMediaPostDraft(
+    public PostDraftCreatedResponseDTO createPostDraft(
             @AuthenticatedMember MemberId memberId,
-            @Valid @RequestBody CreateMediaPostRequestDTO requestDTO
+            @Valid @RequestBody CreatePostDraftRequestDTO requestDTO
     ) {
-        List<PostAssetUploadDTO> assetDTOs = requestDTO.postAssetUploadDTOs();
-        List<AssetMeta> metas = (assetDTOs == null) ? List.of()
-                : assetDTOs.stream()
-                .map(dto -> new AssetMeta(
-                        toMediaType(dto.mediaType()),
-                        dto.displayOrder(),
-                        dto.fileSize(),
-                        dto.fileName(),
-                        dto.mimeType()
-                ))
-                .toList();
+        // 1. 타입 문자열 -> PostType enum 변환
+        PostType type = toPostType(requestDTO.type());
 
-        PostId postId = createPostDraftUseCase.createMediaDraft(
-                new CreateMediaDraftCommand(
+        // 2. MEDIA 타입이면 자산 메타로 변환
+        List<AssetMeta> metas = List.of();
+        if (type == PostType.MEDIA) {
+            List<PostAssetUploadDTO> assetDTOs = requestDTO.assets();
+            metas = (assetDTOs == null) ? List.of()
+                    : assetDTOs.stream()
+                    .map(dto -> new AssetMeta(
+                            toMediaType(dto.mediaType()),
+                            dto.displayOrder(),
+                            dto.fileSize(),
+                            dto.fileName(),
+                            dto.mimeType()
+                    ))
+                    .toList();
+        }
+
+        // 3. 유스케이스 커맨드 생성 및 호출
+        PostId postId = createPostDraftUseCase.createDraft(
+                new CreatePostDraftUseCase.CreateDraftCommand(
                         CommunityId.objectify(requestDTO.communityId()),
                         memberId,
+                        type,
                         requestDTO.title(),
-                        requestDTO.content(),
-                        metas
+                        requestDTO.content(), // TEXT, MEDIA에서 사용
+                        requestDTO.link(),    // LINK에서 사용
+                        metas                 // MEDIA에서 사용
                 )
         );
 
         return new PostDraftCreatedResponseDTO(postId.stringify());
+    }
+
+    /**
+     * 요청에서 넘어온 type 문자열을 PostType enum으로 변환한다.
+     * 예: "text", "Text", "TEXT" -> PostType.TEXT
+     */
+    private static PostType toPostType(String raw) {
+        if (raw == null) throw new IllegalArgumentException("type must not be null");
+        return PostType.valueOf(raw.toUpperCase());
     }
 
     /**
      * 요청에서 넘어온 mediaType 문자열을 MediaType enum으로 변환한다.
-     * <p>
-     * - "IMAGE", "image", "Image" 모두 허용하고 싶으면 대문자 변환 후 valueOf 사용
-     * - 잘못된 값이면 IllegalArgumentException 대신
-     *   네가 정의한 커스텀 예외(예: InvalidMediaTypeException) 던져서
-     *   GlobalExceptionHandler에서 400으로 매핑하도록 해도 된다.
+     * 기존 MEDIA용 엔드포인트에서 사용하던 로직을 그대로 재사용.
      */
     private static MediaType toMediaType(String raw) {
         if (raw == null) throw new IllegalArgumentException("mediaType must not be null");
-        return MediaType.valueOf(raw.toUpperCase());  // enum 이름이 IMAGE / VIDEO 라는 전제
+        return MediaType.valueOf(raw.toUpperCase());
     }
 }
