@@ -1,8 +1,11 @@
 package com.y11i.springcommddd.posts.application.service;
 
 import com.y11i.springcommddd.communities.application.port.internal.CommunityAuthorization;
+import com.y11i.springcommddd.communities.domain.Community;
 import com.y11i.springcommddd.communities.domain.CommunityId;
+import com.y11i.springcommddd.communities.domain.CommunityStatus;
 import com.y11i.springcommddd.communities.domain.exception.CommunityNotFound;
+import com.y11i.springcommddd.iam.domain.exception.UnauthorizedMemberAction;
 import com.y11i.springcommddd.posts.application.port.in.CreatePostDraftUseCase;
 import com.y11i.springcommddd.posts.application.port.out.*;
 import com.y11i.springcommddd.posts.domain.Post;
@@ -115,6 +118,7 @@ public class CreatePostDraftService implements CreatePostDraftUseCase {
      * @throws CommunityNotFound 존재하지 않으면 발생
      */
     private void validateCommunity(CommunityId communityId) {
-        loadCommunityForPostPort.loadById(communityId).orElseThrow(() -> new CommunityNotFound("Community not found"));
+        Community community = loadCommunityForPostPort.loadById(communityId).orElseThrow(() -> new CommunityNotFound("Community not found"));
+        if (community.status() != CommunityStatus.ACTIVE) throw new UnauthorizedMemberAction("Community is not active");
     }
 }
