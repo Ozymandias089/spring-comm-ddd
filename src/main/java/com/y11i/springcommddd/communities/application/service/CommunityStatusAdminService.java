@@ -1,6 +1,6 @@
 package com.y11i.springcommddd.communities.application.service;
 
-import com.y11i.springcommddd.communities.application.port.in.ActivateCommunityUseCase;
+import com.y11i.springcommddd.communities.application.port.in.ManageCommunityStatusUseCase;
 import com.y11i.springcommddd.communities.application.port.internal.CommunityAuthorization;
 import com.y11i.springcommddd.communities.application.port.internal.CommunityLookup;
 import com.y11i.springcommddd.communities.application.port.out.SaveCommunityPort;
@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class CommunityAdminService implements ActivateCommunityUseCase {
+public class CommunityStatusAdminService implements ManageCommunityStatusUseCase {
     private final SaveCommunityPort saveCommunityPort;
     private final CommunityAuthorization communityAuthorization;
     private final CommunityLookup communityLookup;
@@ -52,7 +52,7 @@ public class CommunityAdminService implements ActivateCommunityUseCase {
     @Transactional
     public CommunityId activateCommunity(ActivateCommunityCommand cmd) {
         // 1. 권한 검증
-        communityAuthorization.requireActiveVerifiedMember(cmd.actorId());
+        communityAuthorization.requireAdmin(cmd.actorId());
         // 2. 커뮤니티 로드
         Community community = communityLookup.getByIdOrThrow(cmd.communityId());
         // 3. 권한 변경 (PENDING -> ACTIVE)
@@ -60,6 +60,26 @@ public class CommunityAdminService implements ActivateCommunityUseCase {
         // 4. 저장
         Community saved = saveCommunityPort.save(community);
         // 5. 반환
+        return saved.communityId();
+    }
+
+    @Override
+    @Transactional
+    public CommunityId archiveCommunity(ArchiveCommunityCommand cmd) {
+        communityAuthorization.requireAdmin(cmd.actorId());
+        Community community = communityLookup.getByIdOrThrow(cmd.communityId());
+        community.archive();
+        Community saved = saveCommunityPort.save(community);
+        return saved.communityId();
+    }
+
+    @Override
+    @Transactional
+    public CommunityId restoreCommunity(RestoreCommunityCommand cmd) {
+        communityAuthorization.requireAdmin(cmd.actorId());
+        Community community = communityLookup.getByIdOrThrow(cmd.communityId());
+        community.restore();
+        Community saved = saveCommunityPort.save(community);
         return saved.communityId();
     }
 }

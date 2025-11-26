@@ -136,6 +136,8 @@ public class WebSecurityConfig {
                         // 커뮤니티 API
                         .requestMatchers(HttpMethod.POST, "/api/communities/create").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/admin/communities/*/activate").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/admin/communities/*/archive").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/admin/communities/*/restore").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/c/*").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/c/*/description").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/c/*/rules").permitAll()
