@@ -21,10 +21,16 @@ public class BrowseCommunitiesController {
     public CommunityPageResponseDTO listCommunities(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "ACTIVE") String status
+            @RequestParam(defaultValue = "ACTIVE") String status,
+            @RequestParam(name = "q", required = false) String keyword
     ) {
         return browseCommunitiesUseCase.browseCommunities(
-                new BrowseCommunitiesUseCase.BrowseCommunitiesQuery(page, size, CommunityStatus.valueOf(status.toUpperCase()))
+                new BrowseCommunitiesUseCase.BrowseCommunitiesQuery(
+                        page,
+                        size,
+                        CommunityStatus.valueOf(status.toUpperCase()),
+                        keyword
+                )
         );
     }
 }

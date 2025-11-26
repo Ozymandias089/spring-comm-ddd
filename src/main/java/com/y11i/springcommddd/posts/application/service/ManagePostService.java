@@ -68,6 +68,7 @@ public class ManagePostService implements ManagePostUseCase {
     private final PostAssetRepository postAssetRepository;
     private final PostAssetFactory postAssetFactory;
     private final SavePostAssetsPort savePostAssetsPort;
+    private final CheckCommunityBanPort checkCommunityBanPort;
 
     /**
      * 게시글 액션 구분(Enum).
@@ -104,24 +105,16 @@ public class ManagePostService implements ManagePostUseCase {
     @Override
     @Transactional
     public PostId publish(PublishPostCommand cmd) {
-        // 1. 게시 대상 로드
-        Post publishTarget = loadPostPort.loadById(cmd.postId()).orElseThrow(() -> new PostNotFound("Post not found"));
-        // 2. 권한 검증: 작성자만 publish 가능
-        ensurePermission(publishTarget, cmd.actorId(), PostPermissionAction.PUBLISH);
-        // 3. MEDIA 타입이면 자산 최소 1개 검증
-        if (publishTarget.kind() == PostKind.MEDIA) {
-            var assets = loadPostAssetsPort.loadByPostId(publishTarget.postId());
-            if (assets == null || assets.isEmpty()) {
-                // TODO: 필요하면 전용 예외 타입 정의 (e.g. MediaAssetsRequiredForPublish)
-                throw new IllegalStateException("MEDIA post requires at least one asset to publish");
-            }
-        }
+        Post post = loadPostPort.loadById(cmd.postId())
+                .orElseThrow(() -> new PostNotFound("Post not found"));
 
-        // 4. 도메인 동작 호출 (상태 전이 + publishedAt 설정)
-        publishTarget.publish();
-        // 5. 변경된 애그리게잇 저장
-        Post saved = savePostPort.save(publishTarget);
-        // 6. Post → PostDTO 매핑 (임시. 나중에 매퍼로 분리 가능)
+        // 1. 밴 체크: 글이 속한 커뮤니티에서 actor가 밴인지 확인
+        checkCommunityBanPort.ensureNotBanned(post.communityId(), cmd.actorId());
+
+        // 2. 도메인 규칙에 따라 publish
+        post.publish();
+
+        Post saved = savePostPort.save(post);
         return saved.postId();
     }
 
@@ -219,7 +212,7 @@ public class ManagePostService implements ManagePostUseCase {
 
         // 3. 내용 수정
         // content: LINK가 아닌 경우에만 허용
-        if (cmd.newContent() != null && target.kind() != PostKind.LINK) target.rewrite(cmd.newContent());
+        if (cmd.newContent() != null && target.type() != PostType.LINK) target.rewrite(cmd.newContent());
 
         // title: 모든 타입에서 허용
         if (cmd.newTitle() != null) target.rename(cmd.newTitle());
@@ -287,7 +280,7 @@ public class ManagePostService implements ManagePostUseCase {
         );
 
         // 2) MEDIA 타입이면 자산이 최소 1개 있는지 검증 (publish() 로직과 동일)
-        if (draft.kind() == PostKind.MEDIA) {
+        if (draft.type() == PostType.MEDIA) {
             var assets = loadPostAssetsPort.loadByPostId(draft.postId());
             if (assets == null || assets.isEmpty()) {
                 throw new IllegalStateException("MEDIA post requires at least one asset to publish");
@@ -374,7 +367,7 @@ public class ManagePostService implements ManagePostUseCase {
 
         // 미디어 자산 교체
         if (assets != null) {
-            if (draft.kind() != PostKind.MEDIA) throw new IllegalStateException("Assets can be edited only when kind == MEDIA");
+            if (draft.type() != PostType.MEDIA) throw new IllegalStateException("Assets can be edited only when type == MEDIA");
 
             int deletedAssets = postAssetRepository.deleteAllByPostId(draft.postId());
             log.debug("EditDraft: postId={} deletedAssets={}", draft.postId().stringify(), deletedAssets);

@@ -99,7 +99,8 @@ public class WebSecurityConfig {
                         // --- 게시글 관련 API ---
 
                         // 초안 생성 (TEXT / LINK / MEDIA) → 인증 필요
-                        .requestMatchers(HttpMethod.POST, "/api/posts/drafts/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/posts/drafts/create").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/posts/drafts/create/publish").authenticated()
 
                         // 피드 / 커뮤니티 피드 → 인증 불필요
                         .requestMatchers(HttpMethod.GET, "/api/posts/feed").permitAll()
@@ -128,10 +129,16 @@ public class WebSecurityConfig {
                         ).authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/posts/*/vote").authenticated()
 
+                        // 모더레이터 BAN 기능
+                        .requestMatchers(HttpMethod.GET, "/api/c/*/bans", "/api/c/*/bans/**", "/api/c/*/bans/history").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/c/*/bans").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/c/*/bans/**").authenticated()
                         // 커뮤니티 API
                         .requestMatchers(HttpMethod.POST, "/api/communities/create").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/admin/communities/*/activate").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/c/**").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/admin/communities/*/archive").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/admin/communities/*/restore").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/c/*").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/c/*/description").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/c/*/rules").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/c/*/rules").authenticated()

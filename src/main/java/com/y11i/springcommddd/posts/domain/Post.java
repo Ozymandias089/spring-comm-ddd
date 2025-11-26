@@ -65,8 +65,8 @@ public class Post implements AggregateRoot {
     private MemberId authorId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "kind", nullable = false, length = 20)
-    private PostKind kind;
+    @Column(name = "type", nullable = false, length = 20)
+    private PostType type;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "title", nullable = false, length = 200))
@@ -120,9 +120,9 @@ public class Post implements AggregateRoot {
      * </ul>
      * </p>
      */
-    private Post(PostKind kind, CommunityId communityId, MemberId authorId, Title title, Content content, LinkUrl linkUrl) {
+    private Post(PostType type, CommunityId communityId, MemberId authorId, Title title, Content content, LinkUrl linkUrl) {
         this.postId = PostId.newId();
-        this.kind = Objects.requireNonNull(kind);
+        this.type = Objects.requireNonNull(type);
         this.communityId = Objects.requireNonNull(communityId);
         this.authorId = Objects.requireNonNull(authorId);
         rename(title);
@@ -146,7 +146,7 @@ public class Post implements AggregateRoot {
      * @throws IllegalArgumentException 제목/본문 규칙 위반
      */
     public static Post createText(CommunityId communityId, MemberId authorId, String title, String content) {
-        return new Post(PostKind.TEXT, communityId, authorId, new Title(title), new Content(content), null);
+        return new Post(PostType.TEXT, communityId, authorId, new Title(title), new Content(content), null);
     }
 
     public static Post createMedia(CommunityId communityId, MemberId authorId, String title, String captionOptional) {
@@ -154,11 +154,11 @@ public class Post implements AggregateRoot {
                 ? new Content(captionOptional)
                 : null;  // 캡션이 없으면 content 자체를 null로
         // MEDIA는 content/caption 이 선택사항. 최소 non-blank 보장을 위해 한칸 넣어 저장(또는 Content VO를 null 허용으로 바꾸려면 VO 수정 필요)
-        return new Post(PostKind.MEDIA, communityId, authorId, new Title(title), caption, null);
+        return new Post(PostType.MEDIA, communityId, authorId, new Title(title), caption, null);
     }
 
     public static Post createLink(CommunityId communityId, MemberId authorId, String title, String linkUrl) {
-        return new Post(PostKind.LINK, communityId, authorId, new Title(title), null, new LinkUrl(linkUrl));
+        return new Post(PostType.LINK, communityId, authorId, new Title(title), null, new LinkUrl(linkUrl));
     }
 
     // -----------------------------------------------------
@@ -219,7 +219,7 @@ public class Post implements AggregateRoot {
      */
     public void setLinkUrl(String newLinkUrl) {
         ensureNotArchived("Archived post cannot be modified");
-        if (this.kind != PostKind.LINK) throw new IllegalStateException("linkUrl can be set only when kind == LINK");
+        if (this.type != PostType.LINK) throw new IllegalStateException("linkUrl can be set only when type == LINK");
         this.linkUrl = new LinkUrl(newLinkUrl);
     }
 
@@ -235,15 +235,15 @@ public class Post implements AggregateRoot {
         if (status != PostStatus.DRAFT) throw new PostStatusTransitionNotAllowed("Only DRAFT status can be published");
 
         // kind별 최소 제약
-        if (kind == PostKind.TEXT) {
+        if (type == PostType.TEXT) {
             if (content == null || content.value().isBlank()) {
                 throw new IllegalStateException("TEXT post requires non-blank content");
             }
-        } else if (kind == PostKind.LINK) {
+        } else if (type == PostType.LINK) {
             if (linkUrl == null) {
                 throw new IllegalStateException("LINK post requires linkUrl");
             }
-        } else if (kind == PostKind.MEDIA) {
+        } else if (type == PostType.MEDIA) {
             // 자산(assets) 개수 검사는 애플리케이션 서비스에서 검증 (리포지토리로 count 확인)
         }
 
@@ -349,7 +349,7 @@ public class Post implements AggregateRoot {
     public PostId postId() { return postId; }
     public CommunityId communityId() { return communityId; }
     public MemberId authorId() { return authorId; }
-    public PostKind kind() { return kind; }
+    public PostType type() { return type; }
     public Title title() { return title; }
     public Content content() { return content; }
     public LinkUrl linkUrl() { return linkUrl; }

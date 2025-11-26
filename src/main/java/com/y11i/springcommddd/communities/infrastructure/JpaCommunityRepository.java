@@ -4,6 +4,8 @@ import com.y11i.springcommddd.communities.domain.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -38,4 +40,23 @@ public interface JpaCommunityRepository extends JpaRepository<Community, Communi
     Page<Community> findByStatus(CommunityStatus status, Pageable pageable);
 
     long countByStatus(CommunityStatus status);
+
+    @Query("""
+           SELECT c FROM Community c
+           WHERE c.status = :status
+             AND (LOWER(c.communityNameKey.value) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(c.communityName.value) LIKE LOWER(CONCAT('%', :keyword, '%')))
+           """)
+    Page<Community> searchByStatusAndKeyword(@Param("status") CommunityStatus status,
+                                             @Param("keyword") String keyword,
+                                             Pageable pageable);
+
+    @Query("""
+           SELECT COUNT(c) FROM Community c
+           WHERE c.status = :status
+             AND (LOWER(c.communityNameKey.value) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(c.communityName.value) LIKE LOWER(CONCAT('%', :keyword, '%')))
+           """)
+    long countByStatusAndKeyword(@Param("status") CommunityStatus status,
+                                 @Param("keyword") String keyword);
 }

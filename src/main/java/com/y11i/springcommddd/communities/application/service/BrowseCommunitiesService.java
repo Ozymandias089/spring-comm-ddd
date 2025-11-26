@@ -34,17 +34,25 @@ public class BrowseCommunitiesService implements BrowseCommunitiesUseCase {
         int page = Math.max(query.page(), 0);
         int size = query.size() <= 0 ? 20 : query.size();
         CommunityStatus status = query.status() != null ? query.status() : CommunityStatus.ACTIVE;
+        String keyword = query.keyword();
 
-        log.debug("Browsing communities: status={}, page={}, size={}", status, page, size);
+        log.debug("Browsing communities: status={}, keyword='{}', page={}, size={}",
+                status, keyword, page, size);
 
-        // 1. 목록 로드
-        List<Community> communities = browseCommunitiesPort.loadByStatus(status, page, size);
+        final List<Community> communities;
+        final long totalElements;
 
-        // 2. 카운트 로드
-        long totalElements = browseCommunitiesPort.countByStatus(status);
+        // 검색어 유무에 따라 분기
+        if (keyword == null || keyword.isBlank()) {
+            communities = browseCommunitiesPort.loadByStatus(status, page, size);
+            totalElements = browseCommunitiesPort.countByStatus(status);
+        } else {
+            communities = browseCommunitiesPort.searchByStatusAndKeyword(status, keyword, page, size);
+            totalElements = browseCommunitiesPort.countByStatusAndKeyword(status, keyword);
+        }
+
         int totalPages = (int) ((totalElements + size - 1) / size);
 
-        // 3. DTO 매핑
         List<CommunitySummaryDTO> content = communities.stream()
                 .map(communityViewMapper::toSummary)
                 .toList();

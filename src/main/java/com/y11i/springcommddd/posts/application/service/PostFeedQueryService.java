@@ -2,6 +2,7 @@ package com.y11i.springcommddd.posts.application.service;
 
 import com.y11i.springcommddd.communities.domain.Community;
 import com.y11i.springcommddd.communities.domain.CommunityId;
+import com.y11i.springcommddd.communities.domain.CommunityNameKey;
 import com.y11i.springcommddd.communities.domain.exception.CommunityNotFound;
 import com.y11i.springcommddd.iam.domain.Member;
 import com.y11i.springcommddd.iam.domain.MemberId;
@@ -56,15 +57,18 @@ public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommu
     // ----------------------------------------------------
     @Override
     public PageResultDTO<PostSummaryResponseDTO> listCommunityPosts(ListCommunityPostsUseCase.Query q) {
-        CommunityId communityId = CommunityId.objectify(q.communityId());
+        CommunityNameKey nk= new CommunityNameKey(q.nameKey());
 
         // 커뮤니티 존재 여부 검증 + 캐싱용으로 로드
-        Community community = loadCommunityForPostPort.loadById(communityId)
-                .orElseThrow(() -> new CommunityNotFound(communityId.stringify()));
+        Community community = loadCommunityForPostPort.loadByNameKey(nk)
+                .orElseThrow(() -> new CommunityNotFound("Community not found: " + nk.value()));
+        CommunityId communityId = community.communityId();
 
+        // 2) 피드 조회
         PageRequest pageReq = PageRequest.of(q.page(), q.size());
         Page<Post> page = queryPostPort.findByCommunity(communityId, q.sort(), pageReq);
 
+        // 3) 이미 로드한 community를 fixedCommunityOrNull로 넘겨 캐시 활용
         return buildPageResult(page, q.viewerId(), community);
     }
 

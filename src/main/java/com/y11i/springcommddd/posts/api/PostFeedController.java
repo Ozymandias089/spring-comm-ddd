@@ -66,15 +66,15 @@ public class PostFeedController {
      * 예:
      * GET /api/communities/{communityId}/posts?sort=new&page=0&size=20
      *
-     * @param communityId 커뮤니티 ID (UUID 문자열)
+     * @param nameKey 커뮤니티 ID (UUID 문자열)
      * @param sort 정렬 기준 ("new", "top", "hot" 등 – 미지정 시 "new")
      * @param page 페이지 번호 (0-base)
      * @param size 페이지 크기
      */
-    @GetMapping(path = "/communities/{communityId}/posts", produces = "application/json")
+    @GetMapping(path = "/communities/{nameKey}/posts", produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public PageResultDTO<PostSummaryResponseDTO> getCommunityFeed(
-            @PathVariable String communityId,
+            @PathVariable String nameKey,
             @RequestParam(name = "sort", defaultValue = "new") String sort,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size
@@ -82,7 +82,7 @@ public class PostFeedController {
         MemberId viewerId = resolveCurrentMemberIdOrNull();
 
         var query = new ListCommunityPostsUseCase.Query(
-                communityId,
+                nameKey,
                 viewerId,
                 sort,
                 page,

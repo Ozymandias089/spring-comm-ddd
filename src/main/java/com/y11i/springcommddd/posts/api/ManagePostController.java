@@ -14,6 +14,7 @@ import com.y11i.springcommddd.posts.media.domain.MediaType;
 import com.y11i.springcommddd.posts.media.model.AssetMeta;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,7 @@ import java.util.List;
  * 이 컨트롤러는 HTTP 계층과 유스케이스를 연결하는 역할만 수행한다.
  * </p>
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
@@ -64,12 +66,13 @@ public class ManagePostController {
             @AuthenticatedMember MemberId actorId,
             @PathVariable String postId
     ) {
-        managePostUseCase.publish(
+        PostId published = managePostUseCase.publish(
                 new PublishPostCommand(
                         PostId.objectify(postId),
                         actorId
                 )
         );
+        log.info("Published post with id {}", published);
     }
 
     // ---------------------------------------------------------------------
@@ -89,12 +92,13 @@ public class ManagePostController {
             @AuthenticatedMember MemberId actorId,
             @PathVariable String postId
     ) {
-        managePostUseCase.archive(
+        PostId archived = managePostUseCase.archive(
                 new ArchivePostCommand(
                         PostId.objectify(postId),
                         actorId
                 )
         );
+        log.info("Archived post with id {}", archived);
     }
 
     // ---------------------------------------------------------------------
@@ -114,12 +118,13 @@ public class ManagePostController {
             @AuthenticatedMember MemberId actorId,
             @PathVariable String postId
     ) {
-        managePostUseCase.restore(
+        PostId restored = managePostUseCase.restore(
                 new RestorePostCommand(
                         PostId.objectify(postId),
                         actorId
                 )
         );
+        log.info("Restore post with id {}", restored);
     }
 
     // ---------------------------------------------------------------------
@@ -142,7 +147,7 @@ public class ManagePostController {
             @PathVariable String postId,
             @Valid @RequestBody EditPostRequestDTO requestDTO
     ) {
-        managePostUseCase.editPost(
+        PostId edited = managePostUseCase.editPost(
                 new EditPostCommand(
                         PostId.objectify(postId),
                         actorId,
@@ -150,6 +155,7 @@ public class ManagePostController {
                         new Content(requestDTO.content())
                 )
         );
+        log.info("Edited post with id {}", edited);
     }
 
     @DeleteMapping(path = "/draft/{postId}/delete")
@@ -176,7 +182,7 @@ public class ManagePostController {
                 .map(this::toAssetMeta)
                 .toList();
 
-        managePostUseCase.editDraft(
+        PostId edited = managePostUseCase.editDraft(
                 new ManagePostUseCase.EditDraftPostCommand(
                         PostId.objectify(postId),
                         memberId,
@@ -187,6 +193,7 @@ public class ManagePostController {
                         metas
                 )
         );
+        log.info("Edited post draft with id {}", edited);
     }
 
     @PostMapping(path = "/draft/{postId}/publish", consumes = "application/json")
@@ -203,7 +210,7 @@ public class ManagePostController {
                 .map(this::toAssetMeta)
                 .toList();
 
-        managePostUseCase.editDraftAndPublish(
+        PostId editAndPosted = managePostUseCase.editDraftAndPublish(
                 new EditDraftAndPublishCommand(
                         PostId.objectify(postId),
                         memberId,
@@ -214,6 +221,7 @@ public class ManagePostController {
                         metas
                 )
         );
+        log.info("Edited post draft and publish with id {}", editAndPosted);
     }
 
     /**

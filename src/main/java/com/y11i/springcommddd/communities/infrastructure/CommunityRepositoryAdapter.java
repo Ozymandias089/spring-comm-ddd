@@ -80,4 +80,14 @@ public class CommunityRepositoryAdapter implements CommunityRepository {
     public long countByStatus(CommunityStatus status) {
         return jpaCommunityRepository.countByStatus(status);
     }
+
+    @Override
+    public Page<Community> searchByStatusAndKeyword(CommunityStatus status, String keyword, Pageable pageable) {
+        return jpaCommunityRepository.searchByStatusAndKeyword(status, keyword, pageable);
+    }
+
+    @Override
+    public long countByStatusAndKeyword(CommunityStatus status, String keyword) {
+        return jpaCommunityRepository.countByStatusAndKeyword(status, keyword);
+    }
 }

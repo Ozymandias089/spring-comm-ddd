@@ -3,6 +3,7 @@ package com.y11i.springcommddd.posts.application.port.in;
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.PostId;
+import com.y11i.springcommddd.posts.domain.PostType;
 import com.y11i.springcommddd.posts.media.model.AssetMeta;
 
 import java.util.List;
@@ -22,49 +23,15 @@ import java.util.List;
  */
 public interface CreateAndPublishPostUseCase {
 
-    PostId createAndPublishText(CreateAndPublishTextCommand cmd);
+    PostId createAndPublish(CreateAndPublishCommand cmd);
 
-    PostId createAndPublishLink(CreateAndPublishLinkCommand cmd);
-
-    PostId createAndPublishMedia(CreateAndPublishMediaCommand cmd);
-
-    // ----------------------------------------------------------------------
-    // Commands
-    // ----------------------------------------------------------------------
-
-    /**
-     * 텍스트 게시글을 바로 게시하기 위한 커맨드.
-     */
-    record CreateAndPublishTextCommand(
+    record CreateAndPublishCommand(
             CommunityId communityId,
             MemberId authorId,
+            PostType type,
             String title,
-            String content
-    ) {}
-
-    /**
-     * 링크 게시글을 바로 게시하기 위한 커맨드.
-     */
-    record CreateAndPublishLinkCommand(
-            CommunityId communityId,
-            MemberId authorId,
-            String title,
-            String link
-    ) {}
-
-    /**
-     * 미디어(이미지/영상) 게시글을 바로 게시하기 위한 커맨드.
-     *
-     * <p>
-     * assets는 기존 {@link AssetMeta} 와 동일한 메타 정보를 사용한다.
-     * 컨트롤러에서는 PostAssetUploadDTO → AssetMeta 로 변환하여 넘겨주면 된다.
-     * </p>
-     */
-    record CreateAndPublishMediaCommand(
-            CommunityId communityId,
-            MemberId authorId,
-            String title,
-            String content,
-            List<AssetMeta> assets
+            String content,          // TEXT, MEDIA에서 사용
+            String link,             // LINK에서 사용
+            List<AssetMeta> assets   // MEDIA에서 사용
     ) {}
 }
