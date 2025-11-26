@@ -6,7 +6,7 @@ import com.y11i.springcommddd.posts.dto.response.PostSummaryResponseDTO;
 
 public interface ListCommunityPostsUseCase {
     record Query(
-            String communityId,     // or CommunityId
+            String nameKey,     // or CommunityId
             MemberId viewerId,
             String sort,            // "new", "top", "hot"
             int page,
