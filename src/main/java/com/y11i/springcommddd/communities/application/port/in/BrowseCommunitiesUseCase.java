@@ -25,6 +25,7 @@ public interface BrowseCommunitiesUseCase {
     record BrowseCommunitiesQuery(
             int page,
             int size,
-            CommunityStatus status
+            CommunityStatus status,
+            String keyword
     ) {}
 }

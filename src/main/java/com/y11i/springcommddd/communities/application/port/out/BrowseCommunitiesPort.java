@@ -26,4 +26,7 @@ public interface BrowseCommunitiesPort {
      * @return 전체 개수
      */
     long countByStatus(CommunityStatus status);
+
+    List<Community> searchByStatusAndKeyword(CommunityStatus status, String keyword, int page, int size);
+    long countByStatusAndKeyword(CommunityStatus status, String keyword);
 }

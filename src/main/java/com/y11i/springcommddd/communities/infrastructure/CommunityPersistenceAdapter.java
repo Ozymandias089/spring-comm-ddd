@@ -72,4 +72,17 @@ public class CommunityPersistenceAdapter implements SaveCommunityPort, LoadCommu
     public long countByStatus(CommunityStatus status) {
         return communityRepository.countByStatus(status);
     }
+
+    @Override
+    public List<Community> searchByStatusAndKeyword(CommunityStatus status, String keyword, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        return communityRepository
+                .searchByStatusAndKeyword(status, keyword, pageable)
+                .getContent(); // Page → content 리스트로 변환
+    }
+
+    @Override
+    public long countByStatusAndKeyword(CommunityStatus status, String keyword) {
+        return communityRepository.countByStatusAndKeyword(status, keyword);
+    }
 }

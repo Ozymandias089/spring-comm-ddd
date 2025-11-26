@@ -66,4 +66,8 @@ public interface CommunityRepository {
     Page<Community> findByStatus(CommunityStatus status, Pageable pageable);
 
     long countByStatus(CommunityStatus status);
+
+    Page<Community> searchByStatusAndKeyword(CommunityStatus status, String keyword, Pageable pageable);
+
+    long countByStatusAndKeyword(CommunityStatus status, String keyword);
 }
