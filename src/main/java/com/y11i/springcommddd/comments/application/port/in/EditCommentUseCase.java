@@ -8,7 +8,7 @@ public interface EditCommentUseCase {
 
     record EditCommentCommand(
             CommentId commentId,
-            MemberId memberId,
+            MemberId actorId,
             String body
     ){}
 }

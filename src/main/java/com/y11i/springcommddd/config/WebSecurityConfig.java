@@ -151,8 +151,10 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/c/*/moderators/**").authenticated()
 
                         // 댓글 관련 기능
-                        .requestMatchers(HttpMethod.POST, "/api/posts/{postId}/comments").authenticated() // 댓글 달기
-                        .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/posts/{postId}/comments").authenticated()  // 댓글 달기
+                        .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments").permitAll()       // 댓글 조회
+                        .requestMatchers(HttpMethod.PATCH, "/api/comments/{commentId}").authenticated()    // 댓글 수정
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/{commentId}").authenticated()   // 댓글 삭제
 
                         .anyRequest().authenticated()
                 )

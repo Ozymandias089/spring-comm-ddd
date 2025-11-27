@@ -22,6 +22,7 @@ public enum ErrorCode {
     COMMENT_DEPTH_INVALID("comment.depth_invalid", HttpStatus.BAD_REQUEST),
     COMMENT_UNAVAILABLE("comment.unavailable", HttpStatus.BAD_REQUEST),
     COMMENT_NOT_FOUND("comment.not_found", HttpStatus.NOT_FOUND),
+    COMMENT_STATUS_TRANSITION_FORBIDDEN("comment.status_transition_forbidden", HttpStatus.CONFLICT),
 
     // --- Community
     COMMUNITY_NAME_INVALID("community.name_invalid", HttpStatus.BAD_REQUEST),
