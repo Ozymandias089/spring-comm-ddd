@@ -85,6 +85,9 @@ public class Comment {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "is_edited", nullable = false)
+    private boolean isEdited;
+
     @Version
     private long version;
 
@@ -106,6 +109,7 @@ public class Comment {
         this.depth = depth;
         this.body = Objects.requireNonNull(body);
         this.status = CommentStatus.VISIBLE;
+        this.isEdited = false;
     }
 
     // -----------------------------------------------------
@@ -156,6 +160,7 @@ public class Comment {
     public void edit(String newBody) {
         ensureNotDeleted("Deleted comment cannot be edited");
         this.body = new CommentBody(newBody);
+        this.isEdited = true;
     }
 
     /**
@@ -205,7 +210,7 @@ public class Comment {
      *
      * @throws CommentDeletedModificationNotAllowed 삭제 상태인 경우
      */
-    private void ensureNotDeleted(String msg) {
+    public void ensureNotDeleted(String msg) {
         if (status == CommentStatus.DELETED) throw new CommentDeletedModificationNotAllowed(msg);
     }
 
@@ -239,4 +244,6 @@ public class Comment {
     public int downCount(){ return downCount; }
     /** 점수(추천 - 비추천)를 계산해 반환합니다. */
     public int score(){ return upCount - downCount; }
+
+    public boolean edited() { return isEdited; }
 }

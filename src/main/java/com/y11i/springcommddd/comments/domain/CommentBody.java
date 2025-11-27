@@ -26,7 +26,7 @@ public class CommentBody implements ValueObject {
     private String value;
 
     /** JPA 기본 생성자. 외부에서 직접 호출하지 않습니다. */
-    protected  CommentBody() {}
+    protected CommentBody() {}
 
     /**
      * 본문 값을 받아 값 객체를 생성합니다.
