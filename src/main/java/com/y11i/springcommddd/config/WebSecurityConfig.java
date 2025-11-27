@@ -152,6 +152,7 @@ public class WebSecurityConfig {
 
                         // 댓글 관련 기능
                         .requestMatchers(HttpMethod.POST, "/api/posts/{postId}/comments").authenticated() // 댓글 달기
+                        .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments").permitAll()
 
                         .anyRequest().authenticated()
                 )
