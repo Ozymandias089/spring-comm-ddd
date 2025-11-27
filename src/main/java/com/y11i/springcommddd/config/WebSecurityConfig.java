@@ -150,6 +150,9 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/c/*/moderators/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/c/*/moderators/**").authenticated()
 
+                        // 댓글 관련 기능
+                        .requestMatchers(HttpMethod.POST, "/api/posts/{postId}/comments").authenticated() // 댓글 달기
+
                         .anyRequest().authenticated()
                 )
 
