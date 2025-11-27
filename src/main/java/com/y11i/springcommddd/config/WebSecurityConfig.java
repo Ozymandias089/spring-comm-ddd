@@ -146,15 +146,20 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/communities/**").permitAll()
                         // 커뮤니티 모데레이터 기능
                         .requestMatchers(HttpMethod.GET, "/api/me/mod-communities").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/c/*/moderators/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/c/*/moderators/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/c/*/moderators/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/c/{nameKey}/moderators/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/c/{nameKey}/moderators/{targetId}").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/c/{nameKey}/moderators/{targetId}").authenticated()
 
                         // 댓글 관련 기능
                         .requestMatchers(HttpMethod.POST, "/api/posts/{postId}/comments").authenticated()  // 댓글 달기
                         .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments").permitAll()       // 댓글 조회
                         .requestMatchers(HttpMethod.PATCH, "/api/comments/{commentId}").authenticated()    // 댓글 수정
                         .requestMatchers(HttpMethod.DELETE, "/api/comments/{commentId}").authenticated()   // 댓글 삭제
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/comments/{commentId}/vote/up",
+                                "/api/comments/{commentId}/vote/down"
+                        ).authenticated()                              // Comment Upvote/Downvote
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/{commentId}/vote").authenticated()  // Cancel Vote
 
                         .anyRequest().authenticated()
                 )

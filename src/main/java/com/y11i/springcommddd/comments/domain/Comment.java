@@ -210,7 +210,7 @@ public class Comment {
      *
      * @throws CommentDeletedModificationNotAllowed 삭제 상태인 경우
      */
-    private void ensureNotDeleted(String msg) {
+    public void ensureNotDeleted(String msg) {
         if (status == CommentStatus.DELETED) throw new CommentDeletedModificationNotAllowed(msg);
     }
 
