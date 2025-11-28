@@ -2,8 +2,6 @@ package com.y11i.springcommddd.posts.api;
 
 import com.y11i.springcommddd.iam.api.support.AuthenticatedMember;
 import com.y11i.springcommddd.iam.domain.MemberId;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -17,48 +15,9 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/extra")
 @Validated
 public class PostExtraFeatureController {
-    // ---------------------------------------------------------------------
-    // 1. 키워드 기반 게시글 검색
-    // ---------------------------------------------------------------------
-
-    /**
-     * 키워드 기반 게시글 검색.
-     * <p>
-     * 예: GET /api/search/posts?q=java&page=0&size=20
-     */
-    @GetMapping(path = "/search/posts", produces = "application/json")
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public void searchPosts(
-            @RequestParam("q") @NotBlank @Size(min = 1, max = 100) String query,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "20") int size
-    ) {
-        throw new UnsupportedOperationException("post.search: Not supported yet.");
-    }
-
-    // ---------------------------------------------------------------------
-    // 2. 사용자별 게시글 목록 (사용자 페이지용)
-    // ---------------------------------------------------------------------
-
-    /**
-     * 특정 사용자의 게시글 목록 조회.
-     * <p>
-     * 예: GET /api/members/{memberId}/posts?page=0&size=20
-     * (실제 구현 시 status 필터, 정렬 옵션 등이 추가될 수 있다.)
-     */
-    @GetMapping(path = "/members/{memberId}/posts", produces = "application/json")
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public void listMemberPosts(
-            @PathVariable String memberId,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "20") int size
-    ) {
-        throw new UnsupportedOperationException("post.listMemberPosts: Not supported yet.");
-    }
-
     // ---------------------------------------------------------------------
     // 3. 게시글 북마크
     // ---------------------------------------------------------------------
@@ -70,11 +29,11 @@ public class PostExtraFeatureController {
      */
     @PostMapping(path = "/posts/{postId}/bookmark")
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public void addBookmark(
+    public String addBookmark(
             @AuthenticatedMember MemberId memberId,
             @PathVariable String postId
     ) {
-        throw new UnsupportedOperationException("post.bookmark.add: Not supported yet.");
+        return "/api/addBookmark: Not supported yet";
     }
 
     /**
@@ -84,11 +43,11 @@ public class PostExtraFeatureController {
      */
     @DeleteMapping(path = "/posts/{postId}/bookmark")
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public void removeBookmark(
+    public String removeBookmark(
             @AuthenticatedMember MemberId memberId,
             @PathVariable String postId
     ) {
-        throw new UnsupportedOperationException("post.bookmark.remove: Not supported yet.");
+        return "/api/removeBookmark: Not supported yet";
     }
 
     /**
@@ -98,11 +57,11 @@ public class PostExtraFeatureController {
      */
     @GetMapping(path = "/me/bookmarks", produces = "application/json")
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public void listMyBookmarks(
+    public String listMyBookmarks(
             @AuthenticatedMember MemberId memberId,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size
     ) {
-        throw new UnsupportedOperationException("post.bookmark.list: Not supported yet.");
+        return "/api/listMyBookmarks: Not supported yet";
     }
 }
