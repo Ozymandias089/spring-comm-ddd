@@ -108,6 +108,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/communities/*/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/c/{nameKey}/posts/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/members/{memberId}/posts/search").permitAll()
 
                         // 게시글 상세 조회 → 인증 불필요 (GET /api/posts/{postId})
                         .requestMatchers(HttpMethod.GET, "/api/posts/*").permitAll()

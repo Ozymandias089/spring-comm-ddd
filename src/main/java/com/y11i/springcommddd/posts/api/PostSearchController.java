@@ -1,6 +1,7 @@
 package com.y11i.springcommddd.posts.api;
 
 import com.y11i.springcommddd.iam.domain.MemberId;
+import com.y11i.springcommddd.posts.application.port.in.SearchAuthorPostsUseCase;
 import com.y11i.springcommddd.posts.application.port.in.SearchCommunityPostsUseCase;
 import com.y11i.springcommddd.posts.application.port.in.SearchHomePostsUseCase;
 import com.y11i.springcommddd.posts.dto.internal.PageResultDTO;
@@ -19,6 +20,7 @@ import static com.y11i.springcommddd.posts.api.support.CurrentMemberResolver.res
 public class PostSearchController {
     private final SearchHomePostsUseCase searchHomePostsUseCase;
     private final SearchCommunityPostsUseCase searchCommunityPostsUseCase;
+    private final SearchAuthorPostsUseCase searchAuthorPostsUseCase;
 
     // ----------------------------------------------------
     // 전체(홈) 검색
@@ -80,5 +82,38 @@ public class PostSearchController {
         );
 
         return searchCommunityPostsUseCase.search(query);
+    }
+
+    /**
+     * 특정 작성자의 게시글 검색.
+     * <p>
+     * 예:
+     * GET /api/members/{memberId}/posts/search?q=spring&sort=new&page=0&size=20
+     */
+    @GetMapping(path = "/members/{memberId}/posts/search", produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    public PageResultDTO<PostSummaryResponseDTO> searchByAuthor(
+            @PathVariable("memberId") String memberIdString,
+            @RequestParam(name = "q", required = false) String keyword,
+            @RequestParam(name = "sort", defaultValue = "new") String sort,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size
+    ) {
+        // 현재 로그인 유저 (없으면 null)
+        MemberId viewerId = resolveCurrentMemberIdOrNull();
+
+        // PathVariable -> MemberId 변환 (이미 있는 정적 팩토리 사용한다고 가정)
+        MemberId authorId = MemberId.objectify(memberIdString);
+
+        var query = new SearchAuthorPostsUseCase.Query(
+                authorId,
+                viewerId,
+                keyword,
+                sort,
+                page,
+                size
+        );
+
+        return searchAuthorPostsUseCase.searchByAuthor(query);
     }
 }

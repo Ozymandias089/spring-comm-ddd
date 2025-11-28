@@ -36,7 +36,8 @@ public class PostFeedQueryService implements
         ListCommunityPostsUseCase,
         ListDraftsUseCase,
         SearchHomePostsUseCase,
-        SearchCommunityPostsUseCase
+        SearchCommunityPostsUseCase,
+        SearchAuthorPostsUseCase
 {
 
     private final QueryPostPort queryPostPort;
@@ -206,6 +207,15 @@ public class PostFeedQueryService implements
         PageRequest pageReq = PageRequest.of(q.page(), q.size());
         Page<Post> page = queryPostPort.searchHomeFeed(q.keyword(), q.sort(), pageReq);
 
+        return buildPageResult(page, q.viewerId(), null);
+    }
+
+    @Override
+    public PageResultDTO<PostSummaryResponseDTO> searchByAuthor(SearchAuthorPostsUseCase.Query q) {
+        PageRequest pageReq = PageRequest.of(q.page(), q.size());
+        Page<Post> page = queryPostPort.searchByAuthor(q.authorId(), q.keyword(), q.sort(), pageReq);
+
+        // 작성자 피드이므로 fixedCommunityOrNull = null
         return buildPageResult(page, q.viewerId(), null);
     }
 }

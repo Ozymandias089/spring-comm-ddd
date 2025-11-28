@@ -3,6 +3,7 @@ package com.y11i.springcommddd.posts.application.port.out;
 import com.y11i.springcommddd.communities.domain.CommunityId;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.posts.domain.Post;
+import jakarta.annotation.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -42,4 +43,6 @@ public interface QueryPostPort {
     Page<Post> searchHomeFeed(String keyword, String sortKey, Pageable pageable);
 
     Page<Post> searchByCommunity(CommunityId communityId, String keyword, String sortKey, Pageable pageable);
+
+    Page<Post> searchByAuthor(MemberId authorId, @Nullable String keyword, String sortKey, Pageable pageable);
 }

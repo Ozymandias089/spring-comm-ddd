@@ -159,4 +159,68 @@ public interface JpaPostQueryRepository extends JpaRepository<Post, PostId> {
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    // ====================== 작성자 피드 ======================
+
+    @Query("""
+           select p
+           from Post p
+           where p.status = :status
+             and p.authorId = :authorId
+           order by p.publishedAt desc
+           """)
+    Page<Post> findAuthorFeedOrderByNew(
+            @Param("authorId") MemberId authorId,
+            @Param("status") PostStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
+           select p
+           from Post p
+           where p.status = :status
+             and p.authorId = :authorId
+           order by (p.upCount - p.downCount) desc, p.publishedAt desc
+           """)
+    Page<Post> findAuthorFeedOrderByTop(
+            @Param("authorId") MemberId authorId,
+            @Param("status") PostStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
+           select p
+           from Post p
+           where p.status = :status
+             and p.authorId = :authorId
+             and (
+                    p.title.value   like :keyword
+                 or p.content.value like :keyword
+                 )
+           order by p.createdAt desc
+           """)
+    Page<Post> searchAuthorFeedOrderByNew(
+            @Param("authorId") MemberId authorId,
+            @Param("status") PostStatus status,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("""
+           select p
+           from Post p
+           where p.status = :status
+             and p.authorId = :authorId
+             and (
+                    p.title.value   like :keyword
+                 or p.content.value like :keyword
+                 )
+           order by (p.upCount - p.downCount) desc, p.publishedAt desc
+           """)
+    Page<Post> searchAuthorFeedOrderByTop(
+            @Param("authorId") MemberId authorId,
+            @Param("status") PostStatus status,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }
