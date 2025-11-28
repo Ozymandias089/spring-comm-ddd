@@ -84,4 +84,79 @@ public interface JpaPostQueryRepository extends JpaRepository<Post, PostId> {
             @Param("status") PostStatus status,
             Pageable pageable
             );
+    // =====================================
+    //             홈 검색
+    // =====================================
+
+    @Query("""
+           select p
+           from Post p
+           where p.status = :status
+             and (
+                    p.title.value   like :keyword
+                 or p.content.value like :keyword
+                 )
+           order by p.createdAt desc
+           """)
+    Page<Post> searchHomeFeedOrderByNew(
+            @Param("status") PostStatus status,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("""
+           select p
+           from Post p
+           where p.status = :status
+             and (
+                    p.title.value   like :keyword
+                 or p.content.value like :keyword
+                 )
+           order by (p.upCount - p.downCount) desc, p.publishedAt desc
+           """)
+    Page<Post> searchHomeFeedOrderByTop(
+            @Param("status") PostStatus status,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    // =====================================
+    //           커뮤니티 검색
+    // =====================================
+
+    @Query("""
+           select p
+           from Post p
+           where p.status = :status
+             and p.communityId = :communityId
+             and (
+                    p.title.value   like :keyword
+                 or p.content.value like :keyword
+                 )
+           order by p.createdAt desc
+           """)
+    Page<Post> searchCommunityFeedOrderByNew(
+            @Param("communityId") CommunityId communityId,
+            @Param("status") PostStatus status,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("""
+           select p
+           from Post p
+           where p.status = :status
+             and p.communityId = :communityId
+             and (
+                    p.title.value   like :keyword
+                 or p.content.value like :keyword
+                 )
+           order by (p.upCount - p.downCount) desc, p.publishedAt desc
+           """)
+    Page<Post> searchCommunityFeedOrderByTop(
+            @Param("communityId") CommunityId communityId,
+            @Param("status") PostStatus status,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }

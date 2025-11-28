@@ -37,4 +37,9 @@ public interface QueryPostPort {
     Page<Post> findByCommunity(CommunityId communityId, String sortKey, Pageable pageable);
 
     Page<Post> findDraftsByAuthorId(MemberId authorId, String sortKey, Pageable pageable);
+
+    // --- 검색용 ---
+    Page<Post> searchHomeFeed(String keyword, String sortKey, Pageable pageable);
+
+    Page<Post> searchByCommunity(CommunityId communityId, String keyword, String sortKey, Pageable pageable);
 }

@@ -17,28 +17,9 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/extra")
 @Validated
 public class PostExtraFeatureController {
-    // ---------------------------------------------------------------------
-    // 1. 키워드 기반 게시글 검색
-    // ---------------------------------------------------------------------
-
-    /**
-     * 키워드 기반 게시글 검색.
-     * <p>
-     * 예: GET /api/search/posts?q=java&page=0&size=20
-     */
-    @GetMapping(path = "/search/posts", produces = "application/json")
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public void searchPosts(
-            @RequestParam("q") @NotBlank @Size(min = 1, max = 100) String query,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "20") int size
-    ) {
-        throw new UnsupportedOperationException("post.search: Not supported yet.");
-    }
-
     // ---------------------------------------------------------------------
     // 2. 사용자별 게시글 목록 (사용자 페이지용)
     // ---------------------------------------------------------------------
@@ -51,12 +32,12 @@ public class PostExtraFeatureController {
      */
     @GetMapping(path = "/members/{memberId}/posts", produces = "application/json")
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public void listMemberPosts(
+    public String listMemberPosts(
             @PathVariable String memberId,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size
     ) {
-        throw new UnsupportedOperationException("post.listMemberPosts: Not supported yet.");
+        return "/api/listMemberPosts: Not supported yet";
     }
 
     // ---------------------------------------------------------------------
@@ -70,11 +51,11 @@ public class PostExtraFeatureController {
      */
     @PostMapping(path = "/posts/{postId}/bookmark")
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public void addBookmark(
+    public String addBookmark(
             @AuthenticatedMember MemberId memberId,
             @PathVariable String postId
     ) {
-        throw new UnsupportedOperationException("post.bookmark.add: Not supported yet.");
+        return "/api/addBookmark: Not supported yet";
     }
 
     /**
@@ -84,11 +65,11 @@ public class PostExtraFeatureController {
      */
     @DeleteMapping(path = "/posts/{postId}/bookmark")
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public void removeBookmark(
+    public String removeBookmark(
             @AuthenticatedMember MemberId memberId,
             @PathVariable String postId
     ) {
-        throw new UnsupportedOperationException("post.bookmark.remove: Not supported yet.");
+        return "/api/removeBookmark: Not supported yet";
     }
 
     /**
@@ -98,11 +79,11 @@ public class PostExtraFeatureController {
      */
     @GetMapping(path = "/me/bookmarks", produces = "application/json")
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public void listMyBookmarks(
+    public String listMyBookmarks(
             @AuthenticatedMember MemberId memberId,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size
     ) {
-        throw new UnsupportedOperationException("post.bookmark.list: Not supported yet.");
+        return "/api/listMyBookmarks: Not supported yet";
     }
 }

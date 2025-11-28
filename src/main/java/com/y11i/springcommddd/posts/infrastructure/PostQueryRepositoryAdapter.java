@@ -58,6 +58,38 @@ public class PostQueryRepositoryAdapter implements QueryPostPort {
         return jpaPostQueryRepository.findByAuthorIdOrderByCreatedAtDesc(authorId, status, pageable);
     }
 
+    @Override
+    public Page<Post> searchHomeFeed(String keyword, String sortKey, Pageable pageable) {
+        PostStatus status = PostStatus.PUBLISHED;
+        String normalized = normalizeSortKey(sortKey);
+        String like = "%" + keyword + "%";
+
+        return switch (normalized) {
+            case "top" ->
+                    jpaPostQueryRepository.searchHomeFeedOrderByTop(status, like, pageable);
+            case "new" ->
+                    jpaPostQueryRepository.searchHomeFeedOrderByNew(status, like, pageable);
+            default ->
+                    jpaPostQueryRepository.searchHomeFeedOrderByNew(status, like, pageable);
+        };
+    }
+
+    @Override
+    public Page<Post> searchByCommunity(CommunityId communityId, String keyword, String sortKey, Pageable pageable) {
+        PostStatus status = PostStatus.PUBLISHED;
+        String normalized = normalizeSortKey(sortKey);
+        String like = "%" + keyword + "%";
+
+        return switch (normalized) {
+            case "top" ->
+                    jpaPostQueryRepository.searchCommunityFeedOrderByTop(communityId, status, like, pageable);
+            case "new" ->
+                    jpaPostQueryRepository.searchCommunityFeedOrderByNew(communityId, status, like, pageable);
+            default ->
+                    jpaPostQueryRepository.searchCommunityFeedOrderByNew(communityId, status, like, pageable);
+        };
+    }
+
     /**
      * 정렬 키를 소문자로 정규화하고, null이면 "new"로 처리한다.
      */

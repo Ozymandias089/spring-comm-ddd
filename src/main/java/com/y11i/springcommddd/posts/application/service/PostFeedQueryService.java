@@ -7,9 +7,7 @@ import com.y11i.springcommddd.communities.domain.exception.CommunityNotFound;
 import com.y11i.springcommddd.iam.domain.Member;
 import com.y11i.springcommddd.iam.domain.MemberId;
 import com.y11i.springcommddd.iam.domain.exception.MemberNotFound;
-import com.y11i.springcommddd.posts.application.port.in.ListCommunityPostsUseCase;
-import com.y11i.springcommddd.posts.application.port.in.ListDraftsUseCase;
-import com.y11i.springcommddd.posts.application.port.in.ListHomeFeedPostsUseCase;
+import com.y11i.springcommddd.posts.application.port.in.*;
 import com.y11i.springcommddd.posts.application.port.out.LoadAuthorForPostPort;
 import com.y11i.springcommddd.posts.application.port.out.LoadCommunityForPostPort;
 import com.y11i.springcommddd.posts.application.port.out.LoadPostAssetsPort;
@@ -33,7 +31,13 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommunityPostsUseCase, ListDraftsUseCase {
+public class PostFeedQueryService implements
+        ListHomeFeedPostsUseCase,
+        ListCommunityPostsUseCase,
+        ListDraftsUseCase,
+        SearchHomePostsUseCase,
+        SearchCommunityPostsUseCase
+{
 
     private final QueryPostPort queryPostPort;
     private final LoadAuthorForPostPort loadAuthorForPostPort;
@@ -175,5 +179,33 @@ public class PostFeedQueryService implements ListHomeFeedPostsUseCase, ListCommu
                 .orElseThrow(() -> new MemberNotFound("Member not found"));
         cache.put(aid, loaded);
         return loaded;
+    }
+
+    // ===========================
+    // 검색: 특정 커뮤니티
+    // ===========================
+
+    @Override
+    public PageResultDTO<PostSummaryResponseDTO> search(SearchCommunityPostsUseCase.Query q) {
+        CommunityNameKey nk = new CommunityNameKey(q.nameKey());
+        Community community = loadCommunityForPostPort.loadByNameKey(nk)
+                .orElseThrow(() -> new CommunityNotFound("Community not found: " + nk.value()));
+        CommunityId communityId = community.communityId();
+
+        PageRequest pageReq = PageRequest.of(q.page(), q.size());
+        Page<Post> page = queryPostPort.searchByCommunity(communityId, q.keyword(), q.sort(), pageReq);
+
+        return buildPageResult(page, q.viewerId(), community);
+    }
+
+    // ===========================
+    // 검색: 홈 전체
+    // ===========================
+    @Override
+    public PageResultDTO<PostSummaryResponseDTO> search(SearchHomePostsUseCase.Query q) {
+        PageRequest pageReq = PageRequest.of(q.page(), q.size());
+        Page<Post> page = queryPostPort.searchHomeFeed(q.keyword(), q.sort(), pageReq);
+
+        return buildPageResult(page, q.viewerId(), null);
     }
 }

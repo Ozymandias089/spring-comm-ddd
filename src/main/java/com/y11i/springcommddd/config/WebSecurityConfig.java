@@ -70,7 +70,8 @@ public class WebSecurityConfig {
                                 "/api/login",
                                 "/api/logout",
                                 "/api/password-reset",
-                                "/api/password-reset/confirm"
+                                "/api/password-reset/confirm",
+                                "/api/extra/**"
                         )
                         .ignoringRequestMatchers(new AntPathRequestMatcher("/api/c/**", "GET"))
                         .ignoringRequestMatchers(new AntPathRequestMatcher("/api/c/*/rules", "GET"))
@@ -105,6 +106,8 @@ public class WebSecurityConfig {
                         // 피드 / 커뮤니티 피드 → 인증 불필요
                         .requestMatchers(HttpMethod.GET, "/api/posts/feed").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/communities/*/posts").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/c/{nameKey}/posts/search").permitAll()
 
                         // 게시글 상세 조회 → 인증 불필요 (GET /api/posts/{postId})
                         .requestMatchers(HttpMethod.GET, "/api/posts/*").permitAll()
@@ -160,6 +163,7 @@ public class WebSecurityConfig {
                                 "/api/comments/{commentId}/vote/down"
                         ).authenticated()                              // Comment Upvote/Downvote
                         .requestMatchers(HttpMethod.DELETE, "/api/comments/{commentId}/vote").authenticated()  // Cancel Vote
+                        .requestMatchers("/api/extra/**").permitAll()
 
                         .anyRequest().authenticated()
                 )
