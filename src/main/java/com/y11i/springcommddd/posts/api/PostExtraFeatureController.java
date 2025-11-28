@@ -2,8 +2,6 @@ package com.y11i.springcommddd.posts.api;
 
 import com.y11i.springcommddd.iam.api.support.AuthenticatedMember;
 import com.y11i.springcommddd.iam.domain.MemberId;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -20,26 +18,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/extra")
 @Validated
 public class PostExtraFeatureController {
-    // ---------------------------------------------------------------------
-    // 2. 사용자별 게시글 목록 (사용자 페이지용)
-    // ---------------------------------------------------------------------
-
-    /**
-     * 특정 사용자의 게시글 목록 조회.
-     * <p>
-     * 예: GET /api/members/{memberId}/posts?page=0&size=20
-     * (실제 구현 시 status 필터, 정렬 옵션 등이 추가될 수 있다.)
-     */
-    @GetMapping(path = "/members/{memberId}/posts", produces = "application/json")
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public String listMemberPosts(
-            @PathVariable String memberId,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "20") int size
-    ) {
-        return "/api/listMemberPosts: Not supported yet";
-    }
-
     // ---------------------------------------------------------------------
     // 3. 게시글 북마크
     // ---------------------------------------------------------------------
